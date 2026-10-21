@@ -1,0 +1,7 @@
+{
+  "_doc": "Rulebook per reviewer agent. engine/validate_findings.py reads each reviewer's severities from its rulebook (severity lock); a reviewer without an entry fails validation.",
+  "reviewers": {
+    "demo-critic": {"rulebook": "rules/demo-rulebook.md"},
+    "demo-verifier": {"rulebook": "rules/demo-rulebook.md"}
+  }
+}

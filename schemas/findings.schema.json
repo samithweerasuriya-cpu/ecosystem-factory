@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Review findings (any critic or verifier)",
+  "type": "object",
+  "required": ["job_id", "reviewer", "artifact_path", "artifact_version", "verdict", "rules_checked", "findings"],
+  "properties": {
+    "job_id": {"type": "string"},
+    "reviewer": {"type": "string", "description": "reviewer agent name; its rulebook is named in config/reviewers.json"},
+    "artifact_path": {"type": "string"},
+    "artifact_version": {"type": "string", "description": "e.g. v2"},
+    "verdict": {"enum": ["pass", "fail"]},
+    "rules_checked": {"type": "array", "items": {"type": "string"}},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "severity", "location", "issue", "fix"],
+        "properties": {
+          "id": {"type": "string", "description": "F-01, F-02 ..."},
+          "rule": {"type": "string", "description": "rule ID from the reviewer's rulebook, e.g. AB12"},
+          "severity": {"enum": ["blocker", "major", "minor"]},
+          "location": {"type": "string", "description": "section heading or file:line"},
+          "issue": {"type": "string", "description": "what is wrong; quote <= 25 words"},
+          "evidence": {"type": "string", "description": "source id/location checked (verifier)"},
+          "fix": {"type": "string", "description": "1-2 line suggested fix"}
+        }
+      }
+    },
+    "summary": {"type": "string"}
+  },
+  "allOf": [{
+    "if": {"properties": {"findings": {"contains": {"properties": {"severity": {"enum": ["blocker", "major"]}}}}}},
+    "then": {"properties": {"verdict": {"const": "fail"}}}
+  }]
+}

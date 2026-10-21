@@ -1,0 +1,4 @@
+{
+  "_doc": "Gate settings. approver: the name written into gate tokens and the audit log (empty: the OS user name). Per-gate modes are added in T0.15.",
+  "approver": "Samith"
+}

@@ -1,0 +1,14 @@
+{
+  "job_id": "20260101-spec-sample",
+  "reviewer": "verifier",
+  "artifact_path": "jobs/20260101-spec-sample/drafts/v2.md",
+  "artifact_version": "v2",
+  "verdict": "pass",
+  "rules_checked": ["VR01", "VR04"],
+  "findings": [
+    {"id": "F-01", "rule": "VR04", "severity": "major", "location": "§3 Behaviour",
+     "issue": "Claim supported only by a low-rank source.",
+     "evidence": "S:notes §2",
+     "fix": "Cite a verified source or raise an open question."}
+  ]
+}

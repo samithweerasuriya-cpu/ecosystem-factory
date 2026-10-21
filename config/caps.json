@@ -1,0 +1,11 @@
+{
+  "_doc": "Caps enforced by engine/labcore.py. Exceeding a cap moves the job to ESCALATED (infra caps move it to BLOCKED). fix_attempts caps the fix_with loop after a failed script stage; fanout_max caps any fanout stage's item list.",
+  "infra_retries": 2,
+  "critic_revisions": 2,
+  "verifier_revisions": 2,
+  "total_revisions_before_gate": 3,
+  "fix_attempts": 2,
+  "gate_rejections": 3,
+  "agent_calls_per_job": 25,
+  "fanout_max": 3
+}

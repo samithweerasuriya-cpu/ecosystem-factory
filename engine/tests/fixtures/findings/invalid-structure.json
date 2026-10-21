@@ -1,0 +1,10 @@
+{
+  "job_id": "20260101-spec-sample",
+  "reviewer": "author",
+  "artifact_path": "jobs/20260101-spec-sample/drafts/v1.md",
+  "verdict": "fail",
+  "rules_checked": "TR01",
+  "findings": [
+    {"id": "F-01", "rule": "TR01", "severity": "critical", "location": "§4", "issue": "x"}
+  ]
+}

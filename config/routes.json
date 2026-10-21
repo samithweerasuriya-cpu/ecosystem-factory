@@ -1,0 +1,19 @@
+{
+  "_doc": "Job routes in route format v1 (schemas/route.schema.json). The demo route exercises every stage kind except script; T0.10 runs it with stand-in agents. Factory routes (intake, design, build) are added in T1.5.",
+  "routes": {
+    "demo": {
+      "stages": [
+        {"agent": "demo-planner"},
+        {"fanout": {"agent": "demo-researcher", "max": 3, "split_by": "topic"}},
+        {"agent": "demo-writer"}
+      ],
+      "reviews": [
+        {"agent": "demo-critic", "kind": "critic"},
+        {"agent": "demo-verifier", "kind": "verifier"}
+      ],
+      "revise_with": "demo-writer",
+      "gate": "G1-demo",
+      "deliver": "demo-publisher"
+    }
+  }
+}

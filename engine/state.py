@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Orchestrator CLI for job state. The ONLY way agents change job state.
+
+  python engine/state.py new <type> <slug> "<goal>" [--parent JOB]
+  python engine/state.py event <job> <event> [--artifact PATH] [--note TEXT]
+  python engine/state.py call <job> <agent> [--item ID]   # count an agent invocation
+  python engine/state.py fanout <job> <item> [<item> ...]  # fix the fan-out item list (once per stage)
+  python engine/state.py fanout-result <job> <item> done|failed [--note TEXT]
+  python engine/state.py run <job>                         # run the current script stage
+  python engine/state.py activate <job>                    # set active job (used by the hook)
+  python engine/state.py status [<job>]
+  python engine/state.py routes                            # print routes (validated)
+  python engine/state.py check-config                      # validate routes, caps and scripts
+
+Events: dispatch, stage_done, artifact_ready, fixed, infra_error, review_pass, review_fail,
+revised, deliver, complete, block, escalate, cancel, resume.
+(approve/reject are human-only: engine/gate.py; script_fail is recorded only by 'run'.)
+Exit codes: 0 ok, 1 error, 3 cap exceeded (job paused; tell the approver), 4 script stage failed.
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import labcore as lc  # noqa: E402
+
+
+def summary(st):
+    c = st["counters"]
+    return (f"{st['job_id']}  state={st['state']}  stage={st['stage']}  "
+            f"artifact={st['artifact_path']}  revisions={c['total_revisions']}  "
+            f"calls={c['agent_calls']}  gate={st['route']['gate']}")
+
+
+def main(argv=None):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    ap = argparse.ArgumentParser()
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    n = sub.add_parser("new"); n.add_argument("type"); n.add_argument("slug"); n.add_argument("goal"); n.add_argument("--parent")
+    e = sub.add_parser("event"); e.add_argument("job"); e.add_argument("event"); e.add_argument("--artifact"); e.add_argument("--note")
+    c = sub.add_parser("call"); c.add_argument("job"); c.add_argument("agent"); c.add_argument("--item")
+    f = sub.add_parser("fanout"); f.add_argument("job"); f.add_argument("items", nargs="+")
+    fr = sub.add_parser("fanout-result"); fr.add_argument("job"); fr.add_argument("item")
+    fr.add_argument("status", choices=["done", "failed"]); fr.add_argument("--note")
+    r = sub.add_parser("run"); r.add_argument("job")
+    a = sub.add_parser("activate"); a.add_argument("job")
+    s = sub.add_parser("status"); s.add_argument("job", nargs="?")
+    sub.add_parser("routes"); sub.add_parser("check-config")
+    args = ap.parse_args(argv)
+    try:
+        if args.cmd == "new":
+            st = lc.new_job(args.type, args.slug, args.goal, args.parent)
+            lc.set_active(st["job_id"])
+            print(summary(st))
+        elif args.cmd == "event":
+            print(summary(lc.apply(args.job, args.event, artifact=args.artifact, note=args.note)))
+        elif args.cmd == "call":
+            print(summary(lc.record_call(args.job, args.agent, item=args.item)))
+        elif args.cmd == "fanout":
+            print(summary(lc.set_fanout(args.job, args.items)))
+        elif args.cmd == "fanout-result":
+            print(summary(lc.fanout_result(args.job, args.item, args.status, args.note)))
+        elif args.cmd == "run":
+            st, rec = lc.run_script(args.job)
+            ok = rec["exit_code"] == 0
+            print(f"script {rec['script']}: {'passed' if ok else 'FAILED'} (exit={rec['exit_code']}, "
+                  f"timed_out={rec['timed_out']}, {rec['duration_s']}s)")
+            print(summary(st))
+            return 0 if ok else 4
+        elif args.cmd == "activate":
+            lc.set_active(args.job); print(f"active job: {args.job}")
+        elif args.cmd == "status":
+            if args.job:
+                print(json.dumps(lc.load_state(args.job), indent=2))
+            else:
+                for d in sorted(p for p in lc.JOBS.iterdir() if (p / "state.json").exists()) if lc.JOBS.exists() else []:
+                    print(summary(lc.load_json(d / "state.json")))
+                print(f"active: {lc.active_job()}")
+        elif args.cmd == "routes":
+            print(json.dumps(lc.routes(), indent=2))
+        elif args.cmd == "check-config":
+            errs = lc.route_errors(lc.load_json(lc.CONFIG / "routes.json"))
+            for err in errs:
+                print(f"INVALID {err}")
+            print("config OK" if not errs else f"{len(errs)} problem(s)")
+            return 1 if errs else 0
+    except lc.CapExceeded as ex:
+        print(f"PAUSED: {ex}", file=sys.stderr)
+        return ex.code
+    except lc.LabError as ex:
+        print(f"ERROR: {ex}", file=sys.stderr)
+        return ex.code
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Route format v1 (config/routes.json)",
+  "description": "A route is a workflow template for one job type. Stages run in order; reviews run in order after the last stage; a failing review sends the artifact to revise_with; a failing script stage goes to fix_with. engine/labcore.py adds semantic checks: a fanout is followed by an agent (merge) stage, fanout max <= caps.fanout_max, script names are in config/scripts.json, routes with script stages have fix_with, delivery needs a gate, and no reviewer reviews work it authors.",
+  "type": "object",
+  "required": ["routes"],
+  "properties": {
+    "_doc": {"type": "string"},
+    "routes": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/route"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
+    "gate": {"type": "string", "pattern": "^G\\d+-[a-z0-9-]+$"},
+    "agent_stage": {
+      "type": "object", "required": ["agent"], "additionalProperties": false,
+      "properties": {"agent": {"$ref": "#/$defs/name"}}
+    },
+    "script_stage": {
+      "type": "object", "required": ["script"], "additionalProperties": false,
+      "properties": {"script": {"$ref": "#/$defs/name"}}
+    },
+    "fanout_stage": {
+      "type": "object", "required": ["fanout"], "additionalProperties": false,
+      "properties": {
+        "fanout": {
+          "type": "object", "required": ["agent", "max", "split_by"], "additionalProperties": false,
+          "properties": {
+            "agent": {"$ref": "#/$defs/name"},
+            "max": {"type": "integer", "minimum": 1},
+            "split_by": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "review": {
+      "type": "object", "required": ["agent", "kind"], "additionalProperties": false,
+      "properties": {
+        "agent": {"$ref": "#/$defs/name"},
+        "kind": {"enum": ["critic", "verifier"]}
+      }
+    },
+    "route": {
+      "type": "object",
+      "required": ["stages", "reviews", "revise_with", "gate"],
+      "additionalProperties": false,
+      "properties": {
+        "stages": {
+          "type": "array", "minItems": 1,
+          "items": {"oneOf": [{"$ref": "#/$defs/agent_stage"}, {"$ref": "#/$defs/script_stage"}, {"$ref": "#/$defs/fanout_stage"}]}
+        },
+        "reviews": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/review"}},
+        "revise_with": {"$ref": "#/$defs/name"},
+        "fix_with": {"$ref": "#/$defs/name"},
+        "gate": {"anyOf": [{"$ref": "#/$defs/gate"}, {"type": "null"}]},
+        "deliver": {"anyOf": [{"$ref": "#/$defs/name"}, {"type": "null"}]},
+        "requires_parent_gate": {"$ref": "#/$defs/gate"},
+        "template": {"type": "string"},
+        "template_variants": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    }
+  }
+}

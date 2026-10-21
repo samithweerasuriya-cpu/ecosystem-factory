@@ -1,5 +1,20 @@
 {
   "permissions": {
-    "additionalDirectories": ["C:\\ecosystems"]
+    "additionalDirectories": ["C:\\ecosystems"],
+    "deny": [
+      "Bash(python engine/gate.py *)",
+      "Bash(python3 engine/gate.py *)",
+      "Bash(py -3 engine/gate.py *)",
+      "Bash(.venv/Scripts/python.exe engine/gate.py *)",
+      "PowerShell(python engine/gate.py *)",
+      "PowerShell(python3 engine/gate.py *)",
+      "PowerShell(py -3 engine/gate.py *)",
+      "PowerShell(.venv\\Scripts\\python.exe engine\\gate.py *)",
+      "Bash(git push *)",
+      "PowerShell(git push *)",
+      "Read(./.env*)",
+      "Read(./**/.env*)",
+      "Read(./**/master.key)"
+    ]
   }
 }

@@ -1,0 +1,5 @@
+{
+  "_doc": "Read by engine/hooks/pre_tool_use.py. mcp: every MCP tool is blocked unless an entry's tool glob matches its full name (mcp__<server>__<tool>). shell: commands matching an entry's regex pattern are blocked unless its conditions hold. Optional conditions on any entry: job_types, states, gate (a valid token for the active job). Empty lists mean no MCP tools and no extra shell gates.",
+  "mcp": [],
+  "shell": []
+}

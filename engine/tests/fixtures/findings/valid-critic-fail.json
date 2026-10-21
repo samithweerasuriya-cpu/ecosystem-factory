@@ -1,0 +1,17 @@
+{
+  "job_id": "20260101-spec-sample",
+  "reviewer": "critic",
+  "artifact_path": "jobs/20260101-spec-sample/drafts/v1.md",
+  "artifact_version": "v1",
+  "verdict": "fail",
+  "rules_checked": ["TR01", "TR17", "TR20"],
+  "findings": [
+    {"id": "F-01", "rule": "TR01", "severity": "blocker", "location": "§4 Scope",
+     "issue": "\"The tool decides the final price\" contradicts the brief's ownership rule.",
+     "fix": "State that the owning system sets the final value; the draft shows an estimate only."},
+    {"id": "F-02", "rule": "TR17", "severity": "minor", "location": "§6 Limits",
+     "issue": "A rate limit is stated without saying what it means for the user.",
+     "fix": "Add one line on the user-visible effect."}
+  ],
+  "summary": "One blocker on ownership."
+}
