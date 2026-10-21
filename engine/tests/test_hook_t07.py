@@ -386,6 +386,49 @@ class LauncherTests(LabTestBase):
         self.assertEqual(digest, LAUNCHER_SHA256, "the launcher changed: it must never be edited")
 
 
+class T07FollowupTests(HookBase):
+    """Samith's changes after T0.7: role-limited MCP entries, a stricter read-only list, and
+    inline code that deletes files."""
+
+    def test_app_tools_for_the_main_session_only(self):
+        self.dump("config/gated-actions.json", {"mcp": [
+            {"tool": "mcp__ccd_turn__update_plan", "roles": ["main"]},
+            {"tool": "mcp__ccd_turn__wrap_up", "roles": ["main"]}], "shell": []})
+        for tool in ("mcp__ccd_turn__update_plan", "mcp__ccd_turn__wrap_up"):
+            self.assertAllowed(self.call(tool, items=[]), tool)
+            self.assertBlocked(self.call(tool, agent=True, items=[]), tool + " from a subagent")
+        self.assertBlocked(self.call("mcp__ccd_turn__something_else"))                   # exact names only
+        self.assertBlocked(self.call("mcp__ccd_session__start_session"))
+
+    def test_shipped_config_lists_the_app_tools_by_exact_name(self):
+        cfg = json.loads((REPO / "config/gated-actions.json").read_text(encoding="utf-8"))
+        for e in cfg["mcp"]:
+            self.assertNotIn("*", e["tool"], e)
+            self.assertEqual(e.get("roles"), ["main"], e)
+
+    def test_read_only_commands_with_writing_or_program_running_options(self):
+        p = f"jobs/{J}/state.json"
+        for cmd in (f"sort -o {p} {p}", f"sort --output={p} {p}", f"uniq {p} {p}.bak", f"git grep -O state -- {p}",
+                    f"git grep --open-files-in-pager=vi state -- {p}", f"git log --output={p}", f"git diff --output {p}",
+                    f"git show --ext-diff HEAD -- {p}", f"git diff --textconv -- {p}", f"git -c core.pager=x log -- {p}",
+                    f"git --config-env=core.pager=X log -- {p}"):
+            self.assertBlocked(self.sh(cmd), cmd)
+        for cmd in (f"sort {p}", f"uniq {p}", f"git grep state -- {p}", f"git log -- {p}"):
+            self.assertAllowed(self.sh(cmd), cmd)
+
+    def test_inline_code_that_deletes_is_blocked_whatever_it_names(self):
+        for cmd in ("python -c \"import shutil; shutil.rmtree('build')\"", "python3 -c \"import os; os.remove('a.txt')\"",
+                    "python -c \"from pathlib import Path; Path('x').unlink()\"", "python -c \"import os; os.rmdir('d')\"",
+                    "python - <<'EOF'\nimport shutil\nshutil.rmtree('.')\nEOF", "ruby -e \"FileUtils.rm_rf('tmp')\"",
+                    "node -e \"require('fs').rmSync('x', {recursive: true})\"", "node -e \"require('fs').unlinkSync('a')\""):
+            self.assertBlocked(self.sh(cmd), cmd)
+        for cmd in ("Get-ChildItem x | ForEach-Object { Remove-Item $_ }", "& { Remove-Item notes.md }",
+                    "powershell -Command \"Remove-Item scratch.txt\""):
+            self.assertBlocked(self.sh(cmd, tool="PowerShell"), cmd)
+        self.assertAllowed(self.sh("python -c \"print(sum([1, 2]))\""))
+        self.assertAllowed(self.sh("python engine/state.py event x needs_input --note \"remove the old section\""))
+
+
 class SettingsRegistrationTests(unittest.TestCase):
     """(f) ported from the earlier lab: the project settings register the launcher, fail-closed."""
 

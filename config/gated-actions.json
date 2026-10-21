@@ -1,5 +1,8 @@
 {
-  "_doc": "Read by engine/hooks/pre_tool_use.py. mcp: every MCP tool is blocked unless an entry's tool glob matches its full name (mcp__<server>__<tool>). shell: commands matching an entry's regex pattern are blocked unless its conditions hold. Optional conditions on any entry: job_types, states, gate (a valid token for the active job). Empty lists mean no MCP tools and no extra shell gates.",
-  "mcp": [],
+  "_doc": "Read by engine/hooks/pre_tool_use.py. mcp: every MCP tool is blocked unless an entry's tool glob matches its full name (mcp__<server>__<tool>); list tools by exact name where possible. shell: commands matching an entry's regex pattern are blocked unless its conditions hold. Optional conditions on any entry: roles ([\"main\"]: only the main session, i.e. calls without agent_id), job_types, states, gate (a valid token for the active job). The two mcp__ccd_turn__ entries are the desktop app's own task-list and next-step tools, for the main session only.",
+  "mcp": [
+    {"tool": "mcp__ccd_turn__update_plan", "roles": ["main"]},
+    {"tool": "mcp__ccd_turn__wrap_up", "roles": ["main"]}
+  ],
   "shell": []
 }

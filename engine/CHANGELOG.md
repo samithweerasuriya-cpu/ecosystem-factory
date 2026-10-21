@@ -1,5 +1,11 @@
 # Engine changelog
 
+## 0.4.1 (2026-10-21)
+
+- MCP entries may carry `roles` (`["main"]`: only calls without `agent_id`); the factory allows the desktop app's two task-list tools by exact name, main session only.
+- Not read-only any more: `sort -o/--output`, `uniq IN OUT`, `git grep -O/--open-files-in-pager`, `git log/diff/show --output/--ext-diff/--textconv`, any `git -c` or `--config-env`.
+- Inline interpreter code (`-c`, `-e`, heredocs, `powershell -Command`, PowerShell script blocks) that calls a delete function (rmtree, remove, unlink, rmdir, Remove-Item and their Node/Ruby forms) is blocked whatever path it names.
+
 ## 0.4.0 (2026-10-21)
 
 Hook fixes and isolation.

@@ -28,10 +28,14 @@ Rules
     follow is blocked. Always blocked: executing gate.py, git push, reading secret files,
     eval / iex / Invoke-Expression / base64 decoding / encoded PowerShell commands. Commands
     matching a `shell` entry in config/gated-actions.json need that entry's conditions.
- 6. MCP: blocked unless an `mcp` entry in config/gated-actions.json allows the tool.
+ 6. MCP: blocked unless an `mcp` entry in config/gated-actions.json allows the tool; entries may
+    require roles (["main"]: only the main session, keyed on the absence of agent_id), job types,
+    states or a gate token.
 Limits: this is pattern-based analysis, not a sandbox. It stops accidents and prompt drift,
-not a determined attacker on your own machine: a path assembled at run time, or a bare "." inside
-inline code (rmtree('.')), is not recognised as naming the repo root.
+not a determined attacker on your own machine: a path assembled at run time is not recognised,
+and inline interpreter code is judged by what it names and by its delete calls (rmtree, remove,
+unlink, rmdir, Remove-Item: always blocked), not by everything it could do (e.g. writing a file
+whose name it builds at run time, or a bare "." inside code).
 """
 import fnmatch
 import json
@@ -70,6 +74,14 @@ READ_ONLY = {"ls", "cat", "head", "tail", "grep", "wc", "cd", "echo", "test", "[
              "select", "out-null", "findstr"}
 READ_ONLY_GIT = {"status", "log", "diff", "show", "ls-files", "rev-parse", "grep", "check-ignore"}
 WRITE_FLAGS = {"-o", "--output", "--output-file", "-outfile", "-delete", "-exec", "-execdir", "-ok", "-fprint"}
+WRITE_FLAG_PREFIXES = ("--output", "-outfile")
+# git options that write files or run other programs, so a "read-only" git command is not read-only
+GIT_UNSAFE = {"-o", "-O", "--open-files-in-pager", "--ext-diff", "--textconv", "--output"}
+GIT_UNSAFE_PREFIXES = ("--output", "--open-files-in-pager", "-O")
+GIT_GLOBAL_UNSAFE = ("-c", "--config-env")
+# 3. inline interpreter code that deletes files: blocked whatever path it names
+DELETE_CALL = re.compile(r"\b(rmtree|remove|unlink|rmdir|removedirs|unlinkSync|rmSync|rmdirSync|rm_rf|rm_r)\s*\(|"
+                         r"\bFileUtils\.rm\b|\bfs\.rm\s*\(|\bRemove-Item\b", re.IGNORECASE)
 ENGINE_TOOLS = {"engine/state.py", "engine/validate_findings.py", "engine/check_refs.py",
                 "engine/check_coverage.py", "engine/run_tests.py"}
 HARMLESS_TARGETS = {"/dev/null", "nul", "$null", "&1", "&2", "1", "2"}
@@ -333,16 +345,25 @@ def segment_read_only(words, reds, ctx, depth):
     if head == "git":
         rest, sub = words[1:], ""
         while rest:
-            if rest[0] in ("-C", "-c", "--git-dir", "--work-tree", "--namespace"):
+            if rest[0] in GIT_GLOBAL_UNSAFE or rest[0].startswith("--config-env"):
+                return False                     # git -c / --config-env can run any program
+            if rest[0] in ("-C", "--git-dir", "--work-tree", "--namespace"):
                 rest = rest[2:]
             elif rest[0].startswith("-"):
                 rest = rest[1:]
             else:
                 sub = rest[0]
+                rest = rest[1:]
                 break
-        return sub.casefold() in READ_ONLY_GIT and not any(w.casefold() in WRITE_FLAGS or w.startswith("--output") for w in words)
+        if sub.casefold() not in READ_ONLY_GIT:
+            return False
+        return not any(w in GIT_UNSAFE or w.startswith(GIT_UNSAFE_PREFIXES) for w in rest)
     if head in READ_ONLY:
-        return not any(w.casefold() in WRITE_FLAGS for w in words[1:])
+        if any(w.casefold() in WRITE_FLAGS or w.casefold().startswith(WRITE_FLAG_PREFIXES) for w in words[1:]):
+            return False
+        if head == "uniq" and len([w for w in words[1:] if not w.startswith("-")]) >= 2:
+            return False                         # uniq IN OUT writes OUT
+        return True
     return False
 
 
@@ -406,6 +427,29 @@ def executes_gate(words):
     return False
 
 
+def inline_code(segs, cmd, ps):
+    """Text of inline interpreter code in the command: -c / -e / -Command arguments, heredoc bodies
+    fed to an interpreter, and PowerShell script blocks."""
+    code = []
+    for i, (words, _) in enumerate(segs):
+        if not words:
+            continue
+        head = base(words[0])
+        if head in INTERPRETERS:
+            for j, w in enumerate(words[1:], 1):
+                if w in ("-c", "-e", "--eval", "-p", "--print", "-") and j + 1 < len(words):
+                    code.append(" ".join(words[j + 1:]))
+            if "<<" in cmd:                      # heredoc: the body follows as later segments
+                code += [" ".join(w) for w, _ in segs[i + 1:]]
+        if head in NESTED_PS:                    # powershell -Command "<script>"
+            for j, w in enumerate(words[1:], 1):
+                if w.casefold() in ("-command", "-c") and j + 1 < len(words):
+                    code.append(" ".join(words[j + 1:]))
+    if ps:
+        code += re.findall(r"\{[^{}]*\}", cmd)  # script blocks: & { ... }, ForEach-Object { ... }
+    return "\n".join(code)
+
+
 def check_shell(ctx):
     cmd = ctx.ti.get("command", "") or ""
     ps = ctx.tool == "PowerShell"
@@ -421,6 +465,9 @@ def check_shell(ctx):
             raise Blocked("engine/gate.py is human-only (command could not be parsed; failing closed).")
         if re.search(r"\bgit\b.*\bpush\b", cmd):
             raise Blocked("git push is disabled (command could not be parsed; failing closed).")
+    code = inline_code(segs, cmd, ps)
+    if code and DELETE_CALL.search(code):
+        raise Blocked("inline interpreter code that deletes files is not allowed, whatever path it names.")
     for words, _ in segs:
         if executes_gate(words):
             raise Blocked("engine/gate.py is human-only. Ask the approver to run it in their own terminal.")
@@ -452,7 +499,7 @@ def check_shell(ctx):
                           "Use engine/state.py for state changes; framework files are locked in operate mode.")
     for entry in gated_actions().get("shell", []):
         if re.search(entry["pattern"], cmd.replace("\\", "/")):
-            why = condition_error(entry)
+            why = condition_error(entry, ctx)
             if why:
                 raise Blocked(f"{entry.get('reason') or entry['pattern']}: {why}")
 
@@ -505,8 +552,12 @@ def gated_actions():
     return lc.load_json(f) if f.exists() else {}
 
 
-def condition_error(entry):
-    """None if the entry's conditions hold for the active job, else the reason."""
+def condition_error(entry, ctx=None):
+    """None if the entry's conditions hold (caller role, active job), else the reason."""
+    if "roles" in entry:
+        role = "subagent" if ctx is not None and ctx.subagent else "main"
+        if role not in entry["roles"]:
+            return f"only for {entry['roles']} (this call is from a {role})"
     if not any(k in entry for k in ("gate", "states", "job_types")):
         return None
     job = lc.active_job()
@@ -531,7 +582,7 @@ def check_mcp(ctx):
     entry = next((e for e in gated_actions().get("mcp", []) if fnmatch.fnmatchcase(ctx.tool, e["tool"])), None)
     if entry is None:
         raise Blocked(f"MCP tool {ctx.tool} is not allowed (not listed in config/gated-actions.json).")
-    why = condition_error(entry)
+    why = condition_error(entry, ctx)
     if why:
         raise Blocked(f"MCP tool {ctx.tool}: {why}")
 
