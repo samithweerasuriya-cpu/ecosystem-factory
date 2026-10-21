@@ -303,6 +303,25 @@ class EngineRobustnessTests(LabTestBase):
         st = lc.apply(j, "infra_error")
         self.assertEqual((st["state"], st["counters"]["infra_errors"]), ("REVIEW", 1))
 
+    def test_review_infra_errors_hit_the_retry_cap_and_block_without_resetting_review_counters(self):
+        lc = self.lc
+        j = lc.new_job("spec", "review-cap", "x")["job_id"]
+        lc.apply(j, "dispatch"); lc.apply(j, "stage_done")
+        lc.apply(j, "artifact_ready", artifact=self.write(f"jobs/{j}/drafts/v1.md"))
+        lc.apply(j, "review_fail")                                   # critic_revisions 1, total 1
+        lc.apply(j, "revised", artifact=self.write(f"jobs/{j}/drafts/v2.md", "v2"))
+        lc.apply(j, "review_pass")                                   # now VERIFY
+        before = dict(lc.load_state(j)["counters"])
+        lc.apply(j, "infra_error"); lc.apply(j, "infra_error")       # caps.infra_retries = 2
+        with self.assertRaises(lc.CapExceeded):
+            lc.apply(j, "infra_error")
+        st = lc.load_state(j)
+        self.assertEqual((st["state"], st["resume_to"]), ("BLOCKED", "VERIFY"))
+        self.assertEqual(st["counters"]["infra_errors"], 3)
+        for k in ("critic_revisions", "verifier_revisions", "total_revisions", "gate_rejections"):
+            self.assertEqual(st["counters"][k], before[k], k)
+        self.assertEqual((before["critic_revisions"], before["total_revisions"]), (1, 1))
+
 
 if __name__ == "__main__":
     unittest.main()
