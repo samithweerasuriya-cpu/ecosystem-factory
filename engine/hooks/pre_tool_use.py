@@ -7,7 +7,8 @@ logs/blocked.jsonl.
 
 Rules
  1. Always protected (no agent writes): jobs/*/gates/*, jobs/*/state.json,
-    jobs/*/run.log.jsonl, jobs/*/scripts/*, .lab/*, logs/blocked.jsonl,
+    jobs/*/run.log.jsonl, jobs/*/scripts/*, jobs/*/inputs/* and private/jobs/*/inputs/*
+    (the approver's verbatim inputs), jobs/*/questions/*, .lab/*, logs/blocked.jsonl,
     logs/gate-audit.jsonl, anything outside the repo.
  2. Operate mode (.lab/OPERATE exists): framework files are also protected:
     .claude/*, engine/*, rules/*, config/*, schemas/*, templates/*, evals/*/cases/*.
@@ -31,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import labcore as lc  # noqa: E402
 
 ALWAYS = ["jobs/*/gates/*", "jobs/*/state.json", "jobs/*/run.log.jsonl", "jobs/*/scripts/*",
+          "jobs/*/inputs/*", "private/jobs/*/inputs/*", "jobs/*/questions/*",
           ".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl"]
 OPERATE = [".claude/*", "engine/*", "rules/*", "config/*", "schemas/*", "templates/*",
            "evals/*/cases/*"]

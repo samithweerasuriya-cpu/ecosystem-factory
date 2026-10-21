@@ -1,5 +1,5 @@
 {
-  "_doc": "Caps enforced by engine/labcore.py. Exceeding a cap moves the job to ESCALATED (infra caps move it to BLOCKED). fix_attempts caps the fix_with loop after a failed script stage; fanout_max caps any fanout stage's item list.",
+  "_doc": "Caps enforced by engine/labcore.py. Exceeding a cap moves the job to ESCALATED (infra caps move it to BLOCKED). Per-cycle caps (revisions, fix_attempts, infra_retries, agent_calls_per_job) reset on resume and some on reject; the lifetime caps (lifetime_agent_calls, lifetime_revisions, lifetime_resumes, input_rounds, repairs) never reset. A resume past lifetime_resumes is refused: cancel, or start a new job with --continue-from. fix_attempts caps the fix_with loop after a failed script stage; fanout_max caps any fanout item list; repairs caps the one-re-ask-per-call repair retries (invalid output, severity directive).",
   "infra_retries": 2,
   "critic_revisions": 2,
   "verifier_revisions": 2,
@@ -7,5 +7,10 @@
   "fix_attempts": 2,
   "gate_rejections": 3,
   "agent_calls_per_job": 25,
-  "fanout_max": 3
+  "fanout_max": 3,
+  "lifetime_agent_calls": 60,
+  "lifetime_revisions": 10,
+  "lifetime_resumes": 3,
+  "input_rounds": 5,
+  "repairs": 6
 }

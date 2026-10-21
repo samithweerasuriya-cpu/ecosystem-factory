@@ -54,6 +54,8 @@ def reviewer_rulebook(reviewer, root=ROOT):
     f = root / "config" / "reviewers.json"
     cfg = json.loads(f.read_text(encoding="utf-8")).get("reviewers", {}) if f.is_file() else {}
     entry = cfg.get(reviewer)
+    if not entry and reviewer == "check-refs":  # the engine's own mechanical reviewer always has its rulebook
+        entry = {"rulebook": "rules/check-refs.md"}
     return root / entry["rulebook"] if entry and entry.get("rulebook") else None
 
 

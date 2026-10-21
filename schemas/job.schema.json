@@ -2,47 +2,368 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Job state (jobs/<id>/state.json), written only by engine/labcore.py",
   "type": "object",
-  "required": ["job_id", "type", "goal", "route", "state", "stage", "stage_kind", "stage_index", "review_index", "fanout", "fixing", "artifact_path", "counters", "created", "updated"],
+  "required": [
+    "job_id",
+    "type",
+    "goal",
+    "route",
+    "state",
+    "stage",
+    "stage_kind",
+    "stage_index",
+    "review_index",
+    "fanout",
+    "fixing",
+    "artifact_path",
+    "counters",
+    "created",
+    "updated",
+    "visit",
+    "calls",
+    "retry",
+    "inputs",
+    "awaiting",
+    "continued_from",
+    "seed"
+  ],
   "properties": {
-    "job_id": {"type": "string", "pattern": "^\\d{8}-[a-z]+-[a-z0-9-]+$"},
-    "type": {"type": "string", "pattern": "^[a-z]+$"},
-    "goal": {"type": "string"},
-    "parent": {"type": ["string", "null"]},
-    "route": {"type": "object"},
-    "state": {"enum": ["NEW", "PLANNED", "WORKING", "REVIEW", "VERIFY", "REVISING", "GATE", "APPROVED", "DELIVERING", "DONE", "BLOCKED", "ESCALATED", "CANCELLED"]},
-    "stage": {"type": ["string", "null"], "description": "agent or script currently responsible"},
-    "stage_kind": {"enum": ["agent", "script", "fanout", "fix", "review", "revise", "deliver", null]},
-    "stage_index": {"type": "integer"},
-    "review_index": {"type": "integer"},
+    "job_id": {
+      "type": "string",
+      "pattern": "^\\d{8}-[a-z]+-[a-z0-9-]+$"
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z]+$"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "parent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "route": {
+      "type": "object"
+    },
+    "state": {
+      "enum": [
+        "NEW",
+        "PLANNED",
+        "WORKING",
+        "REVIEW",
+        "VERIFY",
+        "REVISING",
+        "AWAITING_INPUT",
+        "GATE",
+        "APPROVED",
+        "DELIVERING",
+        "DONE",
+        "BLOCKED",
+        "ESCALATED",
+        "CANCELLED"
+      ]
+    },
+    "stage": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "agent or script currently responsible"
+    },
+    "stage_kind": {
+      "enum": [
+        "agent",
+        "script",
+        "fanout",
+        "fix",
+        "review",
+        "revise",
+        "deliver",
+        null
+      ]
+    },
+    "stage_index": {
+      "type": "integer"
+    },
+    "review_index": {
+      "type": "integer"
+    },
     "fanout": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "properties": {
-        "agent": {"type": "string"},
-        "split_by": {"type": "string"},
+        "agent": {
+          "type": "string"
+        },
+        "split_by": {
+          "type": "string"
+        },
         "items": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["status", "calls"],
+            "required": [
+              "status",
+              "calls"
+            ],
             "properties": {
-              "status": {"enum": ["pending", "running", "done", "failed"]},
-              "calls": {"type": "integer"},
-              "note": {"type": ["string", "null"]}
+              "status": {
+                "enum": [
+                  "pending",
+                  "running",
+                  "done",
+                  "failed"
+                ]
+              },
+              "calls": {
+                "type": "integer"
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         }
       }
     },
-    "fixing": {"type": "boolean"},
-    "artifact_path": {"type": ["string", "null"]},
-    "resume_to": {"type": ["string", "null"]},
-    "last_failed_by": {"type": ["string", "null"]},
+    "fixing": {
+      "type": "boolean"
+    },
+    "artifact_path": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resume_to": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "last_failed_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "counters": {
       "type": "object",
-      "required": ["critic_revisions", "verifier_revisions", "total_revisions", "fix_attempts", "infra_errors", "gate_rejections", "agent_calls"],
-      "additionalProperties": {"type": "integer"}
+      "required": [
+        "critic_revisions",
+        "verifier_revisions",
+        "total_revisions",
+        "fix_attempts",
+        "infra_errors",
+        "gate_rejections",
+        "agent_calls",
+        "lifetime_agent_calls",
+        "lifetime_revisions",
+        "lifetime_resumes",
+        "input_rounds",
+        "repairs"
+      ],
+      "additionalProperties": {
+        "type": "integer"
+      }
     },
-    "created": {"type": "string"},
-    "updated": {"type": "string"}
+    "created": {
+      "type": "string"
+    },
+    "updated": {
+      "type": "string"
+    },
+    "visit": {
+      "type": "integer",
+      "description": "step counter; each step allows one call per agent (and fan-out item)"
+    },
+    "calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "item",
+          "visit",
+          "state",
+          "attempt",
+          "retry_of",
+          "reason",
+          "handoff",
+          "ts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^C\\d{3,}$"
+          },
+          "agent": {
+            "type": "string"
+          },
+          "item": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "visit": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string"
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "retry_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "enum": [
+              null,
+              "infra_error",
+              "invalid_output",
+              "severity_directive"
+            ]
+          },
+          "handoff": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ts": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "retry": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "of": {
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "infra_error",
+            "invalid_output",
+            "severity_directive"
+          ]
+        }
+      }
+    },
+    "last_handoff": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "handoffs": {
+      "type": "integer"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "class",
+          "path",
+          "sha256",
+          "recorded"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^A\\d{2,}$"
+          },
+          "class": {
+            "enum": [
+              "synthetic",
+              "public",
+              "internal"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recorded": {
+            "type": "string"
+          },
+          "copied_from": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "awaiting": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "stage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "questions": {
+          "type": "string"
+        },
+        "inputs_before": {
+          "type": "integer"
+        },
+        "asked": {
+          "type": "string"
+        }
+      }
+    },
+    "continued_from": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "seed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
   }
 }

@@ -105,13 +105,20 @@ class StateMachineTests(LabTestBase):
         self.assertEqual(lc.load_state(j)["state"], "WORKING")
 
     def test_agent_call_cap(self):
+        """Changed in T0.6: repeated calls in one step are now refused (fix c), so the cap is reached
+        with one call per step instead of 25 calls to the same agent."""
         lc = self.lc
+        caps = json.loads((self.tmp / "config/caps.json").read_text())
+        caps["agent_calls_per_job"] = 3
+        self.dump("config/caps.json", caps)
         j = lc.new_job("report", "calls", "x")["job_id"]
-        lc.apply(j, "dispatch")
-        for _ in range(25):
-            lc.record_call(j, "researcher")
+        lc.apply(j, "dispatch"); lc.record_call(j, "researcher")
+        lc.apply(j, "stage_done"); lc.record_call(j, "reporter")
+        lc.apply(j, "artifact_ready", artifact=self.write(f"jobs/{j}/drafts/v1.md"))
+        lc.record_call(j, "verifier")                       # 3 calls
+        lc.apply(j, "review_fail")
         with self.assertRaises(lc.CapExceeded):
-            lc.record_call(j, "researcher")
+            lc.record_call(j, "reporter")
         self.assertEqual(lc.load_state(j)["state"], "ESCALATED")
 
     def test_route_without_gate_ends_done(self):

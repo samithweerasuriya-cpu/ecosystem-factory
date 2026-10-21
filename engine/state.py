@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Orchestrator CLI for job state. The ONLY way agents change job state.
 
-  python engine/state.py new <type> <slug> "<goal>" [--parent JOB]
-  python engine/state.py event <job> <event> [--artifact PATH] [--note TEXT]
+  python engine/state.py new <type> <slug> "<goal>" [--parent JOB] [--continue-from JOB]
+  python engine/state.py event <job> <event> [--artifact PATH] [--note TEXT] [--reason R] [--questions FILE]
+  python engine/state.py handoff <job> [--item ID] [--json]  # build the handoff for the next agent call
   python engine/state.py call <job> <agent> [--item ID]   # count an agent invocation
+  python engine/state.py input <job> <file|-> --class synthetic|public|internal [--note TEXT]
   python engine/state.py fanout <job> <item> [<item> ...]  # fix the fan-out item list (once per stage)
   python engine/state.py fanout-result <job> <item> done|failed [--note TEXT]
   python engine/state.py run <job>                         # run the current script stage
@@ -12,8 +14,11 @@
   python engine/state.py routes                            # print routes (validated)
   python engine/state.py check-config                      # validate routes, caps and scripts
 
-Events: dispatch, stage_done, artifact_ready, fixed, infra_error, review_pass, review_fail,
-revised, deliver, complete, block, escalate, cancel, resume.
+Events: dispatch, stage_done, artifact_ready, fixed, infra_error, repair (--reason invalid_output|
+severity_directive), needs_input (--questions FILE), answered, review_pass, review_fail, revised,
+deliver, complete, block, escalate, cancel, resume.
+Inputs are stored verbatim: synthetic and public in jobs/<job>/inputs/, internal in
+private/jobs/<job>/inputs/ (untracked).
 (approve/reject are human-only: engine/gate.py; script_fail is recorded only by 'run'.)
 Exit codes: 0 ok, 1 error, 3 cap exceeded (job paused; tell the approver), 4 script stage failed.
 """
@@ -37,8 +42,12 @@ def main(argv=None):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    n = sub.add_parser("new"); n.add_argument("type"); n.add_argument("slug"); n.add_argument("goal"); n.add_argument("--parent")
+    n = sub.add_parser("new"); n.add_argument("type"); n.add_argument("slug"); n.add_argument("goal"); n.add_argument("--parent"); n.add_argument("--continue-from")
     e = sub.add_parser("event"); e.add_argument("job"); e.add_argument("event"); e.add_argument("--artifact"); e.add_argument("--note")
+    e.add_argument("--reason"); e.add_argument("--questions")
+    h = sub.add_parser("handoff"); h.add_argument("job"); h.add_argument("--item"); h.add_argument("--json", action="store_true")
+    i = sub.add_parser("input"); i.add_argument("job"); i.add_argument("file")
+    i.add_argument("--class", dest="cls", required=True, choices=["synthetic", "public", "internal"]); i.add_argument("--note")
     c = sub.add_parser("call"); c.add_argument("job"); c.add_argument("agent"); c.add_argument("--item")
     f = sub.add_parser("fanout"); f.add_argument("job"); f.add_argument("items", nargs="+")
     fr = sub.add_parser("fanout-result"); fr.add_argument("job"); fr.add_argument("item")
@@ -50,11 +59,19 @@ def main(argv=None):
     args = ap.parse_args(argv)
     try:
         if args.cmd == "new":
-            st = lc.new_job(args.type, args.slug, args.goal, args.parent)
+            st = lc.new_job(args.type, args.slug, args.goal, args.parent, continue_from=args.continue_from)
             lc.set_active(st["job_id"])
             print(summary(st))
         elif args.cmd == "event":
-            print(summary(lc.apply(args.job, args.event, artifact=args.artifact, note=args.note)))
+            print(summary(lc.apply(args.job, args.event, artifact=args.artifact, note=args.note,
+                                   reason=args.reason, questions=args.questions)))
+        elif args.cmd == "handoff":
+            h, text = lc.handoff(args.job, args.item)
+            print(json.dumps(h, indent=2) if args.json else text.rstrip("\n"))
+        elif args.cmd == "input":
+            data = sys.stdin.buffer.read() if args.file == "-" else None
+            st, rec = lc.record_input(args.job, args.file, args.cls, args.note, data=data)
+            print(f"recorded {rec['id']} ({rec['class']}): {rec['path']}")
         elif args.cmd == "call":
             print(summary(lc.record_call(args.job, args.agent, item=args.item)))
         elif args.cmd == "fanout":

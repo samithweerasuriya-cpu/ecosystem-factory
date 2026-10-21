@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -21,6 +22,7 @@ from pathlib import Path
 ENGINE = Path(__file__).resolve().parent
 sys.path.insert(0, str(ENGINE))
 import schemacheck  # noqa: E402
+import check_refs  # noqa: E402
 
 ROOT = Path(os.environ.get("LAB_ROOT") or os.environ.get("CLAUDE_PROJECT_DIR") or ENGINE.parent)
 JOBS = ROOT / "jobs"
@@ -37,6 +39,11 @@ JOB_ID_RE = re.compile(r"^\d{8}-[a-z]+-[a-z0-9-]+$")
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,60}$")
 ITEM_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 PER_CYCLE = ("critic_revisions", "verifier_revisions", "total_revisions", "fix_attempts", "infra_errors")
+# Job-lifetime counters: never reset by reject, resume or anything else.
+LIFETIME = ("lifetime_agent_calls", "lifetime_revisions", "lifetime_resumes", "input_rounds", "repairs")
+CALL_STATES = {"WORKING", "REVIEW", "VERIFY", "REVISING", "DELIVERING"}
+REPAIR_REASONS = ("invalid_output", "severity_directive")
+INPUT_CLASSES = ("synthetic", "public", "internal")
 # Script argv placeholders: {job}, {job_dir}, {root}; an argv entry of exactly "{python}"
 # becomes the interpreter running the engine (so script stages need no venv on PATH).
 
@@ -81,6 +88,11 @@ def caps():
 def scripts():
     f = CONFIG / "scripts.json"
     return load_json(f).get("scripts", {}) if f.exists() else {}
+
+
+def reviewers():
+    f = CONFIG / "reviewers.json"
+    return load_json(f).get("reviewers", {}) if f.exists() else {}
 
 
 def approver():
@@ -263,7 +275,18 @@ def reject_gate(job_id, feedback, actor=None):
 
 # ---------- jobs ----------
 
-def new_job(jtype, slug, goal, parent=None):
+def _fresh_state(job_id, jtype, goal, parent, r):
+    return {"job_id": job_id, "type": jtype, "goal": goal, "parent": parent,
+            "route": r, "state": "NEW", "stage": None, "stage_kind": None, "stage_index": 0,
+            "review_index": 0, "fanout": None, "fixing": False,
+            "artifact_path": None, "resume_to": None, "last_failed_by": None,
+            "visit": 0, "calls": [], "retry": None, "last_handoff": None, "handoffs": 0,
+            "inputs": [], "awaiting": None, "continued_from": None, "seed": [],
+            "counters": {k: 0 for k in PER_CYCLE + LIFETIME + ("gate_rejections", "agent_calls")},
+            "created": now(), "updated": now()}
+
+
+def new_job(jtype, slug, goal, parent=None, continue_from=None):
     all_routes = routes()
     r = all_routes.get(jtype)
     if r is None:
@@ -276,22 +299,41 @@ def new_job(jtype, slug, goal, parent=None):
         ok, why = verify_gate(parent, r["requires_parent_gate"])
         if not ok:
             raise LabError(f"parent not approved: {why}")
+    old = None
+    if continue_from:
+        old = load_state(continue_from)
+        if old["state"] not in TERMINAL | PAUSED:
+            raise LabError(f"{continue_from} is {old['state']}; continue only from a finished or paused job")
     base = f"{datetime.date.today():%Y%m%d}-{jtype}-{slug}"
     job_id, i = base, 2
     while (JOBS / job_id).exists():
         job_id, i = f"{base}-{i}", i + 1
     d = JOBS / job_id
-    for sub in ("research", "drafts", "reviews", "gates", "delivery"):
+    for sub in ("research", "drafts", "reviews", "gates", "delivery", "evidence"):
         (d / sub).mkdir(parents=True)
-    (d / "brief.md").write_text(f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n\n## Goal\n{goal}\n", encoding="utf-8")
-    st = {"job_id": job_id, "type": jtype, "goal": goal, "parent": parent,
-          "route": r, "state": "NEW", "stage": None, "stage_kind": None, "stage_index": 0,
-          "review_index": 0, "fanout": None, "fixing": False,
-          "artifact_path": None, "resume_to": None, "last_failed_by": None,
-          "counters": {k: 0 for k in PER_CYCLE + ("gate_rejections", "agent_calls")},
-          "created": now(), "updated": now()}
+    cont = f"Continued from: {continue_from}\n" if continue_from else ""
+    (d / "brief.md").write_text(f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n{cont}\n## Goal\n{goal}\n", encoding="utf-8")
+    st = _fresh_state(job_id, jtype, goal, parent, r)
+    if old:
+        st["continued_from"] = continue_from
+        if old["artifact_path"]:
+            src = ROOT / old["artifact_path"]
+            dst = d / "drafts" / f"seed-{src.name}"
+            if src.is_dir():
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+            st["seed"].append(rel(dst))
+        for inp in old["inputs"]:
+            dest = input_dir(job_id, inp["class"]) / Path(inp["path"]).name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / inp["path"], dest)
+            st["inputs"].append({**inp, "path": rel(dest), "copied_from": continue_from})
     save_json(d / "state.json", st)
-    log(job_id, {"event": "created", "from": None, "to": "NEW", "actor": "orchestrator"})
+    log(job_id, {"event": "created", "from": None, "to": "NEW", "actor": "orchestrator",
+                 "continued_from": continue_from, "seed": st["seed"]})
+    if old:
+        log(continue_from, {"event": "continued_as", "job": job_id, "actor": "orchestrator"})
     return apply(job_id, "plan")
 
 
@@ -301,7 +343,17 @@ def _save(job_id, st, entry):
     log(job_id, {**entry, "counters": st["counters"]})
 
 
-def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=False, _script=False):
+def _visit_calls(st):
+    return [c for c in st["calls"] if c["visit"] == st["visit"]]
+
+
+def _version(artifact):
+    m = re.search(r"(v\d+)", Path(artifact).name)
+    return m.group(1) if m else Path(artifact).name
+
+
+def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=False, _script=False,
+          reason=None, questions=None):
     if event in HUMAN_ONLY and not _human:
         raise LabError(f"'{event}' is human-only; the approver runs engine/gate.py in their own terminal")
     if event in SCRIPT_ONLY and not _script:
@@ -311,7 +363,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     if cur in TERMINAL:
         raise LabError(f"{job_id} is terminal ({cur})")
     work, reviews = r["stages"], r["reviews"]
-    new, capmsg = None, None
+    new, capmsg, extra = None, None, {}
 
     def enter_stage(i):
         st["stage_index"], st["fanout"], st["fixing"] = i, None, False
@@ -331,6 +383,29 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             return paused
         return None
 
+    def revision(kind_counter=None, kind_cap=None):
+        """One more revision: per-kind cap (reviews only), cycle total, job lifetime."""
+        return ((cap(kind_counter, kind_cap, "REVISING") if kind_counter else None)
+                or cap("total_revisions", "total_revisions_before_gate", "REVISING")
+                or cap("lifetime_revisions", "lifetime_revisions", "REVISING")
+                or "REVISING")
+
+    def new_artifact():
+        """Set the new version, run the reference check, then hand it to the first reviewer."""
+        st["artifact_path"] = rel(artifact)
+        sha256_path(st["artifact_path"])
+        problems = check_refs.check(ROOT, job_id, st["artifact_path"], {i["id"] for i in st["inputs"]})
+        if not problems:
+            return enter_review(0)
+        doc = check_refs.findings_doc(job_id, st["artifact_path"], _version(st["artifact_path"]), problems)
+        n = len(list((JOBS / job_id / "reviews").glob("check-refs-*.json"))) + 1
+        out = JOBS / job_id / "reviews" / f"check-refs-{n}.json"
+        save_json(out, doc)
+        extra["check_refs"] = rel(out)
+        st["last_failed_by"] = "check-refs"
+        st["stage_kind"], st["stage"] = "revise", r["revise_with"]
+        return revision()
+
     def script_stage():
         return cur == "WORKING" and st["stage_kind"] == "script" and not st["fixing"]
 
@@ -344,6 +419,10 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     elif event == "resume":
         if cur not in PAUSED:
             raise LabError(f"resume only from BLOCKED/ESCALATED, not {cur}")
+        if st["counters"]["lifetime_resumes"] >= c["lifetime_resumes"]:
+            raise CapExceeded(f"{job_id}: cap exceeded: lifetime_resumes={c['lifetime_resumes']}; "
+                              f"resume refused (cancel, or start a new job with --continue-from)")
+        st["counters"]["lifetime_resumes"] += 1
         new = st["resume_to"]
         for k in PER_CYCLE:
             st["counters"][k] = 0
@@ -376,9 +455,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             raise LabError("script stages complete only through 'state.py run'")
         if not artifact:
             raise LabError("artifact_ready needs --artifact")
-        st["artifact_path"] = rel(artifact)
-        sha256_path(st["artifact_path"])
-        new = enter_review(0)
+        new = new_artifact()
     elif (cur, event) == ("WORKING", "script_fail"):
         if not script_stage():
             raise LabError("script_fail only on a script stage")
@@ -389,8 +466,43 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if not st["fixing"]:
             raise LabError("no fix in progress")
         new = enter_stage(st["stage_index"])
-    elif cur in ("WORKING", "REVIEW", "VERIFY", "REVISING", "DELIVERING") and event == "infra_error":
+    elif cur in CALL_STATES and event == "infra_error":
         new = cap("infra_errors", "infra_retries", cur, paused="BLOCKED") or cur
+        if new == cur:
+            last = _visit_calls(st)
+            st["retry"] = {"of": last[-1]["id"], "reason": "infra_error"} if last else None
+    elif cur in CALL_STATES and event == "repair":
+        if reason not in REPAIR_REASONS:
+            raise LabError(f"repair needs --reason, one of {list(REPAIR_REASONS)}")
+        last = _visit_calls(st)
+        if not last:
+            raise LabError("repair: no agent call to repair in this step")
+        if last[-1]["reason"] in REPAIR_REASONS:
+            raise LabError(f"{last[-1]['id']} is already a repair; still invalid -> record infra_error")
+        new = cap("repairs", "repairs", cur) or cur
+        if new == cur:
+            st["retry"] = {"of": last[-1]["id"], "reason": reason}
+        extra["reason"] = reason
+    elif cur in CALL_STATES and event == "needs_input":
+        if not questions:
+            raise LabError("needs_input needs --questions <file> (the agent's questions, verbatim)")
+        text = Path(questions).read_text(encoding="utf-8")
+        new = cap("input_rounds", "input_rounds", cur) or "AWAITING_INPUT"
+        if new == "AWAITING_INPUT":
+            qd = JOBS / job_id / "questions"
+            qd.mkdir(exist_ok=True)
+            qf = qd / f"q-{st['counters']['input_rounds']}.md"
+            qf.write_text(text, encoding="utf-8")
+            st["awaiting"] = {"state": cur, "stage": st["stage"], "stage_kind": st["stage_kind"],
+                              "questions": rel(qf), "inputs_before": len(st["inputs"]), "asked": now()}
+            extra["questions"] = rel(qf)
+    elif (cur, event) == ("AWAITING_INPUT", "answered"):
+        aw = st["awaiting"]
+        if len(st["inputs"]) <= aw["inputs_before"]:
+            raise LabError("answered: record the answers first with 'state.py input <job> <file> --class ...'")
+        new, st["stage"], st["stage_kind"] = aw["state"], aw["stage"], aw["stage_kind"]
+        extra["answers"] = [i["id"] for i in st["inputs"][aw["inputs_before"]:]]
+        st["awaiting"] = None
     elif cur in ("REVIEW", "VERIFY") and event == "review_pass":
         if st["review_index"] < len(reviews) - 1:
             new = enter_review(st["review_index"] + 1)
@@ -401,22 +513,19 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         rv = reviews[st["review_index"]]
         st["last_failed_by"] = rv["agent"]
         kind = rv["kind"]
-        new = (cap(f"{kind}_revisions", f"{kind}_revisions", "REVISING")
-               or cap("total_revisions", "total_revisions_before_gate", "REVISING")
-               or "REVISING")
+        new = revision(f"{kind}_revisions", f"{kind}_revisions")
         st["stage_kind"], st["stage"] = "revise", r["revise_with"]
     elif (cur, event) == ("REVISING", "revised"):
         if not artifact:
             raise LabError("revised needs --artifact (the new version)")
-        st["artifact_path"] = rel(artifact)
-        sha256_path(st["artifact_path"])
-        new = enter_review(0)
+        new = new_artifact()
     elif (cur, event) == ("GATE", "approve"):
         new = "APPROVED"
     elif (cur, event) == ("GATE", "reject"):
         for k in ("critic_revisions", "verifier_revisions", "total_revisions"):
             st["counters"][k] = 0
-        new = cap("gate_rejections", "gate_rejections", "REVISING") or "REVISING"
+        new = (cap("gate_rejections", "gate_rejections", "REVISING")
+               or cap("lifetime_revisions", "lifetime_revisions", "REVISING") or "REVISING")
         st["stage_kind"], st["stage"] = "revise", r["revise_with"]
     elif (cur, event) == ("APPROVED", "deliver"):
         if not r.get("deliver"):
@@ -429,12 +538,50 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     else:
         raise LabError(f"invalid transition: {cur} --{event}-->")
 
+    if event not in ("infra_error", "repair"):
+        st["visit"] += 1  # a new step: every agent may be called once again
+        st["retry"] = None
     st["state"] = new
     _save(job_id, st, {"event": event, "from": cur, "to": new, "stage": st["stage"], "actor": actor,
-                       "artifact": st["artifact_path"], "note": note or capmsg})
+                       "artifact": st["artifact_path"], "note": note or capmsg, **extra})
     if capmsg:
         raise CapExceeded(f"{job_id}: {capmsg} -> {new}")
     return st
+
+
+# ---------- human inputs ----------
+
+def input_dir(job_id, cls):
+    """Synthetic and public inputs live in the job folder; internal ones under private/ (untracked)."""
+    if cls not in INPUT_CLASSES:
+        raise LabError(f"input class must be one of {list(INPUT_CLASSES)}")
+    return (ROOT / "private" / "jobs" / job_id / "inputs") if cls == "internal" else (JOBS / job_id / "inputs")
+
+
+def record_input(job_id, source, cls, note=None, data=None):
+    """Store the approver's text verbatim (bytes copied unchanged) and register it with an ID."""
+    st = load_state(job_id)
+    if st["state"] in TERMINAL:
+        raise LabError(f"{job_id} is terminal ({st['state']})")
+    d = input_dir(job_id, cls)
+    if cls == "internal" and data is None:
+        src = Path(source).resolve()
+        inside = src.is_relative_to(ROOT.resolve())
+        if inside and not src.is_relative_to((ROOT / "private").resolve()):
+            raise LabError("internal input source is inside the repo outside private/, where Git could track it; "
+                           "pipe it on stdin ('-') or keep the source under private/")
+    raw = data if data is not None else Path(source).read_bytes()
+    n = len(st["inputs"]) + 1
+    iid = f"A{n:02d}"
+    name = Path(source).name if source and source != "-" else "answer.md"
+    dest = d / f"{iid}-{name}"
+    d.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(raw)
+    rec = {"id": iid, "class": cls, "path": rel(dest), "sha256": hashlib.sha256(raw).hexdigest(),
+           "note": note, "recorded": now()}
+    st["inputs"].append(rec)
+    _save(job_id, st, {"event": "input", "input": iid, "class": cls, "path": rec["path"], "actor": "orchestrator"})
+    return st, rec
 
 
 # ---------- fan-out ----------
@@ -483,28 +630,149 @@ def fanout_result(job_id, item, status, note=None):
 # ---------- agent calls ----------
 
 def record_call(job_id, agent, item=None):
+    """Count one agent call. Each step (visit) allows one call per agent (and fan-out item); a second
+    call needs a retry permit from infra_error or repair, and is linked to the call it repeats."""
     st = load_state(job_id)
-    if st["state"] in TERMINAL | PAUSED:
+    if st["state"] not in CALL_STATES:
         raise LabError(f"{job_id} is {st['state']}; no agent calls allowed")
+    if agent != st["stage"]:
+        raise LabError(f"{job_id} is at {st['stage']!r} ({st['stage_kind']}); not calling {agent!r}")
     fo = st.get("fanout")
-    if st["state"] == "WORKING" and st["stage_kind"] == "fanout":
+    at_fanout = st["state"] == "WORKING" and st["stage_kind"] == "fanout"
+    if at_fanout:
         if not fo:
             raise LabError("fanout stage: set the item list before calling agents")
-        if agent != fo["agent"]:
-            raise LabError(f"fanout stage runs {fo['agent']}, not {agent}")
         if item not in fo["items"]:
             raise LabError(f"fanout call needs --item, one of {sorted(fo['items'])}")
-        if fo["items"][item]["status"] != "pending":
-            raise LabError(f"fanout item {item} was already dispatched ({fo['items'][item]['status']})")
-        fo["items"][item].update(status="running", calls=fo["items"][item]["calls"] + 1)
     elif item is not None:
         raise LabError("--item is only valid at a fanout stage")
+    prior = [x for x in _visit_calls(st) if x["agent"] == agent and x["item"] == item]
+    attempt, retry_of, why = 1, None, None
+    if prior:
+        permit = st["retry"]
+        if not permit or permit["of"] != prior[-1]["id"]:
+            raise LabError(f"second call to {agent}{' item ' + item if item else ''} in this step "
+                           f"({prior[-1]['id']} already made) without an infra_error or repair")
+        attempt, retry_of, why = prior[-1]["attempt"] + 1, prior[-1]["id"], permit["reason"]
+        st["retry"] = None
+    elif at_fanout and fo["items"][item]["status"] != "pending":
+        raise LabError(f"fanout item {item} was already dispatched ({fo['items'][item]['status']})")
+    if at_fanout:
+        fo["items"][item].update(status="running", calls=fo["items"][item]["calls"] + 1)
+    call = {"id": f"C{len(st['calls']) + 1:03d}", "agent": agent, "item": item, "visit": st["visit"],
+            "state": st["state"], "attempt": attempt, "retry_of": retry_of, "reason": why,
+            "handoff": st["last_handoff"], "ts": now()}
+    st["calls"].append(call)
     st["counters"]["agent_calls"] += 1
-    _save(job_id, st, {"event": "agent_call", "agent": agent, "item": item, "actor": "orchestrator"})
-    if st["counters"]["agent_calls"] > caps()["agent_calls_per_job"]:
-        apply(job_id, "escalate", note="cap exceeded: agent_calls_per_job")
-        raise CapExceeded(f"{job_id}: cap exceeded: agent_calls_per_job -> ESCALATED")
+    st["counters"]["lifetime_agent_calls"] += 1
+    _save(job_id, st, {"event": "agent_call", **{k: v for k, v in call.items() if k != "ts"},
+                       "call": call["id"], "actor": "orchestrator"})
+    c = caps()
+    for counter, cap_name in (("agent_calls", "agent_calls_per_job"), ("lifetime_agent_calls", "lifetime_agent_calls")):
+        if st["counters"][counter] > c[cap_name]:
+            apply(job_id, "escalate", note=f"cap exceeded: {cap_name}")
+            raise CapExceeded(f"{job_id}: cap exceeded: {cap_name} -> ESCALATED")
     return st
+
+
+# ---------- handoffs ----------
+
+def _files(d):
+    d = Path(d)
+    return [rel(f) for f in sorted(d.rglob("*")) if f.is_file()] if d.exists() else []
+
+
+def build_handoff(job_id, item=None):
+    """The handoff for the agent the job is waiting on, built from state, route and recorded inputs."""
+    st = load_state(job_id)
+    if st["state"] not in CALL_STATES:
+        raise LabError(f"{job_id} is {st['state']}; no handoff to build")
+    r, kind, d = st["route"], st["stage_kind"], JOBS / job_id
+    if kind == "script":
+        raise LabError("script stage: no agent handoff; run it with 'state.py run'")
+    j = f"jobs/{job_id}"
+    inputs, rules = [], []
+    human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
+    feedback = [("gate feedback", p) for p in _files(d / "reviews") if Path(p).name.startswith("human-feedback-")]
+    brief = [("brief", f"{j}/brief.md")]
+    evidence = [("evidence pack", f"{j}/evidence/")]
+    out = {"agent": f"{j}/research/", "fanout": f"{j}/research/", "review": f"{j}/reviews/",
+           "revise": f"{j}/drafts/", "fix": f"{j}/drafts/", "deliver": f"{j}/delivery/"}[kind]
+    extra = {}
+    if kind == "agent":
+        last = st["stage_index"] == len(r["stages"]) - 1
+        out = f"{j}/drafts/" if last else out
+        inputs = brief + [("seed (from " + st["continued_from"] + ")", s) for s in st["seed"]] \
+            + [("earlier stage output", p) for p in _files(d / "research")] + human
+    elif kind == "fanout":
+        if not st["fanout"] or item not in st["fanout"]["items"]:
+            raise LabError(f"fanout handoff needs --item, one of {sorted((st['fanout'] or {}).get('items', {}))}")
+        extra = {"ITEM": item, "SPLIT_BY": st["fanout"]["split_by"]}
+        inputs = brief + human
+    elif kind == "review":
+        rv = r["reviews"][st["review_index"]]
+        cfg = reviewers().get(rv["agent"], {})
+        rules = [cfg["rulebook"]] if cfg.get("rulebook") else []
+        inputs = [("artifact", st["artifact_path"])]
+        if rv["kind"] == "verifier":
+            inputs += evidence + [("source registry", f"{j}/evidence/registry.json")]
+            if cfg.get("source_policy"):
+                rules.append(cfg["source_policy"])
+        inputs += human + feedback
+        extra = {"REVIEW_KIND": rv["kind"]}
+    elif kind == "revise":
+        findings = []
+        for p in _files(d / "reviews"):
+            if p.endswith(".json"):
+                try:
+                    if load_json(ROOT / p).get("artifact_path") == st["artifact_path"]:
+                        findings.append(("findings to address", p))
+                except ValueError:
+                    pass
+        inputs = [("artifact", st["artifact_path"])] + brief + evidence + findings + feedback + human
+    elif kind == "fix":
+        runs = _files(d / "scripts")
+        inputs = brief + ([("failed script run", runs[-1])] if runs else []) + human
+    elif kind == "deliver":
+        inputs = [("approved artifact", st["artifact_path"]), ("gate token", f"{j}/gates/{r['gate']}.json")] + human
+    template = r.get("template")
+    return {"job": job_id, "type": st["type"], "stage": st["stage"], "kind": kind,
+            "goal": st["goal"], "template": template, "template_variants": r.get("template_variants", {}),
+            **{k.lower(): v for k, v in extra.items()},
+            "inputs": [{"label": a, "path": b} for a, b in inputs], "rules": rules, "output_dir": out}
+
+
+def render_handoff(h, hid):
+    lines = [f"JOB: {h['job']}    TYPE: {h['type']}    STAGE: {h['stage']} ({h['kind']})    HANDOFF: {hid}",
+             f"GOAL: {h['goal']}"]
+    if h["template"]:
+        variants = ", ".join(f"{k}: {v}" for k, v in h["template_variants"].items())
+        lines.append(f"TEMPLATE: {h['template']}" + (f"    VARIANTS: {variants}" if variants else ""))
+    if h.get("item"):
+        lines.append(f"ITEM: {h['item']}    SPLIT_BY: {h['split_by']}")
+    if h.get("review_kind"):
+        lines.append(f"REVIEW: {h['review_kind']}")
+    lines.append("INPUTS:")
+    lines += [f"  - {i['label']}: {i['path']}" for i in h["inputs"]] or ["  - none"]
+    lines.append("RULES:")
+    lines += [f"  - {p}" for p in h["rules"]] or ["  - none"]
+    lines += [f"OUTPUT_DIR: {h['output_dir']}",
+              "End your reply with the STATUS block: STATUS, OUTPUTS, OPEN_ITEMS, VERDICT (reviewers), SUMMARY."]
+    return "\n".join(lines) + "\n"
+
+
+def handoff(job_id, item=None):
+    """Build, record and return (handoff dict, rendered text). The next agent call links to it."""
+    h = build_handoff(job_id, item)
+    st = load_state(job_id)
+    st["handoffs"] += 1
+    hid = f"H{st['handoffs']:03d}"
+    text = render_handoff(h, hid)
+    st["last_handoff"] = hid
+    _save(job_id, st, {"event": "handoff", "handoff": hid, "agent": h["stage"], "item": item,
+                       "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                       "inputs": [i["path"] for i in h["inputs"]], "actor": "script"})
+    return h, text
 
 
 # ---------- script stages ----------
