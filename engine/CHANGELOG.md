@@ -1,5 +1,15 @@
 # Engine changelog
 
+## 0.6.1 (2026-10-21)
+
+Fixes found by the delivery path test (T0.10).
+
+- `deliver` and `complete` re-check the gate token: an edit to the approved artifact after approval blocks delivery and completion.
+- `gate.py`: the terminal check asks the Windows console directly (GetConsoleMode); `isatty()` alone is also true for the NUL device. Closed input is refused cleanly. No flag or environment variable skips the check.
+- A retry call links to a freshly built handoff when there is one (so the post hook can match it), and to its original's otherwise.
+- The call caps refuse a call before recording it, so a refused call never stays open.
+- `engine/tests/demo_delivery.py`: watch a demo job go from NEW to DONE in a temporary copy.
+
 ## 0.6.0 (2026-10-21)
 
 Evidence module.

@@ -20,11 +20,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import labcore as lc  # noqa: E402
 
 
-def confirm(job_or_word):
+def interactive_terminal():
+    """True only for a real interactive console. On Windows, isatty() is also true for the NUL
+    device, so the console itself is asked (GetConsoleMode succeeds only for console input)."""
     if not sys.stdin.isatty():
+        return False
+    if sys.platform == "win32":
+        import ctypes
+        import msvcrt
+        try:
+            handle = msvcrt.get_osfhandle(sys.stdin.fileno())
+        except OSError:
+            return False
+        mode = ctypes.c_uint32()
+        return bool(ctypes.windll.kernel32.GetConsoleMode(ctypes.c_void_p(handle), ctypes.byref(mode)))
+    return True
+
+
+def confirm(job_or_word):
+    if not interactive_terminal():
         print("Refusing: no interactive terminal. Run this yourself.", file=sys.stderr)
         sys.exit(1)
-    typed = input(f"Type '{job_or_word}' to confirm: ").strip()
+    try:
+        typed = input(f"Type '{job_or_word}' to confirm: ").strip()
+    except EOFError:
+        print("Refusing: no interactive terminal (input closed). Run this yourself.", file=sys.stderr)
+        sys.exit(1)
     if typed != job_or_word:
         print("Not confirmed.", file=sys.stderr)
         sys.exit(1)

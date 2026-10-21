@@ -594,9 +594,15 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     elif (cur, event) == ("APPROVED", "deliver"):
         if not r.get("deliver"):
             raise LabError("route has no delivery stage; use complete")
+        ok, why = verify_gate(job_id, r["gate"])   # an edit after approval voids the token and blocks delivery
+        if not ok:
+            raise LabError(f"delivery refused: {why}")
         new = "DELIVERING"
         st["stage_kind"], st["stage"] = "deliver", r["deliver"]
     elif cur in ("APPROVED", "DELIVERING") and event == "complete":
+        ok, why = verify_gate(job_id, r["gate"])   # DONE only on the artifact that was approved
+        if not ok:
+            raise LabError(f"complete refused: {why}")
         new = "DONE"
         st["stage_kind"], st["stage"] = None, None
     else:
@@ -739,28 +745,27 @@ def record_call(job_id, agent, item=None):
         raise LabError(f"fanout item {item} was already dispatched ({fo['items'][item]['status']})")
     if at_fanout:
         fo["items"][item].update(status="running", calls=fo["items"][item]["calls"] + 1)
-    if retry_of:  # a retry repeats its original's handoff
-        hid = next(x["handoff"] for x in st["calls"] if x["id"] == retry_of)
-    else:         # the newest unused handoff built for this agent and item
-        h = next((x for x in reversed(st["handoff_log"]) if x["agent"] == agent and x["item"] == item
-                  and x["used_by"] is None), None)
-        hid = h["id"] if h else None
+    # the newest unused handoff built for this agent and item; a retry without a fresh handoff
+    # repeats its original's
+    h = next((x for x in reversed(st["handoff_log"]) if x["agent"] == agent and x["item"] == item
+              and x["used_by"] is None), None)
+    hid = h["id"] if h else (next(x["handoff"] for x in st["calls"] if x["id"] == retry_of) if retry_of else None)
     call = {"id": f"C{len(st['calls']) + 1:03d}", "agent": agent, "item": item, "visit": st["visit"],
             "state": st["state"], "attempt": attempt, "retry_of": retry_of, "reason": why,
             "handoff": hid, "ts": now_ms(), "status": "open", "ended": None, "usage": None, "usage_source": None}
     for x in st["handoff_log"]:
         if x["id"] == hid and x["used_by"] is None:
             x["used_by"] = call["id"]
+    c = caps()
+    for counter, cap_name in (("agent_calls", "agent_calls_per_job"), ("lifetime_agent_calls", "lifetime_agent_calls")):
+        if st["counters"][counter] + 1 > c[cap_name]:  # refuse before recording: no phantom open call
+            apply(job_id, "escalate", note=f"cap exceeded: {cap_name}")
+            raise CapExceeded(f"{job_id}: cap exceeded: {cap_name} -> ESCALATED")
     st["calls"].append(call)
     st["counters"]["agent_calls"] += 1
     st["counters"]["lifetime_agent_calls"] += 1
     _save(job_id, st, {"event": "agent_call", **{k: v for k, v in call.items() if k != "ts"},
                        "call": call["id"], "actor": "orchestrator"})
-    c = caps()
-    for counter, cap_name in (("agent_calls", "agent_calls_per_job"), ("lifetime_agent_calls", "lifetime_agent_calls")):
-        if st["counters"][counter] > c[cap_name]:
-            apply(job_id, "escalate", note=f"cap exceeded: {cap_name}")
-            raise CapExceeded(f"{job_id}: cap exceeded: {cap_name} -> ESCALATED")
     return st
 
 
