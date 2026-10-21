@@ -48,9 +48,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import labcore as lc  # noqa: E402
 
-JOB_ALWAYS = ["gates/*", "state.json", "run.log.jsonl", "scripts/*", "inputs/*", "questions/*"]
+JOB_ALWAYS = ["gates/*", "state.json", "run.log.jsonl", "scripts/*", "inputs/*", "questions/*", "evidence/*"]
 ALWAYS = ([f"jobs/*/{p}" for p in JOB_ALWAYS] + [f"private/jobs/*/{p}" for p in JOB_ALWAYS]
-          + [".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl", "logs/usage.jsonl",
+          + ["cache/*", ".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl", "logs/usage.jsonl",
              "logs/usage-unmatched.jsonl", "private/logs/blocked.jsonl", "private/logs/gate-audit.jsonl",
              "private/logs/usage.jsonl", "private/logs/usage-unmatched.jsonl"])
 # Outside the repo, these tails still mean "a job's or ecosystem's protected file".
@@ -84,7 +84,7 @@ GIT_GLOBAL_UNSAFE = ("-c", "--config-env")
 DELETE_CALL = re.compile(r"\b(rmtree|remove|unlink|rmdir|removedirs|unlinkSync|rmSync|rmdirSync|rm_rf|rm_r)\s*\(|"
                          r"\bFileUtils\.rm\b|\bfs\.rm\s*\(|\bRemove-Item\b", re.IGNORECASE)
 ENGINE_TOOLS = {"engine/state.py", "engine/validate_findings.py", "engine/check_refs.py",
-                "engine/check_coverage.py", "engine/run_tests.py"}
+                "engine/check_coverage.py", "engine/run_tests.py", "engine/evidence.py", "engine/registry_check.py"}
 HARMLESS_TARGETS = {"/dev/null", "nul", "$null", "&1", "&2", "1", "2"}
 OBFUSCATION = re.compile(r"(^|[\s;&|(`])(eval|iex|invoke-expression)(\s|$|\()|frombase64string|"
                          r"\bbase64\b[^|;&]*\s(-d|--decode|-D)\b|\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",

@@ -15,3 +15,6 @@ logs/blocked.jsonl
 .claude/settings.local.json
 # Machine-specific config (e.g. source-folder roots): never tracked
 config/*.local.json
+
+# Fetched third-party page text (evidence module): never tracked or published
+cache/

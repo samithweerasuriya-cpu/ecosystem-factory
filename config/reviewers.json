@@ -1,5 +1,5 @@
 {
-  "_doc": "Rulebook per reviewer agent. engine/validate_findings.py reads each reviewer's severities from its rulebook (severity lock); a reviewer without an entry fails validation. Optional source_policy (verifiers): added to the verifier's handoff with the evidence pack and source registry. check-refs is the engine's mechanical reference check (engine/check_refs.py).",
+  "_doc": "Rulebook per reviewer agent. engine/validate_findings.py reads each reviewer's severities from its rulebook (severity lock); a reviewer without an entry fails validation. Optional source_policy (verifiers): added to the verifier's handoff with the evidence pack and source registry. check-refs is the engine's mechanical reference check (engine/check_refs.py). check-evidence is the evidence module's mechanical check (engine/evidence.py).",
   "reviewers": {
     "demo-critic": {
       "rulebook": "rules/demo-rulebook.md"
@@ -9,6 +9,9 @@
     },
     "check-refs": {
       "rulebook": "rules/check-refs.md"
+    },
+    "check-evidence": {
+      "rulebook": "rules/check-evidence.md"
     }
   }
 }

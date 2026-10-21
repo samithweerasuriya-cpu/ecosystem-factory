@@ -1,0 +1,19 @@
+{
+  "_doc": "Evidence module settings (engine/evidence.py). Rank 1 is the strongest source, 5 the weakest. domains and files map a host (or a file path under sources/ or a job's inputs/) to a rank; anything unlisted is rank 5. The tracked defaults are empty: each ecosystem gets its table from its charter's source policy (T2.1). Claim types: a [S:...] citation backs a 'fact' and needs a stored source of rank max_rank or better; [A:...] (the approver's recorded answers) and [G:<job>] (an approved artifact) back a 'decision' and never a fact. Unfetchable sources (pages built by JavaScript, unreadable files) cannot back a fact. Fetch caps are in config/caps.json.",
+  "enabled": true,
+  "claim_types": {
+    "fact": {"cites": ["S"], "max_rank": 4, "high_confidence": true},
+    "decision": {"cites": ["A", "G"], "high_confidence": true}
+  },
+  "domains": {},
+  "files": {},
+  "max_quote_words": 25,
+  "min_text_chars": 400,
+  "max_fetch_bytes": 5000000,
+  "fetch_timeout_s": 20,
+  "max_redirects": 5,
+  "polite_pause_s": 1.0,
+  "user_agent": "ecosystem-factory-evidence/1.0 (source verification; one request at a time)",
+  "pdf_converter": ["markitdown"],
+  "allow_private_hosts": false
+}

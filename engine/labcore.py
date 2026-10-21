@@ -444,15 +444,22 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         """Set the new version, run the reference check, then hand it to the first reviewer."""
         st["artifact_path"] = rel(artifact)
         sha256_path(st["artifact_path"])
+        version = _version(st["artifact_path"])
         problems = check_refs.check(ROOT, job_id, st["artifact_path"], {i["id"] for i in st["inputs"]})
+        checker, build = "check-refs", check_refs.findings_doc
+        if not problems and (CONFIG / "evidence.json").exists():
+            import evidence  # the evidence check runs second, before any agent reviewer
+            if evidence.enabled():
+                problems = evidence.record_check(job_id, st["artifact_path"], version)
+                checker, build = "check-evidence", evidence.findings_doc
         if not problems:
             return enter_review(0)
-        doc = check_refs.findings_doc(job_id, st["artifact_path"], _version(st["artifact_path"]), problems)
-        n = len(list((job_dir(job_id) / "reviews").glob("check-refs-*.json"))) + 1
-        out = job_dir(job_id) / "reviews" / f"check-refs-{n}.json"
+        doc = build(job_id, st["artifact_path"], version, problems)
+        n = len(list((job_dir(job_id) / "reviews").glob(f"{checker}-*.json"))) + 1
+        out = job_dir(job_id) / "reviews" / f"{checker}-{n}.json"
         save_json(out, doc)
-        extra["check_refs"] = rel(out)
-        st["last_failed_by"] = "check-refs"
+        extra[checker.replace("-", "_")] = rel(out)
+        st["last_failed_by"] = checker
         st["stage_kind"], st["stage"] = "revise", r["revise_with"]
         return revision()
 
@@ -838,6 +845,9 @@ def render_handoff(h, hid):
     lines += [f"  - {i['label']}: {i['path']}" for i in h["inputs"]] or ["  - none"]
     lines.append("RULES:")
     lines += [f"  - {p}" for p in h["rules"]] or ["  - none"]
+    if h["kind"] in ("agent", "fanout", "revise") and (CONFIG / "evidence.json").exists():
+        lines.append(f"FETCH: python engine/evidence.py fetch {h['job']} <url> --handoff {hid}"
+                     "    (WebFetch is for discovery only; cite only sources stored this way)")
     lines += [f"OUTPUT_DIR: {h['output_dir']}",
               "End your reply with the STATUS block: STATUS, OUTPUTS, OPEN_ITEMS, VERDICT (reviewers), SUMMARY."]
     return "\n".join(lines) + "\n"

@@ -1,5 +1,17 @@
 # Engine changelog
 
+## 0.6.0 (2026-10-21)
+
+Evidence module.
+
+- `engine/evidence.py`: `fetch` (inside an open agent call, by handoff id; http(s) only; private and local addresses refused, re-checked after every redirect; at most 5 redirects; size cap, timeout, a clear user-agent and a pause between requests to the same host; capped by `fetches_per_call` and `fetches_per_job`), `register` (files only from the job's `inputs/` or `sources/`), `list`, `check`, `refetch`, `show`.
+- Page text in an untracked cache (`cache/evidence/`; internal jobs: their own `private/jobs/<job>/evidence/cache/`); the tracked registry, fetch log and quote index hold only URL, fetch time, fingerprint, rank, status and the short quotes cited. Only the script writes the store (hook-protected).
+- Ranks come from the domain and file tables in `config/evidence.json` (empty by default; each ecosystem's source policy fills them); unlisted sources are rank 5.
+- Pages built by JavaScript, non-text content and PDFs without the markitdown CLI are stored as unfetchable and cannot back a fact.
+- Claim types: `[S:...]` backs a fact (rank 4 or better); `[A:...]` and `[G:<job>]` back a decision (the approver's answers, an approved artifact) and never a fact.
+- The mechanical check (E01-E06, `rules/check-evidence.md`) runs on every new artifact version after the reference check; failures go back to the author as `check-evidence` findings. Uncited sentences with numbers, links or quotes are listed for the Verifier. `rules/verifier-default.md` holds the judgement rules.
+- `engine/registry_check.py` ported over the evidence store.
+
 ## 0.5.0 (2026-10-21)
 
 Usage log and ceiling.
