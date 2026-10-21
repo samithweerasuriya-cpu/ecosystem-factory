@@ -1,5 +1,5 @@
 {
-  "_doc": "Caps enforced by engine/labcore.py. Exceeding a cap moves the job to ESCALATED (infra caps move it to BLOCKED). Per-cycle caps (revisions, fix_attempts, infra_retries, agent_calls_per_job) reset on resume and some on reject; the lifetime caps (lifetime_agent_calls, lifetime_revisions, lifetime_resumes, input_rounds, repairs) never reset. A resume past lifetime_resumes is refused: cancel, or start a new job with --continue-from. fix_attempts caps the fix_with loop after a failed script stage; fanout_max caps any fanout item list; repairs caps the one-re-ask-per-call repair retries (invalid output, severity directive).",
+  "_doc": "Caps enforced by engine/labcore.py. Exceeding a cap moves the job to ESCALATED (infra caps move it to BLOCKED). Per-cycle caps (revisions, fix_attempts, infra_retries, agent_calls_per_job) reset on resume and some on reject; the lifetime caps (lifetime_agent_calls, lifetime_revisions, lifetime_resumes, input_rounds, repairs) never reset. A resume past lifetime_resumes is refused: cancel, or start a new job with --continue-from. fix_attempts caps the fix_with loop after a failed script stage; fanout_max caps any fanout item list; repairs caps the one-re-ask-per-call repair retries (invalid output, severity directive). usage_ceiling (per job lifetime, provisional until T1.4): tokens as the app reports them (cache included) when any call reported tokens; agent_minutes always; reaching either pauses the job (ESCALATED), and only the approver can raise it (engine/gate.py ceiling). per_call_warning_tokens flags a call in the usage summary without stopping the job.",
   "infra_retries": 2,
   "critic_revisions": 2,
   "verifier_revisions": 2,
@@ -12,5 +12,11 @@
   "lifetime_revisions": 10,
   "lifetime_resumes": 3,
   "input_rounds": 5,
-  "repairs": 6
+  "repairs": 6,
+  "usage_ceiling": {
+    "_provisional": "PROVISIONAL: set in T0.8 from one probe subagent call (about 11,500 tokens); recalibrate at T1.4 from real job figures.",
+    "tokens": 2000000,
+    "agent_minutes": 180,
+    "per_call_warning_tokens": 500000
+  }
 }

@@ -4,7 +4,10 @@
   python engine/state.py new <type> <slug> "<goal>" --class synthetic|public|internal [--parent JOB] [--continue-from JOB]
   python engine/state.py event <job> <event> [--artifact PATH] [--note TEXT] [--reason R] [--questions FILE]
   python engine/state.py handoff <job> [--item ID] [--json]  # build the handoff for the next agent call
-  python engine/state.py call <job> <agent> [--item ID]   # count an agent invocation
+  python engine/state.py call <job> <agent> [--item ID]   # count an agent invocation (opens it)
+  python engine/state.py result <job> <call> done|failed [--usage-json FILE] [--note TEXT]
+                                                           # close a call (in-session: the post hook does it)
+  python engine/state.py usage <job>                       # usage per job and agent
   python engine/state.py input <job> <file|-> --class synthetic|public|internal [--note TEXT]
   python engine/state.py fanout <job> <item> [<item> ...]  # fix the fan-out item list (once per stage)
   python engine/state.py fanout-result <job> <item> done|failed [--note TEXT]
@@ -56,6 +59,9 @@ def main(argv=None):
     fr = sub.add_parser("fanout-result"); fr.add_argument("job"); fr.add_argument("item")
     fr.add_argument("status", choices=["done", "failed"]); fr.add_argument("--note")
     r = sub.add_parser("run"); r.add_argument("job")
+    rs = sub.add_parser("result"); rs.add_argument("job"); rs.add_argument("call")
+    rs.add_argument("status", choices=["done", "failed"]); rs.add_argument("--usage-json"); rs.add_argument("--note")
+    us = sub.add_parser("usage"); us.add_argument("job")
     a = sub.add_parser("activate"); a.add_argument("job")
     s = sub.add_parser("status"); s.add_argument("job", nargs="?")
     sub.add_parser("routes"); sub.add_parser("check-config")
@@ -89,6 +95,22 @@ def main(argv=None):
                   f"timed_out={rec['timed_out']}, {rec['duration_s']}s)")
             print(summary(st))
             return 0 if ok else 4
+        elif args.cmd == "result":
+            usage = None
+            if args.usage_json:  # a headless `claude -p --output-format json` result
+                d = lc.load_json(args.usage_json)
+                models = list((d.get("modelUsage") or {}).keys())
+                usage = lc.usage_from_tokens(d.get("usage"), duration_ms=d.get("duration_ms"),
+                                             model=models[0] if len(models) == 1 else (", ".join(models) or None),
+                                             cost_usd=d.get("total_cost_usd"))
+            st, over = lc.record_result(args.job, args.call, args.status, usage=usage,
+                                        source="headless" if usage else "manual", note=args.note)
+            print(f"recorded {args.call}: {args.status}" + ("" if usage else " (usage unknown)"))
+            if over:
+                print(f"PAUSED: {over}", file=sys.stderr)
+                return 3
+        elif args.cmd == "usage":
+            print("\n".join(lc.usage_summary(args.job)))
         elif args.cmd == "activate":
             lc.set_active(args.job); print(f"active job: {args.job}")
         elif args.cmd == "status":

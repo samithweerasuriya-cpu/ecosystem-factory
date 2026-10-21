@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.5.0 (2026-10-21)
+
+Usage log and ceiling.
+
+- A call stays open until its result is recorded; no new call while one is open, except parallel items of the current fan-out stage (up to its max). `infra_error` and `repair` close the call they retry (usage unknown).
+- Each call links to the newest unused handoff built for its agent and item (a retry reuses its original's), so parallel fan-out items keep their own handoffs.
+- `engine/hooks/post_tool_use.py` (registered through the never-edited, hash-pinned `post_tool_use_launcher.py`, matcher `Agent|Task`): closes the open call whose handoff ID (`JOB:` and `HANDOFF:` lines in the subagent prompt) matches, with the app's own figures; unmatched calls go to `logs/usage-unmatched.jsonl`, never dropped.
+- `state.py result <job> <call> done|failed [--usage-json]` for headless results and manual closes; `state.py usage <job>`; usage lines in `logs/usage.jsonl` (internal jobs: `private/logs/`) with input, output, cache-read and cache-write tokens separately; usage logs are hook-protected.
+- `usage_ceiling` in `config/caps.json` (provisional until T1.4): tokens when reported, agent minutes always; reaching it pauses the job; only `engine/gate.py ceiling` raises it (audited); a per-call warning threshold flags calls without stopping the job.
+- Call start and end times are recorded to the millisecond.
+
 ## 0.4.1 (2026-10-21)
 
 - MCP entries may carry `roles` (`["main"]`: only calls without `agent_id`); the factory allows the desktop app's two task-list tools by exact name, main session only.

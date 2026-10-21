@@ -63,6 +63,11 @@ def now():
     return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
 
 
+def now_ms():
+    """Call start and end times: milliseconds, so short calls still have a measurable duration."""
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
+
+
 def load_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -316,7 +321,8 @@ def _fresh_state(job_id, jtype, goal, parent, r, cls):
             "route": r, "state": "NEW", "stage": None, "stage_kind": None, "stage_index": 0,
             "review_index": 0, "fanout": None, "fixing": False,
             "artifact_path": None, "resume_to": None, "last_failed_by": None,
-            "visit": 0, "calls": [], "retry": None, "last_handoff": None, "handoffs": 0,
+            "visit": 0, "calls": [], "retry": None, "last_handoff": None, "handoffs": 0, "handoff_log": [],
+            "ceiling": None,
             "inputs": [], "awaiting": None, "continued_from": None, "seed": [],
             "counters": {k: 0 for k in PER_CYCLE + LIFETIME + ("gate_rejections", "agent_calls")},
             "created": now(), "updated": now()}
@@ -466,6 +472,10 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if st["counters"]["lifetime_resumes"] >= c["lifetime_resumes"]:
             raise CapExceeded(f"{job_id}: cap exceeded: lifetime_resumes={c['lifetime_resumes']}; "
                               f"resume refused (cancel, or start a new job with --continue-from)")
+        over = ceiling_exceeded(st)
+        if over:
+            raise CapExceeded(f"{job_id}: {over}; resume refused until the approver raises it "
+                              f"(engine/gate.py ceiling {job_id} ...)")
         st["counters"]["lifetime_resumes"] += 1
         new = st["resume_to"]
         for k in PER_CYCLE:
@@ -512,8 +522,10 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         new = enter_stage(st["stage_index"])
     elif cur in CALL_STATES and event == "infra_error":
         new = cap("infra_errors", "infra_retries", cur, paused="BLOCKED") or cur
+        last = _visit_calls(st)
+        if last:
+            _close_open(job_id, st, last[-1], "failed", "infra_error")
         if new == cur:
-            last = _visit_calls(st)
             st["retry"] = {"of": last[-1]["id"], "reason": "infra_error"} if last else None
     elif cur in CALL_STATES and event == "repair":
         if reason not in REPAIR_REASONS:
@@ -524,6 +536,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if last[-1]["reason"] in REPAIR_REASONS:
             raise LabError(f"{last[-1]['id']} is already a repair; still invalid -> record infra_error")
         new = cap("repairs", "repairs", cur) or cur
+        _close_open(job_id, st, last[-1], "done", "repair")
         if new == cur:
             st["retry"] = {"of": last[-1]["id"], "reason": reason}
         extra["reason"] = reason
@@ -694,6 +707,18 @@ def record_call(job_id, agent, item=None):
             raise LabError(f"fanout call needs --item, one of {sorted(fo['items'])}")
     elif item is not None:
         raise LabError("--item is only valid at a fanout stage")
+    open_calls = [x for x in st["calls"] if x.get("status") == "open"]
+    if open_calls:
+        limit = min(st["route"]["stages"][st["stage_index"]]["fanout"]["max"], caps()["fanout_max"]) if at_fanout else 0
+        parallel_ok = at_fanout and len(open_calls) < limit and all(
+            x["visit"] == st["visit"] and x["agent"] == agent and x["item"] is not None for x in open_calls)
+        if not parallel_ok:
+            raise LabError(f"call {open_calls[0]['id']} ({open_calls[0]['agent']}) is still open: record its result "
+                           f"first (the post hook does this when the subagent returns; otherwise state.py result)")
+    over = ceiling_exceeded(st)
+    if over:
+        apply(job_id, "escalate", note=over)
+        raise CapExceeded(f"{job_id}: {over} -> ESCALATED")
     prior = [x for x in _visit_calls(st) if x["agent"] == agent and x["item"] == item]
     attempt, retry_of, why = 1, None, None
     if prior:
@@ -707,9 +732,18 @@ def record_call(job_id, agent, item=None):
         raise LabError(f"fanout item {item} was already dispatched ({fo['items'][item]['status']})")
     if at_fanout:
         fo["items"][item].update(status="running", calls=fo["items"][item]["calls"] + 1)
+    if retry_of:  # a retry repeats its original's handoff
+        hid = next(x["handoff"] for x in st["calls"] if x["id"] == retry_of)
+    else:         # the newest unused handoff built for this agent and item
+        h = next((x for x in reversed(st["handoff_log"]) if x["agent"] == agent and x["item"] == item
+                  and x["used_by"] is None), None)
+        hid = h["id"] if h else None
     call = {"id": f"C{len(st['calls']) + 1:03d}", "agent": agent, "item": item, "visit": st["visit"],
             "state": st["state"], "attempt": attempt, "retry_of": retry_of, "reason": why,
-            "handoff": st["last_handoff"], "ts": now()}
+            "handoff": hid, "ts": now_ms(), "status": "open", "ended": None, "usage": None, "usage_source": None}
+    for x in st["handoff_log"]:
+        if x["id"] == hid and x["used_by"] is None:
+            x["used_by"] = call["id"]
     st["calls"].append(call)
     st["counters"]["agent_calls"] += 1
     st["counters"]["lifetime_agent_calls"] += 1
@@ -817,10 +851,160 @@ def handoff(job_id, item=None):
     hid = f"H{st['handoffs']:03d}"
     text = render_handoff(h, hid)
     st["last_handoff"] = hid
+    st["handoff_log"].append({"id": hid, "agent": h["stage"], "item": item, "used_by": None})
     _save(job_id, st, {"event": "handoff", "handoff": hid, "agent": h["stage"], "item": item,
                        "sha256": hashlib.sha256(text.encode()).hexdigest(),
                        "inputs": [i["path"] for i in h["inputs"]], "actor": "script"})
     return h, text
+
+
+# ---------- usage ----------
+
+USAGE_KEYS = ("input", "output", "cache_read", "cache_write")
+
+
+def usage_from_tokens(usage, total=None, duration_ms=None, model=None, cost_usd=None):
+    """Normalise an API-style usage object into the engine's usage record."""
+    u = usage or {}
+    rec = {"input": int(u.get("input_tokens") or 0), "output": int(u.get("output_tokens") or 0),
+           "cache_read": int(u.get("cache_read_input_tokens") or 0),
+           "cache_write": int(u.get("cache_creation_input_tokens") or 0)}
+    rec["total"] = int(total) if total is not None else sum(rec[k] for k in USAGE_KEYS)
+    rec["duration_s"] = round(duration_ms / 1000, 3) if duration_ms is not None else None
+    rec["model"] = model
+    rec["cost_usd_estimate"] = cost_usd
+    return rec
+
+
+def _usage_log(job_id, entry):
+    d = ROOT / "private" / "logs" if is_internal(job_id) else ROOT / "logs"
+    d.mkdir(parents=True, exist_ok=True)
+    with open(d / "usage.jsonl", "a", encoding="utf-8") as fh:
+        fh.write(json.dumps({"ts": now(), "job_id": job_id, **entry}) + "\n")
+
+
+def _close_open(job_id, st, call, status, source):
+    """Close a still-open call with unknown usage (tool failure, repair, manual close)."""
+    if call.get("status") != "open":
+        return
+    ended = now_ms()
+    start = datetime.datetime.fromisoformat(call["ts"])
+    call.update(status=status, ended=ended, usage_source=source,
+                usage={"total": None, "duration_s": round((datetime.datetime.fromisoformat(ended) - start).total_seconds(), 3)})
+    _usage_log(job_id, {"call": call["id"], "agent": call["agent"], "item": call["item"], "attempt": call["attempt"],
+                        "status": status, "source": source, "tokens": None,
+                        "duration_s": call["usage"]["duration_s"], "model": None})
+
+
+def usage_totals(st):
+    calls = [c for c in st["calls"] if c.get("status") in ("done", "failed")]
+    known = [c for c in calls if c.get("usage") and c["usage"].get("total") is not None]
+    tokens = {k: sum(c["usage"].get(k, 0) for c in known) for k in USAGE_KEYS + ("total",)}
+    minutes = sum((c["usage"] or {}).get("duration_s") or 0 for c in calls) / 60
+    return {"calls": len(st["calls"]), "closed": len(calls), "with_tokens": len(known), "tokens": tokens,
+            "agent_minutes": minutes}  # unrounded: the ceiling compares this; round only for display
+
+
+def effective_ceiling(st):
+    base = dict(caps().get("usage_ceiling", {}))
+    base.update({k: v for k, v in (st.get("ceiling") or {}).items() if v is not None})
+    return base
+
+
+def ceiling_exceeded(st):
+    """Reason string if the job is at or over its usage ceiling, else None. Tokens count when any
+    call reported them; agent minutes always count (the fallback when no tokens are known)."""
+    c, u = effective_ceiling(st), usage_totals(st)
+    if u["with_tokens"] and c.get("tokens") and u["tokens"]["total"] >= c["tokens"]:
+        return f"usage ceiling reached: {u['tokens']['total']} tokens >= {c['tokens']}"
+    if c.get("agent_minutes") and u["agent_minutes"] >= c["agent_minutes"]:
+        return f"usage ceiling reached: {round(u['agent_minutes'], 4)} agent minutes >= {c['agent_minutes']}"
+    return None
+
+
+def record_result(job_id, call_id, status, usage=None, source="manual", note=None):
+    """Close an open call with its outcome and usage; log the numbers; pause the job if it has now
+    reached its usage ceiling. Returns (state, ceiling message or None)."""
+    if status not in ("done", "failed"):
+        raise LabError("result status must be done or failed")
+    st = load_state(job_id)
+    call = next((x for x in st["calls"] if x["id"] == call_id), None)
+    if call is None:
+        raise LabError(f"no call {call_id} in {job_id}")
+    if call.get("status") != "open":
+        raise LabError(f"call {call_id} is already closed ({call.get('status')})")
+    ended = now_ms()
+    if usage is None:
+        start = datetime.datetime.fromisoformat(call["ts"])
+        usage = {"total": None, "duration_s": round((datetime.datetime.fromisoformat(ended) - start).total_seconds(), 3)}
+    elif usage.get("duration_s") is None:
+        start = datetime.datetime.fromisoformat(call["ts"])
+        usage["duration_s"] = round((datetime.datetime.fromisoformat(ended) - start).total_seconds(), 3)
+    warn = caps().get("usage_ceiling", {}).get("per_call_warning_tokens")
+    call.update(status=status, ended=ended, usage=usage, usage_source=source,
+                warning=bool(warn and usage.get("total") and usage["total"] >= warn))
+    _save(job_id, st, {"event": "call_result", "call": call_id, "status": status, "source": source,
+                       "tokens": usage.get("total"), "note": note, "actor": source})
+    _usage_log(job_id, {"call": call_id, "agent": call["agent"], "item": call["item"], "attempt": call["attempt"],
+                        "status": status, "source": source,
+                        "tokens": {k: usage.get(k) for k in USAGE_KEYS + ("total",)} if usage.get("total") is not None else None,
+                        "duration_s": usage.get("duration_s"), "model": usage.get("model"),
+                        "cost_usd_estimate": usage.get("cost_usd_estimate"), "warning": call["warning"]})
+    over = ceiling_exceeded(st)
+    if over and st["state"] in CALL_STATES:
+        apply(job_id, "escalate", note=over)
+        return load_state(job_id), over
+    return st, over
+
+
+def find_call_by_handoff(job_id, hid):
+    st = load_state(job_id)
+    return next((x for x in reversed(st["calls"]) if x["handoff"] == hid and x.get("status") == "open"), None)
+
+
+def set_ceiling(job_id, tokens=None, agent_minutes=None, _human=False):
+    """Raise (or set) this job's usage ceiling. Human-only: called by engine/gate.py."""
+    if not _human:
+        raise LabError("changing a usage ceiling is human-only; the approver runs engine/gate.py ceiling")
+    st = load_state(job_id)
+    cur = st.get("ceiling") or {}
+    if tokens is not None:
+        cur["tokens"] = int(tokens)
+    if agent_minutes is not None:
+        cur["agent_minutes"] = float(agent_minutes)
+    st["ceiling"] = cur
+    _save(job_id, st, {"event": "ceiling", "ceiling": cur, "actor": approver()})
+    return st
+
+
+def usage_summary(job_id):
+    """Lines of text: totals and per-agent figures for one job."""
+    st = load_state(job_id)
+    u, c = usage_totals(st), effective_ceiling(st)
+    lines = [f"Usage for {job_id} ({st['state']})",
+             f"  calls {u['calls']} (closed {u['closed']}, with token figures {u['with_tokens']}); "
+             f"agent minutes {round(u['agent_minutes'], 2)}",
+             "  tokens: " + ", ".join(f"{k} {u['tokens'][k]}" for k in USAGE_KEYS + ("total",)),
+             f"  ceiling (provisional): tokens {c.get('tokens')}, agent minutes {c.get('agent_minutes')}; "
+             f"per-call warning at {c.get('per_call_warning_tokens')} tokens"]
+    agents = {}
+    for x in st["calls"]:
+        a = agents.setdefault(x["agent"], {"calls": 0, "retries": 0, "failed": 0, "tokens": 0, "minutes": 0.0,
+                                           "unknown": 0, "warnings": 0})
+        a["calls"] += 1
+        a["retries"] += 1 if x["retry_of"] else 0
+        a["failed"] += 1 if x.get("status") == "failed" else 0
+        us = x.get("usage") or {}
+        a["tokens"] += us.get("total") or 0
+        a["minutes"] += (us.get("duration_s") or 0) / 60
+        a["unknown"] += 1 if x.get("status") in ("done", "failed") and us.get("total") is None else 0
+        a["warnings"] += 1 if x.get("warning") else 0
+    for name, a in sorted(agents.items()):
+        flag = f"  WARNING: {a['warnings']} call(s) over the per-call threshold" if a["warnings"] else ""
+        lines.append(f"  {name}: calls {a['calls']}, retries {a['retries']}, failed {a['failed']}, tokens {a['tokens']}, "
+                     f"minutes {round(a['minutes'], 2)}, usage unknown {a['unknown']}{flag}")
+    lines.append("  Not included: the Orchestrator's own main-session tokens (until the headless runner, T5.2).")
+    return lines
 
 
 # ---------- script stages ----------

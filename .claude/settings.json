@@ -31,6 +31,20 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py",
+            "args": ["-3", "${CLAUDE_PROJECT_DIR}/engine/hooks/post_tool_use_launcher.py"],
+            "onFailure": "block",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

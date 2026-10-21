@@ -25,7 +25,9 @@
     "inputs",
     "awaiting",
     "continued_from",
-    "seed"
+    "seed",
+    "handoff_log",
+    "ceiling"
   ],
   "properties": {
     "job_id": {
@@ -199,7 +201,11 @@
           "retry_of",
           "reason",
           "handoff",
-          "ts"
+          "ts",
+          "status",
+          "ended",
+          "usage",
+          "usage_source"
         ],
         "properties": {
           "id": {
@@ -247,6 +253,77 @@
           },
           "ts": {
             "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "done",
+              "failed"
+            ]
+          },
+          "ended": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "usage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "input": {
+                "type": "integer"
+              },
+              "output": {
+                "type": "integer"
+              },
+              "cache_read": {
+                "type": "integer"
+              },
+              "cache_write": {
+                "type": "integer"
+              },
+              "total": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "duration_s": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cost_usd_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "usage_source": {
+            "enum": [
+              null,
+              "post_tool_use",
+              "headless",
+              "manual",
+              "infra_error",
+              "repair",
+              "test"
+            ]
+          },
+          "warning": {
+            "type": "boolean"
           }
         }
       }
@@ -373,6 +450,32 @@
         "internal"
       ],
       "description": "set at creation; internal jobs live entirely under private/jobs/<job>/"
+    },
+    "handoff_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "item",
+          "used_by"
+        ]
+      }
+    },
+    "ceiling": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "tokens": {
+          "type": "integer"
+        },
+        "agent_minutes": {
+          "type": "number"
+        }
+      }
     }
   }
 }

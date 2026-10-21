@@ -6,6 +6,7 @@
   python engine/gate.py reject <job> --feedback TEXT    # sends job back to REVISING
   python engine/gate.py verify <job> <gate>             # exit 0 if token valid
   python engine/gate.py lock | unlock                   # operate mode on/off (protects framework files)
+  python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
 
 approve/reject/lock/unlock refuse to run without an interactive terminal.
 The approver's name comes from config/gates.json (fallback: the OS user name).
@@ -38,6 +39,8 @@ def main(argv=None):
     r = sub.add_parser("reject"); r.add_argument("job"); r.add_argument("--feedback", required=True)
     v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("gate")
     sub.add_parser("lock"); sub.add_parser("unlock")
+    c = sub.add_parser("ceiling"); c.add_argument("job"); c.add_argument("--tokens", type=int)
+    c.add_argument("--minutes", type=float)
     args = ap.parse_args(argv)
     try:
         if args.cmd == "show":
@@ -64,6 +67,12 @@ def main(argv=None):
             print(f"Rejected. State: {st['state']}")
         elif args.cmd == "verify":
             ok, why = lc.verify_gate(args.job, args.gate); print(why); return 0 if ok else 1
+        elif args.cmd == "ceiling":
+            if args.tokens is None and args.minutes is None:
+                print("ceiling needs --tokens and/or --minutes", file=sys.stderr); return 1
+            confirm(args.job); st = lc.set_ceiling(args.job, args.tokens, args.minutes, _human=True)
+            lc.gate_audit("ceiling", args.job, ceiling=st["ceiling"])
+            print(f"Usage ceiling for {args.job}: {st['ceiling']}. Resume the job when ready.")
         elif args.cmd == "lock":
             confirm("lock"); lc.LAB.mkdir(exist_ok=True); (lc.LAB / "OPERATE").write_text(lc.now())
             lc.gate_audit("lock")

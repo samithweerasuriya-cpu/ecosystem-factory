@@ -90,6 +90,8 @@ def force_rmtree(path):
 
 
 class LabTestBase(unittest.TestCase):
+    auto_result = True
+
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         for d in ("engine", "config", "schemas", "rules"):
@@ -117,6 +119,19 @@ class LabTestBase(unittest.TestCase):
                                      f"{MIN_TEST_SLUG} characters (the engine needs 2)")
             return engine_new_job(jtype, slug, *args, **kwargs)
         self.lc.new_job = new_job
+
+        # T0.8: a call stays open until its result is recorded (in a session, the post hook does it).
+        # Tests about other behaviour get that result straight away; usage tests set auto_result = False.
+        self.raw_record_call = self.lc.record_call
+
+        def record_call(job_id, agent, item=None):
+            st = self.raw_record_call(job_id, agent, item=item)
+            if self.auto_result:
+                call = st["calls"][-1]
+                if call.get("status") == "open":
+                    st, _ = self.lc.record_result(job_id, call["id"], "done", usage=None, source="test")
+            return st
+        self.lc.record_call = record_call
 
     def tearDown(self):
         while str(self.tmp / "engine") in sys.path:  # labcore also inserts its own folder

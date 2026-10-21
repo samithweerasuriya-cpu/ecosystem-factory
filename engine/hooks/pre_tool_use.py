@@ -50,8 +50,9 @@ import labcore as lc  # noqa: E402
 
 JOB_ALWAYS = ["gates/*", "state.json", "run.log.jsonl", "scripts/*", "inputs/*", "questions/*"]
 ALWAYS = ([f"jobs/*/{p}" for p in JOB_ALWAYS] + [f"private/jobs/*/{p}" for p in JOB_ALWAYS]
-          + [".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl",
-             "private/logs/blocked.jsonl", "private/logs/gate-audit.jsonl"])
+          + [".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl", "logs/usage.jsonl",
+             "logs/usage-unmatched.jsonl", "private/logs/blocked.jsonl", "private/logs/gate-audit.jsonl",
+             "private/logs/usage.jsonl", "private/logs/usage-unmatched.jsonl"])
 # Outside the repo, these tails still mean "a job's or ecosystem's protected file".
 FOREIGN_TAILS = ["*/jobs/*/gates/*", "*/jobs/*/state.json", "*/jobs/*/run.log.jsonl", "*/.lab/*", "*/.lab"]
 OPERATE = [".claude/*", "engine/*", "rules/*", "config/*", "schemas/*", "templates/*", "evals/*/cases/*"]
