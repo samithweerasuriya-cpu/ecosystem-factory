@@ -1,0 +1,15 @@
+# Never tracked or published: source snapshots and private plan/derived material
+vendor/
+private/
+
+# Local Python environment
+.venv/
+__pycache__/
+
+# Runtime state that stays local
+logs/blocked.jsonl
+.lab/active_job
+
+# Secrets and personal settings
+.env*
+.claude/settings.local.json
