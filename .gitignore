@@ -13,3 +13,5 @@ logs/blocked.jsonl
 # Secrets and personal settings
 .env*
 .claude/settings.local.json
+# Machine-specific config (e.g. source-folder roots): never tracked
+config/*.local.json

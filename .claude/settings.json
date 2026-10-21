@@ -16,5 +16,21 @@
       "Read(./**/.env*)",
       "Read(./**/master.key)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py",
+            "args": ["-3", "${CLAUDE_PROJECT_DIR}/engine/hooks/pre_tool_use_launcher.py"],
+            "onFailure": "block",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }

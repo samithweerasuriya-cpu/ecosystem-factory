@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.4.0 (2026-10-21)
+
+Hook fixes and isolation.
+
+- Fail-closed shell analysis: a command that names a protected path (or a folder holding one) is allowed only if every part is on the read-only allow-list; nested `bash -c`, `sh -c`, `powershell -Command`, `cmd /c` and `wsl` are checked recursively; unparseable commands naming a protected path are blocked; `eval`, `iex`, `Invoke-Expression`, base64 decoding and encoded PowerShell commands are always blocked. False positives of the earlier lab fixed: harmless redirects, secret names inside regex text, `cd` followed, text mentions of `gate.py`.
+- Path normalisation: absolute, `./` and `..`, quotes, backslashes, Git Bash `/c/` and WSL `/mnt/c/`, case, 8.3 short names; option-prefixed paths (`-r<path>`); another ecosystem's gate/state files anywhere.
+- `config/protected-paths.json`: no-write roots (the generated ecosystems' folder; source folders in the untracked `config/protected-paths.local.json`) and read blocks: subagents (detected by `agent_id`) never read the method lab, `private/`, `docs/thin/` or eval keys, nor search from above them; in operate mode the main session is blocked from the method lab, `private/` (plan read-only) and eval keys; the active internal job's folder is the one exception.
+- Writes outside the repo only into the harness's `scratchpad_dir`, and only if it lies outside the repo and every guarded root.
+- Blocks touching `private/` or made while an internal job is active are logged to `private/logs/blocked.jsonl`.
+- `engine/hooks/pre_tool_use_launcher.py`: never-edited, pinned by hash; any failure of the real hook (syntax, import, crash, bad return) blocks.
+
 ## 0.3.0 (2026-10-21)
 
 - Job-level classification: `state.py new ... --class synthetic|public|internal` (required). An input may not exceed its job's class; a child or continued job may not drop below its parent's or source job's class.

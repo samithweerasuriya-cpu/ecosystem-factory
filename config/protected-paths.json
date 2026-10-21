@@ -1,0 +1,9 @@
+{
+  "_doc": "Read by engine/hooks/pre_tool_use.py. no_write_roots: folders outside the repo that no tool call may write (only the generator's script stage writes there, and it runs outside the hook). read_blocks.subagents: paths factory subagents may never read (the active internal job's own private/jobs/<job>/ folder is the one exception). read_blocks.operate_main: paths the main session may not read in operate mode, except operate_main_read_only (readable, never writable). Machine-specific roots (e.g. the source folders) go in the untracked config/protected-paths.local.json, under no_write_roots or source_roots; its lists are added to these.",
+  "no_write_roots": ["C:/ecosystems"],
+  "read_blocks": {
+    "subagents": ["vendor/method-lab/**", "private/**", "docs/thin/**", "evals/**/keys/**", "evals/**/*-key.*"],
+    "operate_main": ["vendor/method-lab/**", "private/**", "evals/**/keys/**", "evals/**/*-key.*"],
+    "operate_main_read_only": ["private/plan/**"]
+  }
+}
