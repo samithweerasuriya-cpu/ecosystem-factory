@@ -55,8 +55,14 @@ class EvidenceError(lc.LabError):
 
 
 def config():
-    f = lc.CONFIG / "evidence.json"
-    return {**DEFAULTS, **(lc.load_json(f) if f.exists() else {})}
+    """Tracked settings, then the untracked machine-specific config/evidence.local.json on top
+    (for example the path of the PDF converter, which differs per machine)."""
+    out = dict(DEFAULTS)
+    for name in ("evidence.json", "evidence.local.json"):
+        f = lc.CONFIG / name
+        if f.exists():
+            out.update({k: v for k, v in lc.load_json(f).items() if not k.startswith("_")})
+    return out
 
 
 def enabled():

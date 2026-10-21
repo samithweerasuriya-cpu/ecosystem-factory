@@ -156,6 +156,16 @@ class FetchTests(EvidenceBase):
         self.assertEqual(e["status"], "stored")
         self.assertIn(FACT, self.ev.stored_text(j, e))
 
+    def test_converter_path_comes_from_the_untracked_local_config(self):
+        conv = self.write("scratch/fake_markitdown.py", f"print({FACT!r})\n")
+        self.set_evidence(pdf_converter=["no-such-markitdown-xyz"])                     # tracked: not available
+        self.dump("config/evidence.local.json", {"pdf_converter": [sys.executable, str(self.tmp / conv)]})
+        self.assertEqual(self.ev.config()["pdf_converter"][0], sys.executable)          # local wins
+        j, hid = self.writer_job()
+        self.assertEqual(self.fetch(j, hid, "/doc.pdf")["status"], "stored")
+        self.assertNotIn("fake_markitdown", (self.tmp / "config/evidence.json").read_text())
+        self.assertFalse((self.tmp / "config/protected-paths.local.json").exists())     # test copies skip local files
+
     def test_fetching_needs_an_open_agent_call(self):
         j, hid = self.writer_job()
         with self.assertRaises(self.lc.LabError):

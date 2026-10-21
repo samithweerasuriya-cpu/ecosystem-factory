@@ -95,7 +95,8 @@ class LabTestBase(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         for d in ("engine", "config", "schemas", "rules"):
-            shutil.copytree(REPO / d, self.tmp / d, ignore=shutil.ignore_patterns("__pycache__", "tests"))
+            # machine-specific *.local.json never enters a test copy: tests must not depend on this machine
+            shutil.copytree(REPO / d, self.tmp / d, ignore=shutil.ignore_patterns("__pycache__", "tests", "*.local.json"))
         (self.tmp / "jobs").mkdir()
         self.dump("config/routes.json", TEST_ROUTES)
         self.dump("config/scripts.json", TEST_SCRIPTS)
