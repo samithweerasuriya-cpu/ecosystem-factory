@@ -37,7 +37,8 @@ def artifact_texts(root, artifact):
 def check(root, job_id, artifact, input_ids):
     """Return a list of {rule, location, issue} for the artifact (file or folder)."""
     root = Path(root)
-    problems, own_drafts = [], f"jobs/{job_id}/drafts/"
+    own = next((f"{h}/{job_id}" for h in ("jobs", "private/jobs") if (root / h / job_id).is_dir()), f"jobs/{job_id}")
+    problems, own_drafts = [], f"{own}/drafts/"
     artifact = Path(artifact).as_posix()
     for where, text in artifact_texts(root, artifact):
         for n, line in enumerate(text.splitlines(), 1):
@@ -53,7 +54,7 @@ def check(root, job_id, artifact, input_ids):
                 elif not (root / path).exists():
                     problems.append({"rule": "REF01", "location": loc, "issue": f"path does not exist: {path}"})
             for m in JOB_RE.finditer(stripped):
-                if not (root / "jobs" / m.group(1)).is_dir():
+                if not any((root / h / m.group(1)).is_dir() for h in ("jobs", "private/jobs")):
                     problems.append({"rule": "REF02", "location": loc, "issue": f"job ID does not resolve: {m.group(1)}"})
             for m in INPUT_RE.finditer(line):
                 if m.group(1) not in input_ids:
@@ -78,7 +79,8 @@ def main(argv):
         print(__doc__.strip(), file=sys.stderr)
         return 1
     root = Path(os.environ.get("LAB_ROOT") or os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parent.parent)
-    st = json.loads((root / "jobs" / argv[0] / "state.json").read_text(encoding="utf-8"))
+    home = next((root / h / argv[0] for h in ("jobs", "private/jobs") if (root / h / argv[0]).is_dir()), root / "jobs" / argv[0])
+    st = json.loads((home / "state.json").read_text(encoding="utf-8"))
     artifact = argv[1] if len(argv) > 1 else st["artifact_path"]
     problems = check(root, argv[0], artifact, {i["id"] for i in st.get("inputs", [])})
     for p in problems:

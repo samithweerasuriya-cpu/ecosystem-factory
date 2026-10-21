@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Orchestrator CLI for job state. The ONLY way agents change job state.
 
-  python engine/state.py new <type> <slug> "<goal>" [--parent JOB] [--continue-from JOB]
+  python engine/state.py new <type> <slug> "<goal>" --class synthetic|public|internal [--parent JOB] [--continue-from JOB]
   python engine/state.py event <job> <event> [--artifact PATH] [--note TEXT] [--reason R] [--questions FILE]
   python engine/state.py handoff <job> [--item ID] [--json]  # build the handoff for the next agent call
   python engine/state.py call <job> <agent> [--item ID]   # count an agent invocation
@@ -13,12 +13,14 @@
   python engine/state.py status [<job>]
   python engine/state.py routes                            # print routes (validated)
   python engine/state.py check-config                      # validate routes, caps and scripts
+  python engine/state.py check-private <job>               # internal job: nothing of it can reach a commit
 
 Events: dispatch, stage_done, artifact_ready, fixed, infra_error, repair (--reason invalid_output|
 severity_directive), needs_input (--questions FILE), answered, review_pass, review_fail, revised,
 deliver, complete, block, escalate, cancel, resume.
-Inputs are stored verbatim: synthetic and public in jobs/<job>/inputs/, internal in
-private/jobs/<job>/inputs/ (untracked).
+Every job has a class, set at creation. Synthetic and public jobs live in jobs/<job>/; internal
+jobs live entirely in private/jobs/<job>/ (untracked). Inputs are stored verbatim in the job's own
+inputs/ folder and may not exceed the job's class.
 (approve/reject are human-only: engine/gate.py; script_fail is recorded only by 'run'.)
 Exit codes: 0 ok, 1 error, 3 cap exceeded (job paused; tell the approver), 4 script stage failed.
 """
@@ -43,6 +45,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     n = sub.add_parser("new"); n.add_argument("type"); n.add_argument("slug"); n.add_argument("goal"); n.add_argument("--parent"); n.add_argument("--continue-from")
+    n.add_argument("--class", dest="cls", required=True, choices=["synthetic", "public", "internal"])
     e = sub.add_parser("event"); e.add_argument("job"); e.add_argument("event"); e.add_argument("--artifact"); e.add_argument("--note")
     e.add_argument("--reason"); e.add_argument("--questions")
     h = sub.add_parser("handoff"); h.add_argument("job"); h.add_argument("--item"); h.add_argument("--json", action="store_true")
@@ -56,10 +59,11 @@ def main(argv=None):
     a = sub.add_parser("activate"); a.add_argument("job")
     s = sub.add_parser("status"); s.add_argument("job", nargs="?")
     sub.add_parser("routes"); sub.add_parser("check-config")
+    cp = sub.add_parser("check-private"); cp.add_argument("job")
     args = ap.parse_args(argv)
     try:
         if args.cmd == "new":
-            st = lc.new_job(args.type, args.slug, args.goal, args.parent, continue_from=args.continue_from)
+            st = lc.new_job(args.type, args.slug, args.goal, args.parent, continue_from=args.continue_from, cls=args.cls)
             lc.set_active(st["job_id"])
             print(summary(st))
         elif args.cmd == "event":
@@ -91,11 +95,17 @@ def main(argv=None):
             if args.job:
                 print(json.dumps(lc.load_state(args.job), indent=2))
             else:
-                for d in sorted(p for p in lc.JOBS.iterdir() if (p / "state.json").exists()) if lc.JOBS.exists() else []:
-                    print(summary(lc.load_json(d / "state.json")))
+                for st in lc.all_jobs():
+                    print(summary(st))
                 print(f"active: {lc.active_job()}")
         elif args.cmd == "routes":
             print(json.dumps(lc.routes(), indent=2))
+        elif args.cmd == "check-private":
+            leaks = lc.private_leaks(args.job)
+            for leak in leaks:
+                print(f"LEAK {leak}")
+            print("private OK: nothing of this job can reach a commit" if not leaks else f"{len(leaks)} leak(s)")
+            return 1 if leaks else 0
         elif args.cmd == "check-config":
             errs = lc.route_errors(lc.load_json(lc.CONFIG / "routes.json"))
             for err in errs:

@@ -14,18 +14,18 @@ class T06Base(LabTestBase):
         caps.update(kw)
         self.dump("config/caps.json", caps)
 
-    def spec_at_review(self, slug="sample", text="draft v1"):
+    def spec_at_review(self, slug="sample", text="draft v1", cls="synthetic"):
         lc = self.lc
-        j = lc.new_job("spec", slug, "Sample goal")["job_id"]
+        j = lc.new_job("spec", slug, "Sample goal", cls=cls)["job_id"]
         lc.apply(j, "dispatch"); lc.apply(j, "stage_done")
-        lc.apply(j, "artifact_ready", artifact=self.write(f"jobs/{j}/drafts/v1.md", text))
+        lc.apply(j, "artifact_ready", artifact=self.write(f"{lc.rel(lc.job_dir(j))}/drafts/v1.md", text))
         return j
 
     def input_file(self, name="answer.md", text="My answer.\n"):
         return str(self.tmp / self.write(f"scratch/{name}", text))
 
     def log(self, j):
-        return [json.loads(l) for l in (self.tmp / "jobs" / j / "run.log.jsonl").read_text(encoding="utf-8").splitlines()]
+        return [json.loads(l) for l in (self.lc.job_dir(j) / "run.log.jsonl").read_text(encoding="utf-8").splitlines()]
 
 
 class LifetimeCapTests(T06Base):
@@ -285,11 +285,12 @@ class RepairTests(T06Base):
 
 
 class HumanInputTests(T06Base):
-    """(d) inputs are stored verbatim with a class; internal inputs never land in a tracked path."""
+    """(d) inputs are stored verbatim with a class that may not exceed the job's class
+    (internal jobs and their inputs: test_jobclass.py)."""
 
     def test_input_is_stored_verbatim_with_id_and_hash(self):
         lc = self.lc
-        j = self.spec_at_review()
+        j = self.spec_at_review(cls="public")
         raw = "Line one, café — “quotes”\r\nLine two\n".encode("utf-8")
         (self.tmp / "scratch").mkdir()
         (self.tmp / "scratch/a.md").write_bytes(raw)
@@ -309,33 +310,6 @@ class HumanInputTests(T06Base):
                            capture_output=True, text=True, env=self.hook_env())
         self.assertEqual(p.returncode, 2)                                            # argparse: --class required
         self.assertIn("--class", p.stderr)
-
-    def test_internal_input_never_lands_in_a_tracked_path(self):
-        if not shutil.which("git"):
-            self.skipTest("git not available")
-        lc = self.lc
-        shutil.copy2(REPO / ".gitignore", self.tmp / ".gitignore")                  # the factory's real ignore rules
-        git = lambda *a: subprocess.run(["git", "-C", str(self.tmp), *a], capture_output=True, text=True)
-        git("init", "-q")
-        j = self.spec_at_review()
-        tracked_src = self.input_file("secretish.md", "internal text\n")             # a source Git could track
-        with self.assertRaises(lc.LabError) as cm:
-            lc.record_input(j, tracked_src, "internal")
-        self.assertIn("stdin", str(cm.exception))
-        (self.tmp / tracked_src).unlink()
-        _, rec = lc.record_input(j, "-", "internal", data=b"internal text\n")         # piped, as the job loop does
-        self.assertTrue(rec["path"].endswith("A01-answer.md"))
-        self.write("private/drafts/secretish.md", "internal text\n")                 # or a source kept under private/
-        _, rec2 = lc.record_input(j, str(self.tmp / "private/drafts/secretish.md"), "internal")
-        self.assertTrue(rec2["path"].startswith(f"private/jobs/{j}/inputs/"))
-        self.assertTrue(rec["path"].startswith(f"private/jobs/{j}/inputs/"))
-        self.assertFalse((self.tmp / "jobs" / j / "inputs").exists())
-        self.assertEqual(git("check-ignore", "-q", rec["path"]).returncode, 0)    # ignored by Git
-        git("add", "-A")
-        tracked = git("ls-files").stdout.splitlines()
-        self.assertFalse([t for t in tracked if "secretish" in t or t.startswith("private/")], tracked)
-        self.assertNotIn("internal text", "".join((self.tmp / t).read_text(encoding="utf-8", errors="replace")
-                                                  for t in tracked if (self.tmp / t).is_file()))
 
     def test_inputs_are_protected_from_agent_writes(self):
         for path in ("jobs/20260101-spec-a/inputs/A01-answer.md", "private/jobs/20260101-spec-a/inputs/A01-x.md",
@@ -436,18 +410,20 @@ class ContinueFromTests(T06Base):
 
     def test_new_job_is_seeded_and_linked(self):
         lc = self.lc
-        old = self.spec_at_review(slug="old", text="the old draft\n")
-        lc.record_input(old, self.input_file("a.md", "public answer\n"), "public")
+        old = self.spec_at_review(slug="old", text="the old draft\n", cls="internal")
+        lc.record_input(old, "-", "public", data=b"public answer\n")
         lc.record_input(old, "-", "internal", data=b"internal answer\n")
         lc.record_call(old, "critic")
         lc.apply(old, "escalate")
-        st = lc.new_job("spec", "again", "Sample goal", continue_from=old)
+        with self.assertRaises(lc.LabError):
+            lc.new_job("spec", "again", "Sample goal", continue_from=old, cls="public")  # class may not drop
+        st = lc.new_job("spec", "again", "Sample goal", continue_from=old, cls="internal")
         new = st["job_id"]
         self.assertEqual(st["continued_from"], old)
         seed = st["seed"][0]
         self.assertEqual((self.tmp / seed).read_text(), "the old draft\n")
         self.assertEqual([(i["id"], i["class"]) for i in st["inputs"]], [("A01", "public"), ("A02", "internal")])
-        self.assertTrue(st["inputs"][1]["path"].startswith(f"private/jobs/{new}/inputs/"))
+        self.assertTrue(all(i["path"].startswith(f"private/jobs/{new}/inputs/") for i in st["inputs"]))
         self.assertEqual((self.tmp / st["inputs"][0]["path"]).read_text(), "public answer\n")
         self.assertTrue(all(v == 0 for v in st["counters"].values()))
         self.assertEqual(st["calls"], [])

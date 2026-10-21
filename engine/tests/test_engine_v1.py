@@ -59,7 +59,7 @@ class RouteFormatTests(LabTestBase):
         data["routes"]["survey"]["stages"].pop()
         self.dump("config/routes.json", data)
         with self.assertRaises(self.lc.LabError):
-            self.lc.new_job("spec", "x", "x")
+            self.lc.new_job("spec", "xyz", "x")
 
     def test_bad_script_spec_is_invalid(self):
         bad = {"check": {"argv": "python -c 1", "timeout": 0}}

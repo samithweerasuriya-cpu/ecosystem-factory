@@ -5,6 +5,7 @@
   "required": [
     "job_id",
     "type",
+    "class",
     "goal",
     "route",
     "state",
@@ -364,6 +365,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "class": {
+      "enum": [
+        "synthetic",
+        "public",
+        "internal"
+      ],
+      "description": "set at creation; internal jobs live entirely under private/jobs/<job>/"
     }
   }
 }

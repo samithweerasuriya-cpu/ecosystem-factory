@@ -88,9 +88,9 @@ class StateMachineTests(LabTestBase):
     def test_child_job_needs_approved_parent(self):
         j, _ = self.spec_to_gate()
         with self.assertRaises(self.lc.LabError):
-            self.lc.new_job("tickets", "t1", "x", parent=j)
+            self.lc.new_job("tickets", "tk1", "x", parent=j)
         self.lc.approve_gate(j)
-        st = self.lc.new_job("tickets", "t1", "x", parent=j)
+        st = self.lc.new_job("tickets", "tk1", "x", parent=j)
         self.assertEqual(st["state"], "PLANNED")
 
     def test_infra_errors_block_and_resume(self):
@@ -239,7 +239,7 @@ class HookTests(LabTestBase):
         p = {"tool_name": "mcp__tracker__save_issue", "tool_input": {"title": "x"}}
         parent, _ = self.spec_to_gate()
         lc.approve_gate(parent)
-        t = lc.new_job("tickets", "t1", "x", parent=parent)["job_id"]
+        t = lc.new_job("tickets", "tk1", "x", parent=parent)["job_id"]
         lc.set_active(t)
         self.assertEqual(self.run_hook(p), 2)
         lc.apply(t, "dispatch")

@@ -26,6 +26,7 @@ import check_refs  # noqa: E402
 
 ROOT = Path(os.environ.get("LAB_ROOT") or os.environ.get("CLAUDE_PROJECT_DIR") or ENGINE.parent)
 JOBS = ROOT / "jobs"
+PRIVATE_JOBS = ROOT / "private" / "jobs"   # internal jobs live here, entirely (untracked)
 LAB = ROOT / ".lab"
 CONFIG = ROOT / "config"
 SCHEMAS = ROOT / "schemas"
@@ -43,8 +44,10 @@ PER_CYCLE = ("critic_revisions", "verifier_revisions", "total_revisions", "fix_a
 LIFETIME = ("lifetime_agent_calls", "lifetime_revisions", "lifetime_resumes", "input_rounds", "repairs")
 CALL_STATES = {"WORKING", "REVIEW", "VERIFY", "REVISING", "DELIVERING"}
 REPAIR_REASONS = ("invalid_output", "severity_directive")
-INPUT_CLASSES = ("synthetic", "public", "internal")
-# Script argv placeholders: {job}, {job_dir}, {root}; an argv entry of exactly "{python}"
+INPUT_CLASSES = ("synthetic", "public", "internal")   # ordered: an input may not exceed its job's class
+CLASS_RANK = {c: i for i, c in enumerate(INPUT_CLASSES)}
+# Script argv placeholders: {job}, {job_dir}, {job_path} (repo-relative job folder: use it, not
+# "jobs/{job}", so internal jobs work), {root}; an argv entry of exactly "{python}"
 # becomes the interpreter running the engine (so script stages need no venv on PATH).
 
 
@@ -162,13 +165,44 @@ def routes():
 
 # ---------- jobs: paths and hashing ----------
 
+def job_home(cls):
+    """Folder that holds jobs of this class: internal jobs live entirely under private/jobs/."""
+    if cls not in CLASS_RANK:
+        raise LabError(f"job class must be one of {list(INPUT_CLASSES)}")
+    return PRIVATE_JOBS if cls == "internal" else JOBS
+
+
+def find_job(job_id):
+    """The job's folder, found by its state.json (a stray folder of the same name never redirects
+    the job); a job whose state exists in both homes is refused."""
+    found = [home / job_id for home in (JOBS, PRIVATE_JOBS) if (home / job_id / "state.json").is_file()]
+    if len(found) > 1:
+        raise LabError(f"{job_id} has state in both jobs/ and private/jobs/; resolve by hand")
+    return found[0] if found else None
+
+
+def job_id_taken(job_id):
+    return any((home / job_id).exists() for home in (JOBS, PRIVATE_JOBS))
+
+
 def job_dir(job_id):
     if not JOB_ID_RE.match(job_id or ""):
         raise LabError(f"invalid job id: {job_id!r}")
-    d = JOBS / job_id
-    if not d.exists():
+    d = find_job(job_id)
+    if d is None:
         raise LabError(f"job not found: {job_id}")
     return d
+
+
+def is_internal(job_id):
+    d = find_job(job_id)
+    return d is not None and d.parent == PRIVATE_JOBS
+
+
+def all_jobs():
+    """State of every job, public and internal."""
+    return [load_json(d / "state.json") for home in (JOBS, PRIVATE_JOBS) if home.exists()
+            for d in sorted(home.iterdir()) if (d / "state.json").exists()]
 
 
 def load_state(job_id):
@@ -177,7 +211,7 @@ def load_state(job_id):
 
 def log(job_id, entry):
     entry = {"ts": now(), "job_id": job_id, **entry}
-    with open(JOBS / job_id / "run.log.jsonl", "a", encoding="utf-8") as fh:
+    with open(job_dir(job_id) / "run.log.jsonl", "a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry) + "\n")
 
 
@@ -210,7 +244,7 @@ def sha256_path(path):
 # ---------- gates ----------
 
 def gate_file(job_id, gate):
-    return JOBS / job_id / "gates" / f"{gate}.json"
+    return job_dir(job_id) / "gates" / f"{gate}.json"
 
 
 def verify_gate(job_id, gate):
@@ -256,8 +290,10 @@ def gate_audit(action, job_id=None, **detail):
         except LabError as e:
             rec["state_error"] = str(e)
     rec.update(detail)
-    (ROOT / "logs").mkdir(exist_ok=True)
-    with open(ROOT / "logs" / "gate-audit.jsonl", "a", encoding="utf-8") as fh:
+    # Internal jobs are audited under private/logs/: the tracked audit log must never hold their content.
+    logs = ROOT / "private" / "logs" if job_id and is_internal(job_id) else ROOT / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    with open(logs / "gate-audit.jsonl", "a", encoding="utf-8") as fh:
         fh.write(json.dumps(rec) + "\n")
     return rec
 
@@ -268,15 +304,15 @@ def reject_gate(job_id, feedback, actor=None):
     if st["state"] != "GATE":
         raise LabError(f"{job_id} is {st['state']}, not GATE")
     n = st["counters"]["gate_rejections"] + 1
-    fb = JOBS / job_id / "reviews" / f"human-feedback-{n}.md"
+    fb = job_dir(job_id) / "reviews" / f"human-feedback-{n}.md"
     fb.write_text(f"# Human feedback {n} ({now()})\n\n{feedback}\n", encoding="utf-8")
     return apply(job_id, "reject", note=rel(fb), actor=actor, _human=True)
 
 
 # ---------- jobs ----------
 
-def _fresh_state(job_id, jtype, goal, parent, r):
-    return {"job_id": job_id, "type": jtype, "goal": goal, "parent": parent,
+def _fresh_state(job_id, jtype, goal, parent, r, cls):
+    return {"job_id": job_id, "type": jtype, "class": cls, "goal": goal, "parent": parent,
             "route": r, "state": "NEW", "stage": None, "stage_kind": None, "stage_index": 0,
             "review_index": 0, "fanout": None, "fixing": False,
             "artifact_path": None, "resume_to": None, "last_failed_by": None,
@@ -286,7 +322,7 @@ def _fresh_state(job_id, jtype, goal, parent, r):
             "created": now(), "updated": now()}
 
 
-def new_job(jtype, slug, goal, parent=None, continue_from=None):
+def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic"):
     all_routes = routes()
     r = all_routes.get(jtype)
     if r is None:
@@ -299,21 +335,29 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None):
         ok, why = verify_gate(parent, r["requires_parent_gate"])
         if not ok:
             raise LabError(f"parent not approved: {why}")
+    job_home(cls)
+    if parent:
+        pcls = load_state(parent).get("class", "synthetic")
+        if CLASS_RANK[cls] < CLASS_RANK[pcls]:
+            raise LabError(f"a {cls} job cannot build on a {pcls} parent")
     old = None
     if continue_from:
         old = load_state(continue_from)
         if old["state"] not in TERMINAL | PAUSED:
             raise LabError(f"{continue_from} is {old['state']}; continue only from a finished or paused job")
+        ocls = old.get("class", "synthetic")
+        if CLASS_RANK[cls] < CLASS_RANK[ocls]:
+            raise LabError(f"cannot continue a {ocls} job as a {cls} job (class can only stay or rise)")
     base = f"{datetime.date.today():%Y%m%d}-{jtype}-{slug}"
     job_id, i = base, 2
-    while (JOBS / job_id).exists():
+    while job_id_taken(job_id):
         job_id, i = f"{base}-{i}", i + 1
-    d = JOBS / job_id
+    d = job_home(cls) / job_id
     for sub in ("research", "drafts", "reviews", "gates", "delivery", "evidence"):
         (d / sub).mkdir(parents=True)
     cont = f"Continued from: {continue_from}\n" if continue_from else ""
     (d / "brief.md").write_text(f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n{cont}\n## Goal\n{goal}\n", encoding="utf-8")
-    st = _fresh_state(job_id, jtype, goal, parent, r)
+    st = _fresh_state(job_id, jtype, goal, parent, r, cls)
     if old:
         st["continued_from"] = continue_from
         if old["artifact_path"]:
@@ -325,7 +369,7 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None):
                 shutil.copy2(src, dst)
             st["seed"].append(rel(dst))
         for inp in old["inputs"]:
-            dest = input_dir(job_id, inp["class"]) / Path(inp["path"]).name
+            dest = d / "inputs" / Path(inp["path"]).name
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / inp["path"], dest)
             st["inputs"].append({**inp, "path": rel(dest), "copied_from": continue_from})
@@ -339,7 +383,7 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None):
 
 def _save(job_id, st, entry):
     st["updated"] = now()
-    save_json(JOBS / job_id / "state.json", st)
+    save_json(job_dir(job_id) / "state.json", st)
     log(job_id, {**entry, "counters": st["counters"]})
 
 
@@ -398,8 +442,8 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if not problems:
             return enter_review(0)
         doc = check_refs.findings_doc(job_id, st["artifact_path"], _version(st["artifact_path"]), problems)
-        n = len(list((JOBS / job_id / "reviews").glob("check-refs-*.json"))) + 1
-        out = JOBS / job_id / "reviews" / f"check-refs-{n}.json"
+        n = len(list((job_dir(job_id) / "reviews").glob("check-refs-*.json"))) + 1
+        out = job_dir(job_id) / "reviews" / f"check-refs-{n}.json"
         save_json(out, doc)
         extra["check_refs"] = rel(out)
         st["last_failed_by"] = "check-refs"
@@ -489,7 +533,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         text = Path(questions).read_text(encoding="utf-8")
         new = cap("input_rounds", "input_rounds", cur) or "AWAITING_INPUT"
         if new == "AWAITING_INPUT":
-            qd = JOBS / job_id / "questions"
+            qd = job_dir(job_id) / "questions"
             qd.mkdir(exist_ok=True)
             qf = qd / f"q-{st['counters']['input_rounds']}.md"
             qf.write_text(text, encoding="utf-8")
@@ -552,10 +596,14 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
 # ---------- human inputs ----------
 
 def input_dir(job_id, cls):
-    """Synthetic and public inputs live in the job folder; internal ones under private/ (untracked)."""
+    """Inputs live in the job's own folder; an input may not exceed the job's class."""
     if cls not in INPUT_CLASSES:
         raise LabError(f"input class must be one of {list(INPUT_CLASSES)}")
-    return (ROOT / "private" / "jobs" / job_id / "inputs") if cls == "internal" else (JOBS / job_id / "inputs")
+    job_cls = load_state(job_id).get("class", "synthetic")
+    if CLASS_RANK[cls] > CLASS_RANK[job_cls]:
+        hint = " (start an internal job with --continue-from)" if cls == "internal" else ""
+        raise LabError(f"a {cls} input cannot go into a {job_cls} job{hint}")
+    return job_dir(job_id) / "inputs"
 
 
 def record_input(job_id, source, cls, note=None, data=None):
@@ -687,10 +735,10 @@ def build_handoff(job_id, item=None):
     st = load_state(job_id)
     if st["state"] not in CALL_STATES:
         raise LabError(f"{job_id} is {st['state']}; no handoff to build")
-    r, kind, d = st["route"], st["stage_kind"], JOBS / job_id
+    r, kind, d = st["route"], st["stage_kind"], job_dir(job_id)
     if kind == "script":
         raise LabError("script stage: no agent handoff; run it with 'state.py run'")
-    j = f"jobs/{job_id}"
+    j = rel(d)
     inputs, rules = [], []
     human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
     feedback = [("gate feedback", p) for p in _files(d / "reviews") if Path(p).name.startswith("human-feedback-")]
@@ -792,7 +840,7 @@ def run_script(job_id):
     if spec is None:
         raise LabError(f"script {name!r} is not in config/scripts.json")
     d = job_dir(job_id)
-    subst = {"{job}": job_id, "{job_dir}": str(d), "{root}": str(ROOT)}
+    subst = {"{job}": job_id, "{job_dir}": str(d), "{job_path}": rel(d), "{root}": str(ROOT)}
     argv = []
     for a in spec["argv"]:
         for k, v in subst.items():
@@ -818,10 +866,35 @@ def run_script(job_id):
     note = rel(out)
     if rec["exit_code"] == 0:
         if st["stage_index"] == len(st["route"]["stages"]) - 1:
-            art = spec["artifact"].replace("{job}", job_id)
+            art = spec["artifact"].replace("{job_path}", rel(d)).replace("{job}", job_id)
             return apply(job_id, "artifact_ready", artifact=art, note=note, actor="script", _script=True), rec
         return apply(job_id, "stage_done", note=note, actor="script", _script=True), rec
     return apply(job_id, "script_fail", note=note, actor="script", _script=True), rec
+
+
+# ---------- private-job leak check ----------
+
+def private_leaks(job_id, root=None):
+    """For an internal job: every file Git would track (tracked, or untracked and not ignored)
+    whose path or text names the job, plus the job folder itself if Git does not ignore it.
+    Returns a list of messages; empty = nothing of this job can reach a commit."""
+    root = Path(root or ROOT)
+    if not is_internal(job_id):
+        raise LabError(f"{job_id} is not an internal job")
+    git = lambda *a: subprocess.run(["git", "-C", str(root), *a], capture_output=True, text=True)
+    if git("rev-parse", "--is-inside-work-tree").returncode != 0:
+        raise LabError("not a Git repository: cannot check what Git would track")
+    leaks = []
+    if git("check-ignore", "-q", rel(job_dir(job_id) / "state.json")).returncode != 0:
+        leaks.append(f"{rel(job_dir(job_id))} is not ignored by Git")
+    listed = git("ls-files", "--cached", "--others", "--exclude-standard", "-z").stdout.split("\0")
+    for f in filter(None, listed):
+        p = root / f
+        if job_id in f:
+            leaks.append(f"{f}: path names the internal job")
+        elif p.is_file() and p.stat().st_size < 5_000_000 and job_id.encode() in p.read_bytes():
+            leaks.append(f"{f}: content names the internal job")
+    return leaks
 
 
 def set_active(job_id):

@@ -42,7 +42,7 @@ def main(argv=None):
     try:
         if args.cmd == "show":
             st = lc.load_state(args.job)
-            d = lc.JOBS / args.job
+            d = lc.job_dir(args.job)
             print(f"Job:      {args.job}\nState:    {st['state']}\nGate:     {st['route']['gate']}")
             print(f"Artifact: {st['artifact_path']}")
             if st["artifact_path"]:

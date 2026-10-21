@@ -13,6 +13,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent.parent
 FIX = Path(__file__).resolve().parent / "fixtures"
+MIN_TEST_SLUG = 3
 
 PY_CHECK = "import pathlib,sys; sys.exit(0 if pathlib.Path(sys.argv[1], 'ok').exists() else 1)"
 PY_PACKAGE = "import pathlib,sys; pathlib.Path(sys.argv[1], 'delivery', 'pkg.txt').write_text('pkg')"
@@ -50,7 +51,7 @@ TEST_SCRIPTS = {"scripts": {
     "check": {"argv": ["{python}", "-c", PY_CHECK, "{job_dir}"], "timeout": 30},
     "slow": {"argv": ["{python}", "-c", "import time; time.sleep(10)"], "timeout": 1},
     "package": {"argv": ["{python}", "-c", PY_PACKAGE, "{job_dir}"], "timeout": 30,
-                "artifact": "jobs/{job}/delivery/pkg.txt"},
+                "artifact": "{job_path}/delivery/pkg.txt"},
 }}
 
 TEST_GATED = {
@@ -107,6 +108,15 @@ class LabTestBase(unittest.TestCase):
             sys.modules.pop(mod, None)
         self.lc = importlib.import_module("labcore")
         self.assertEqual(self.lc.ROOT, self.tmp)  # never the real repo
+        engine_new_job = self.lc.new_job
+
+        def new_job(jtype, slug, *args, **kwargs):
+            # Lesson (T0.5, T0.6): one-letter slugs twice produced confusing engine errors in tests.
+            if len(slug) < MIN_TEST_SLUG:
+                raise AssertionError(f"test helper: slug {slug!r} is too short; tests use at least "
+                                     f"{MIN_TEST_SLUG} characters (the engine needs 2)")
+            return engine_new_job(jtype, slug, *args, **kwargs)
+        self.lc.new_job = new_job
 
     def tearDown(self):
         while str(self.tmp / "engine") in sys.path:  # labcore also inserts its own folder

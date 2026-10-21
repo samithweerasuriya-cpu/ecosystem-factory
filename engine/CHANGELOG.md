@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.3.0 (2026-10-21)
+
+- Job-level classification: `state.py new ... --class synthetic|public|internal` (required). An input may not exceed its job's class; a child or continued job may not drop below its parent's or source job's class.
+- Internal jobs live entirely under `private/jobs/<job>/` (brief, state, run log, drafts, reviews, gates, delivery, inputs); their gate-audit entries go to `private/logs/gate-audit.jsonl`, never the tracked audit log.
+- `state.py check-private <job>`: lists every file Git would track whose path or content names an internal job, and flags a job folder Git does not ignore.
+- Jobs are found by their `state.json`, so a stray folder of the same name never redirects a job; state in both homes is refused.
+- Script placeholder `{job_path}` (the repo-relative job folder), for scripts that must work for internal jobs.
+
 ## 0.2.0 (2026-10-21)
 
 Fixes from the run history of the author's earlier private lab.

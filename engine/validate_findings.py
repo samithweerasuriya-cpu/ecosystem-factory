@@ -62,7 +62,8 @@ def reviewer_rulebook(reviewer, root=ROOT):
 def feedback_overrides(job_id, root=ROOT):
     """{rule_id: strictest severity} set in the approver's gate feedback files for this job."""
     out = {}
-    for fb in sorted((root / "jobs" / str(job_id) / "reviews").glob("human-feedback-*.md")):
+    files = [f for h in ("jobs", "private/jobs") for f in (root / h / str(job_id) / "reviews").glob("human-feedback-*.md")]
+    for fb in sorted(files, key=lambda f: f.name):
         for rule, sev in FEEDBACK_SEV.findall(fb.read_text(encoding="utf-8")):
             rule, sev = rule.upper(), sev.lower()
             if RANK[sev] > RANK.get(out.get(rule), -1):

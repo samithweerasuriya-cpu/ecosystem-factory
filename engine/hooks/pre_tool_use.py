@@ -31,9 +31,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import labcore as lc  # noqa: E402
 
-ALWAYS = ["jobs/*/gates/*", "jobs/*/state.json", "jobs/*/run.log.jsonl", "jobs/*/scripts/*",
-          "jobs/*/inputs/*", "private/jobs/*/inputs/*", "jobs/*/questions/*",
-          ".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl"]
+JOB_ALWAYS = ["gates/*", "state.json", "run.log.jsonl", "scripts/*", "inputs/*", "questions/*"]
+ALWAYS = ([f"jobs/*/{p}" for p in JOB_ALWAYS] + [f"private/jobs/*/{p}" for p in JOB_ALWAYS]
+          + [".lab/*", ".lab", "logs/blocked.jsonl", "logs/gate-audit.jsonl", "private/logs/gate-audit.jsonl"])
 OPERATE = [".claude/*", "engine/*", "rules/*", "config/*", "schemas/*", "templates/*",
            "evals/*/cases/*"]
 WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
