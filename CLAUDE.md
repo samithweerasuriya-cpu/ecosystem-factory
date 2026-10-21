@@ -39,7 +39,7 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 
 - Work only inside this folder and `C:\ecosystems`. Never push to a remote: publishing is Samith's step, in his own terminal, at a publish gate. Only the generator script writes to `C:\ecosystems`; never edit a generated ecosystem by hand (use a `change` job). `C:\ecosystems\probe` is a hand-made test fixture (T0.4, used in T0.12), never generated or registered; the generator-only rule applies to generated ecosystems. The three source folders listed in `private/plan/BUILD_PLAN.md` are read only in tasks T0.3 and T0.17 and never written to.
 - Synthetic or public data by default. Internal data only after Samith confirms the employer policy (T2.0) and the charter's data classification allows it. Never customer data, confidential documents or production credentials.
-- Factory agents never read `vendor/agent-lab/`, `private/`, `docs/thin/` or eval keys (the hook enforces it).
+- Factory agents never read `vendor/method-lab/`, `private/`, `docs/thin/` or eval keys (the hook enforces it).
 - Every job has a usage ceiling; stop and report when it is hit.
 - Never put secrets in files, code, commits or chat.
 - Do not set or rely on `ANTHROPIC_API_KEY`. Usage stays on the Claude subscription.
