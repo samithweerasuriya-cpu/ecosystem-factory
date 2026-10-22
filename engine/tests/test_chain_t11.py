@@ -277,6 +277,9 @@ class LineEndingTests(ChainBase):
         art.write_bytes(b"line one\nline two\nline three\n")                         # LF bytes (write_text would give CRLF)
         lc.apply(top, "artifact_ready", artifact=f"jobs/{top}/drafts/v1.md")
         lc.apply(top, "review_pass"); lc.approve_gate(top)
+        agent = self.tmp / ".claude/agents/probe-writer.md"                          # agent files are hashed from T0.13
+        agent.parent.mkdir(parents=True, exist_ok=True)
+        agent.write_bytes(b"---\nname: probe-writer\ntools: Read\n---\nWrite one line.\n")
         git(self.tmp, "add", "-A")
         git(self.tmp, "-c", "user.name=t", "-c", "user.email=t@example.org", "commit", "-q", "-m", "x")
         dest = Path(tempfile.mkdtemp()) / "clone"
@@ -287,17 +290,18 @@ class LineEndingTests(ChainBase):
             p = subprocess.run([sys.executable, str(dest / "engine/gate.py"), "verify", top, "G0-top", "--chain"],
                                capture_output=True, text=True, env=env)
             crlf = b"\r\n" in (dest / f"jobs/{top}/drafts/v1.md").read_bytes()
-            return p.returncode, crlf
+            agent_same = (dest / ".claude/agents/probe-writer.md").read_bytes() == agent.read_bytes()
+            return p.returncode, crlf, agent_same
         finally:
             force_rmtree(dest.parent)
 
     def test_token_survives_a_fresh_checkout(self):
-        code, crlf = self.clone_and_verify(with_attributes=True)
-        self.assertEqual((code, crlf), (0, False))
+        code, crlf, agent_same = self.clone_and_verify(with_attributes=True)
+        self.assertEqual((code, crlf, agent_same), (0, False, True))
 
     def test_control_without_attributes_the_checkout_converts_and_voids(self):
-        code, crlf = self.clone_and_verify(with_attributes=False)
-        self.assertEqual((code, crlf), (1, True))                                    # proves the test bites
+        code, crlf, agent_same = self.clone_and_verify(with_attributes=False)
+        self.assertEqual((code, crlf, agent_same), (1, True, False))                 # proves the test bites
 
 
 if __name__ == "__main__":

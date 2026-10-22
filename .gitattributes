@@ -6,3 +6,5 @@ config/** -text
 schemas/** -text
 rules/** -text
 templates/** -text
+.claude/** -text
+evals/** -text
