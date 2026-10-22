@@ -1,0 +1,15 @@
+{
+  "job_id": "20261022-demo-marks",
+  "reviewer": "demo-critic",
+  "artifact_path": "jobs/20261022-demo-marks/drafts/v1.md",
+  "artifact_version": "v1",
+  "verdict": "fail",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [
+    {"id": "F-01", "rule": "DM03", "severity": "major", "location": "whole draft", "issue": "No open questions are listed, although the summary promises 'where readers can learn more' without saying where.", "fix": "Add an Open questions section, or name the sources."},
+    {"id": "F-02", "rule": "DM04", "severity": "minor", "location": "first sentence", "issue": "'practical topics' adds nothing.", "fix": "Drop 'practical'."},
+    {"id": "F-03", "rule": "DM04", "severity": "minor", "location": "second sentence", "issue": "'the main things to consider' is vague.", "fix": "Say what is considered."},
+    {"id": "F-04", "rule": "DM04", "severity": "minor", "location": "title", "issue": "The title says 'summary' twice with the heading.", "fix": "Shorten the title."}
+  ],
+  "summary": "Stand-in critic: one major, three wording notes."
+}

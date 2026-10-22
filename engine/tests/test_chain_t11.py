@@ -255,8 +255,9 @@ class RobustnessTests(ChainBase):
         mid = self.approved("mid", "middy", "mid v1\n", parent=top, approve=False)
         p = subprocess.run([sys.executable, str(self.tmp / "engine/gate.py"), "show", mid],
                            capture_output=True, text=True, env=self.hook_env())
-        self.assertIn(f"Built from: parent {top}/G0-top  approved content {self.lc.sha256_path(f'jobs/{top}/drafts/v1.md')}",
-                      p.stdout)
+        # T0.16: shown in the gate brief's approval chain, with the full fingerprint
+        self.assertIn(f"- parent: {top} at G0-top, approved content {self.lc.sha256_path(f'jobs/{top}/drafts/v1.md')}: "
+                      "still valid", p.stdout)
 
 
 @unittest.skipUnless(shutil.which("git"), "git not available")

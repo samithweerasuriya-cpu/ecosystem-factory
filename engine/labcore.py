@@ -32,7 +32,7 @@ SCHEMAS = ROOT / "schemas"
 
 TERMINAL = {"DONE", "CANCELLED"}
 PAUSED = {"BLOCKED", "ESCALATED"}
-HUMAN_ONLY = {"approve", "reject", "relink"}
+HUMAN_ONLY = {"approve", "reject", "relink", "hold"}
 CHAIN_MAX_DEPTH = 8          # deeper approval chains are treated as broken
 G_CITE_RE = re.compile(r"\[G:([A-Za-z0-9._-]+)\]")
 SCRIPT_ONLY = {"script_fail"}
@@ -259,6 +259,36 @@ def gate_file(job_id, gate):
     return job_dir(job_id) / "gates" / f"{gate}.json"
 
 
+GATE_MODES = {"human"}   # T0.15: the only accepted mode until Phase 5 (automatic gates need eval evidence first)
+
+
+def gate_mode(gate):
+    """The gate's mode from config/gates.json (its own entry, else default_mode). Anything but an
+    accepted mode, including a missing one, is refused: there is no silent default."""
+    cfg = load_json(CONFIG / "gates.json") if (CONFIG / "gates.json").exists() else {}
+    entry = (cfg.get("gates") or {}).get(gate) or {}
+    mode = entry.get("mode", cfg.get("default_mode"))
+    if mode not in GATE_MODES:
+        raise LabError(f"gate {gate}: mode {mode!r} is not accepted until Phase 5 (only 'human'); "
+                       "set it in config/gates.json")
+    return mode
+
+
+def gate_config_errors():
+    cfg = load_json(CONFIG / "gates.json") if (CONFIG / "gates.json").exists() else {}
+    errs = []
+    if cfg.get("default_mode") not in GATE_MODES:
+        errs.append(f"config/gates.json: default_mode {cfg.get('default_mode')!r} is not accepted (only 'human')")
+    gates = cfg.get("gates") or {}
+    if not isinstance(gates, dict):
+        return errs + ["config/gates.json: gates must be an object of gate name to settings"]
+    for g, entry in gates.items():
+        mode = (entry or {}).get("mode") if isinstance(entry, dict) else None
+        if mode not in GATE_MODES:
+            errs.append(f"config/gates.json: gate {g}: mode {mode!r} is not accepted until Phase 5 (only 'human')")
+    return errs
+
+
 def verify_gate(job_id, gate):
     """Return (ok, reason). Token must exist and match the artifact's current hash."""
     try:
@@ -388,15 +418,20 @@ def verify_chain(job_id, gate=None, _depth=0, _seen=()):
     return all(e["status"] == "ok" for e in out), out
 
 
-def approve_gate(job_id, note="", actor=None):
+def approve_gate(job_id, note="", actor=None, review=None):
+    """Write the gate token and approve. review (T0.16): the verdict file and saved brief, with their
+    fingerprints and the marking counts, recorded in the token."""
     actor = actor or approver()
     st = load_state(job_id)
     if st["state"] != "GATE":
         raise LabError(f"{job_id} is {st['state']}, not GATE")
     gate = st["route"]["gate"]
+    gate_mode(gate)
     token = {"gate": gate, "job_id": job_id, "artifact_path": st["artifact_path"],
              "sha256": sha256_path(st["artifact_path"]), "approved_by": actor,
              "approved_at": now(), "note": note, "built_from": built_from(st)}
+    if review is not None:
+        token["review"] = review
     save_json(gate_file(job_id, gate), token)
     return apply(job_id, "approve", note=note, actor=actor, _human=True)
 
@@ -425,10 +460,24 @@ def reject_gate(job_id, feedback, actor=None):
     st = load_state(job_id)
     if st["state"] != "GATE":
         raise LabError(f"{job_id} is {st['state']}, not GATE")
+    gate_mode(st["route"]["gate"])
     n = st["counters"]["gate_rejections"] + 1
-    fb = job_dir(job_id) / "reviews" / f"human-feedback-{n}.md"
+    fb = job_dir(job_id) / "gates" / f"human-feedback-{n}.md"    # hook-protected: only gate.py writes here
+    fb.parent.mkdir(parents=True, exist_ok=True)
     fb.write_text(f"# Human feedback {n} ({now()})\n\n{feedback}\n", encoding="utf-8")
     return apply(job_id, "reject", note=rel(fb), actor=actor, _human=True)
+
+
+def hold_gate(job_id, note, actor=None):
+    """Human-only (T0.16): park a job at its gate. ESCALATED, not a rejection; only gate.py resume restarts it."""
+    actor = actor or approver()
+    st = load_state(job_id)
+    if st["state"] != "GATE":
+        raise LabError(f"{job_id} is {st['state']}, not GATE: hold is a gate decision")
+    if not (note or "").strip():
+        raise LabError("hold needs --note (why the job is held)")
+    gate_mode(st["route"]["gate"])
+    return apply(job_id, "hold", note=note, actor=actor, _human=True)
 
 
 # ---------- jobs ----------
@@ -597,6 +646,17 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             if cur not in PAUSED:
                 st["resume_to"] = cur
             new = "BLOCKED" if event == "block" else "ESCALATED"
+    elif event == "hold":
+        st["resume_to"] = cur
+        st["hold"] = {"note": note, "at": now(), "by": actor}
+        new = "ESCALATED"
+    elif event == "resume" and st.get("hold"):
+        # A held job: only the approver restarts it (gate.py resume); not a cap event, so no counter changes.
+        if not _human:
+            raise LabError(f"{job_id} is held by the approver ({st['hold']['note']}); only engine/gate.py resume "
+                           "restarts it")
+        new, st["resume_to"] = st["resume_to"], None
+        extra["held"] = st.pop("hold")
     elif event == "resume":
         if cur not in PAUSED:
             raise LabError(f"resume only from BLOCKED/ESCALATED, not {cur}")
@@ -695,6 +755,8 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if st["review_index"] < len(reviews) - 1:
             new = enter_review(st["review_index"] + 1)
         else:
+            if r["gate"]:
+                gate_mode(r["gate"])                      # T0.15: refuse a gate whose mode isn't accepted
             new = "GATE" if r["gate"] else "DONE"
             st["stage_kind"], st["stage"] = None, None
     elif cur in ("REVIEW", "VERIFY") and event == "review_fail":
@@ -940,7 +1002,8 @@ def build_handoff(job_id, item=None):
     j = rel(d)
     inputs, rules = [], []
     human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
-    feedback = [("gate feedback", p) for p in _files(d / "reviews") if Path(p).name.startswith("human-feedback-")]
+    # gate feedback only from gates/ (written by gate.py, hook-protected); one found anywhere else is never passed on
+    feedback = [("gate feedback", p) for p in _files(d / "gates") if Path(p).name.startswith("human-feedback-")]
     brief = [("brief", f"{j}/brief.md")]
     evidence = [("evidence pack", f"{j}/evidence/")]
     out = {"agent": f"{j}/research/", "fanout": f"{j}/research/", "review": f"{j}/reviews/",

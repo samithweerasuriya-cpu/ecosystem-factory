@@ -245,7 +245,7 @@ class ScriptStageTests(LabTestBase):
 
 class ApproverTests(LabTestBase):
     def test_approver_comes_from_config(self):
-        self.dump("config/gates.json", {"approver": "Test Approver"})
+        self.dump("config/gates.json", {"approver": "Test Approver", "default_mode": "human"})
         j, _ = self.spec_to_gate()
         self.lc.approve_gate(j)
         tok = json.loads((self.tmp / "jobs" / j / "gates/G1-spec.json").read_text())
@@ -270,7 +270,7 @@ class ApproverTests(LabTestBase):
         self.assertEqual(g.main(["lock"]), 1)                                          # refused, not audited
         self.assertFalse((self.tmp / "logs/gate-audit.jsonl").exists())
         self.assertFalse((self.tmp / ".lab/OPERATE").exists())                         # and nothing changed
-        self.dump("config/gates.json", {"approver": "Test Approver"})                 # with the config value
+        self.dump("config/gates.json", {"approver": "Test Approver", "default_mode": "human"})                 # with the config value
         self.lc.approve_gate(j)
         self.lc.gate_audit("approve", j)
         self.assertEqual(g.main(["lock"]), 0)

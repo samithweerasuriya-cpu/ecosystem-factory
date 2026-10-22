@@ -5,7 +5,8 @@ Derived from the author's earlier private lab. Schema checks via engine/schemach
 explicit checks with clear messages: blocker/major => verdict fail, unique finding ids.
 Severity lock: each reviewer's rulebook is named in config/reviewers.json. A finding's severity
 must equal the rulebook severity for its rule ID, unless the approver's gate feedback for that
-job (jobs/<job>/reviews/human-feedback-*.md, e.g. "Treat AB16 as major") sets a stricter one,
+job (jobs/<job>/gates/human-feedback-*.md, written only by engine/gate.py; a feedback file in any other
+folder is ignored; e.g. "Treat AB16 as major") sets a stricter one,
 which is then required. Laxer feedback is ignored. Rule IDs with no rulebook severity and no
 feedback override are not checked. A reviewer with no configured rulebook is an error.
 The Orchestrator runs this on every review file before recording a review event.
@@ -62,7 +63,8 @@ def reviewer_rulebook(reviewer, root=ROOT):
 def feedback_overrides(job_id, root=ROOT):
     """{rule_id: strictest severity} set in the approver's gate feedback files for this job."""
     out = {}
-    files = [f for h in ("jobs", "private/jobs") for f in (root / h / str(job_id) / "reviews").glob("human-feedback-*.md")]
+    # Only gates/ (written by engine/gate.py, hook-protected) counts; a feedback file anywhere else is ignored.
+    files = [f for h in ("jobs", "private/jobs") for f in (root / h / str(job_id) / "gates").glob("human-feedback-*.md")]
     for fb in sorted(files, key=lambda f: f.name):
         for rule, sev in FEEDBACK_SEV.findall(fb.read_text(encoding="utf-8")):
             rule, sev = rule.upper(), sev.lower()

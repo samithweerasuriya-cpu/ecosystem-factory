@@ -1,0 +1,13 @@
+{
+  "job_id": "20261022-demo-marks",
+  "reviewer": "demo-critic",
+  "artifact_path": "jobs/20261022-demo-marks/drafts/v2.md",
+  "artifact_version": "v2",
+  "verdict": "pass",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [
+    {"id": "F-01", "rule": "DM04", "severity": "minor", "location": "second sentence", "issue": "'gets a short paragraph' could be 'has a paragraph'.", "fix": "Shorten."},
+    {"id": "F-02", "rule": "DM04", "severity": "minor", "location": "Open questions", "issue": "'may we name' is formal.", "fix": "Say 'can we name'."}
+  ],
+  "summary": "Stand-in critic: passes; two wording notes."
+}

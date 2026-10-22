@@ -1,0 +1,25 @@
+{
+  "gate": "G1-demo",
+  "job_id": "20261022-demo-marks",
+  "artifact_path": "jobs/20261022-demo-marks/drafts/v2.md",
+  "sha256": "763c1bc850d9a5105c4542c80fa734741524b051fa6aad40c398c148abf94f6f",
+  "approved_by": "Samith",
+  "approved_at": "2026-10-22T19:05:20+00:00",
+  "note": "T0.16 live check",
+  "built_from": {
+    "links": [],
+    "inputs": []
+  },
+  "review": {
+    "verdicts": "jobs/20261022-demo-marks/gates/G1-demo.verdicts-1.json",
+    "verdicts_sha256": "e2945861640ec9e2e28c7389975379967dc9d374beb9bf50d5a4d410c15e9aaf",
+    "brief": "jobs/20261022-demo-marks/gates/G1-demo.brief-1.md",
+    "brief_sha256": "ab72f5237207497e0dda063b835ecb35c2216eb9e9c12bf06fa51065658002fc",
+    "marked": {
+      "valid": 3,
+      "noise": 0,
+      "skipped": 0
+    },
+    "missed": 0
+  }
+}

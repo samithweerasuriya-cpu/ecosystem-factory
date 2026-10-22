@@ -1,0 +1,10 @@
+{
+  "job_id": "20261022-demo-missed",
+  "reviewer": "demo-verifier",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v2.md",
+  "artifact_version": "v2",
+  "verdict": "pass",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [],
+  "summary": "Stand-in verifier: passes; no factual claims needing sources."
+}

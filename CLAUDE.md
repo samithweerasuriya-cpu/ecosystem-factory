@@ -56,6 +56,25 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 - **Reuse first.** Before building any component listed in `private/plan/reuse-map.md`, open its source in `vendor/` and start from it. Record in the build log what was kept and what was changed. Write new material only where the map says **new**.
 - If a request would break any of these rules, refuse that part, explain why and suggest a safe alternative.
 
+## Working efficiently
+
+1. **One task per session.** At a task's end, tell Samith to start a new session for the next one.
+2. **Read only what's needed.** Search the plan for the current task's row and read the latest build-log rows, not whole files.
+3. **Run tests quietly:** failures and the summary line only.
+4. **Reports use a fixed short format** of about 15 lines: what was built, the Check result, what broke, Samith's steps, commits, primer rows. Details go in the build log.
+5. **No background subagents or polling loops;** look things up directly.
+6. **Batch CLAUDE.md edits** at task boundaries.
+7. **Plan checklist**, applied before presenting any plan:
+   - Public repo: no user names, emails, employer, colleague or domain content in tracked files.
+   - Internal jobs stay entirely under `private/`.
+   - Fingerprinted files keep their line endings.
+   - Anything unparseable or unknown fails closed.
+   - Reuse-map source named.
+   - Cost and token estimate for any live calls.
+   - Test tier stated.
+   - Human-only actions stay in `gate.py`.
+   - Writes a forged file could exploit go only to hook-protected folders.
+
 ## Default agent rules (lessons from earlier labs)
 
 Every agent the factory writes, and every factory agent, includes these:

@@ -82,6 +82,8 @@ class InternalJobTests(LabTestBase):
         lc = self.lc
         g = importlib.import_module("gate")
         g.confirm = lambda word: None
+        g.require_terminal = lambda: None   # T0.16 prompts: tested in test_gatereview_t16
+        g.ask_missed = lambda job: []
         j = lc.new_job("spec", "inside", "Internal goal", cls="internal")["job_id"]
         home = f"private/jobs/{j}"
         lc.record_input(j, "-", "internal", data=b"internal answer INTERNAL-MARKER\n")

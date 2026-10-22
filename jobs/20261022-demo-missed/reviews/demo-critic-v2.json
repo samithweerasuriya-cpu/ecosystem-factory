@@ -1,0 +1,12 @@
+{
+  "job_id": "20261022-demo-missed",
+  "reviewer": "demo-critic",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v2.md",
+  "artifact_version": "v2",
+  "verdict": "pass",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [
+    {"id": "F-01", "rule": "DM04", "severity": "minor", "location": "third paragraph", "issue": "'not only for how it looks' can go.", "fix": "Cut the clause."}
+  ],
+  "summary": "Stand-in critic: passes; one wording note."
+}

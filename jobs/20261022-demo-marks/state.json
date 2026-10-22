@@ -1,0 +1,258 @@
+{
+  "job_id": "20261022-demo-marks",
+  "type": "demo",
+  "class": "synthetic",
+  "goal": "Summarise three topics for a newsletter (live gate-review check, synthetic)",
+  "parent": null,
+  "route": {
+    "stages": [
+      {
+        "agent": "demo-planner"
+      },
+      {
+        "fanout": {
+          "agent": "demo-researcher",
+          "max": 3,
+          "split_by": "topic"
+        }
+      },
+      {
+        "agent": "demo-writer"
+      }
+    ],
+    "reviews": [
+      {
+        "agent": "demo-critic",
+        "kind": "critic"
+      },
+      {
+        "agent": "demo-verifier",
+        "kind": "verifier"
+      }
+    ],
+    "revise_with": "demo-writer",
+    "gate": "G1-demo",
+    "deliver": "demo-publisher"
+  },
+  "state": "APPROVED",
+  "stage": null,
+  "stage_kind": null,
+  "stage_index": 2,
+  "review_index": 1,
+  "fanout": null,
+  "fixing": false,
+  "artifact_path": "jobs/20261022-demo-marks/drafts/v2.md",
+  "resume_to": null,
+  "last_failed_by": "demo-critic",
+  "visit": 10,
+  "calls": [
+    {
+      "id": "C001",
+      "agent": "demo-planner",
+      "item": null,
+      "visit": 2,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H001",
+      "ts": "2026-10-22T19:00:36.522+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:00:45.656+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 9.134
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C002",
+      "agent": "demo-researcher",
+      "item": "topics",
+      "visit": 3,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H002",
+      "ts": "2026-10-22T19:00:47.341+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:00:56.331+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 8.99
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C003",
+      "agent": "demo-writer",
+      "item": null,
+      "visit": 4,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H003",
+      "ts": "2026-10-22T19:01:03.846+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:01:13.099+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 9.253
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C004",
+      "agent": "demo-critic",
+      "item": null,
+      "visit": 5,
+      "state": "REVIEW",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H004",
+      "ts": "2026-10-22T19:01:14.412+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:01:27.650+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 13.238
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C005",
+      "agent": "demo-writer",
+      "item": null,
+      "visit": 6,
+      "state": "REVISING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H005",
+      "ts": "2026-10-22T19:01:28.595+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:01:37.889+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 9.294
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C006",
+      "agent": "demo-critic",
+      "item": null,
+      "visit": 7,
+      "state": "REVIEW",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H006",
+      "ts": "2026-10-22T19:01:39.072+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:01:50.017+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 10.945
+      },
+      "usage_source": "manual",
+      "warning": false
+    },
+    {
+      "id": "C007",
+      "agent": "demo-verifier",
+      "item": null,
+      "visit": 8,
+      "state": "VERIFY",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H007",
+      "ts": "2026-10-22T19:01:50.738+00:00",
+      "status": "done",
+      "ended": "2026-10-22T19:02:00.846+00:00",
+      "usage": {
+        "total": null,
+        "duration_s": 10.108
+      },
+      "usage_source": "manual",
+      "warning": false
+    }
+  ],
+  "retry": null,
+  "last_handoff": "H007",
+  "handoffs": 7,
+  "handoff_log": [
+    {
+      "id": "H001",
+      "agent": "demo-planner",
+      "item": null,
+      "used_by": "C001"
+    },
+    {
+      "id": "H002",
+      "agent": "demo-researcher",
+      "item": "topics",
+      "used_by": "C002"
+    },
+    {
+      "id": "H003",
+      "agent": "demo-writer",
+      "item": null,
+      "used_by": "C003"
+    },
+    {
+      "id": "H004",
+      "agent": "demo-critic",
+      "item": null,
+      "used_by": "C004"
+    },
+    {
+      "id": "H005",
+      "agent": "demo-writer",
+      "item": null,
+      "used_by": "C005"
+    },
+    {
+      "id": "H006",
+      "agent": "demo-critic",
+      "item": null,
+      "used_by": "C006"
+    },
+    {
+      "id": "H007",
+      "agent": "demo-verifier",
+      "item": null,
+      "used_by": "C007"
+    }
+  ],
+  "ceiling": null,
+  "inputs": [],
+  "awaiting": null,
+  "continued_from": null,
+  "seed": [],
+  "counters": {
+    "critic_revisions": 1,
+    "verifier_revisions": 0,
+    "total_revisions": 1,
+    "fix_attempts": 0,
+    "infra_errors": 0,
+    "lifetime_agent_calls": 7,
+    "lifetime_revisions": 1,
+    "lifetime_resumes": 0,
+    "input_rounds": 0,
+    "repairs": 0,
+    "gate_rejections": 0,
+    "agent_calls": 7
+  },
+  "created": "2026-10-22T19:00:34+00:00",
+  "updated": "2026-10-22T19:05:20+00:00"
+}

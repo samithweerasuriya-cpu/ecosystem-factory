@@ -1,0 +1,37 @@
+{
+  "job_id": "20261022-demo-missed",
+  "gate": "G1-demo",
+  "action": "approve",
+  "n": 2,
+  "ts": "2026-10-22T19:24:51+00:00",
+  "approver": "Samith",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v2.md",
+  "artifact_version": "v2",
+  "artifact_sha256": "93840b9797f6042f91c487df1cf10280e1e6f66a9c251ad46fdef3bf297e5612",
+  "brief": "jobs/20261022-demo-missed/gates/G1-demo.brief-2.md",
+  "brief_sha256": "a5560b1620a7ecf096dbd1b0ea501273737bad37cc8f06d1f5e6573c2df428ee",
+  "sample": {
+    "minors_total": 2,
+    "minors_sampled": 1,
+    "seed_from": "20261022-demo-missed:v2"
+  },
+  "marks": [
+    {
+      "file": "jobs/20261022-demo-missed/reviews/demo-critic-v2.json",
+      "reviewer": "demo-critic",
+      "version": "v2",
+      "finding_id": "F-01",
+      "rule": "DM04",
+      "severity": "minor",
+      "mark": "valid",
+      "sampled": true
+    }
+  ],
+  "missed": [
+    {
+      "rule": "DM03",
+      "reviewer": "demo-critic",
+      "description": "1"
+    }
+  ]
+}

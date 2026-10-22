@@ -1,0 +1,24 @@
+{
+  "job_id": "20261022-demo-missed",
+  "reviewer": "demo-verifier",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v1.md",
+  "artifact_version": "v1",
+  "verdict": "fail",
+  "rules_checked": [
+    "DM01",
+    "DM02",
+    "DM03",
+    "DM04"
+  ],
+  "findings": [
+    {
+      "id": "F-01",
+      "rule": "DM02",
+      "severity": "major",
+      "location": "whole draft",
+      "issue": "The template asks for one paragraph per topic; there is one line for all three.",
+      "fix": "Write a paragraph per topic."
+    }
+  ],
+  "summary": "Stand-in demo-verifier."
+}

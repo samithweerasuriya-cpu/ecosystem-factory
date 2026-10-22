@@ -1,0 +1,12 @@
+{
+  "job_id": "20261022-demo-marks",
+  "reviewer": "demo-verifier",
+  "artifact_path": "jobs/20261022-demo-marks/drafts/v2.md",
+  "artifact_version": "v2",
+  "verdict": "pass",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [
+    {"id": "F-01", "rule": "DM04", "severity": "minor", "location": "title", "issue": "The bracketed note in the title is for the drill, not for readers.", "fix": "Drop the bracket before publishing."}
+  ],
+  "summary": "Stand-in verifier: passes; no factual claims needing sources."
+}

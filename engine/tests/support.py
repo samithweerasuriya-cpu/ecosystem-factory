@@ -109,9 +109,12 @@ class LabTestBase(unittest.TestCase):
         os.environ["LAB_ROOT"] = str(self.tmp)
         os.environ.pop("CLAUDE_PROJECT_DIR", None)
         sys.path.insert(0, str(self.tmp / "engine"))
-        for mod in ("schemacheck", "check_refs", "labcore", "gate", "state", "validate_findings", "pre_tool_use",
-                    "evidence", "registry_check", "post_tool_use", "agent_call", "run_evals", "evalcheck", "doctor"):
-            sys.modules.pop(mod, None)
+        # Every engine, hook and evals module is reloaded from this test's copy. Lesson (T0.9, T0.13, T0.16):
+        # a hand-kept list missed each new module in turn, which then kept a deleted test folder.
+        for name, mod in list(sys.modules.items()):
+            f = getattr(mod, "__file__", None) or ""
+            if Path(f).parent.name in ("engine", "hooks", "evals") and "tests" not in Path(f).parts:
+                sys.modules.pop(name, None)
         self.lc = importlib.import_module("labcore")
         self.assertEqual(self.lc.ROOT, self.tmp)  # never the real repo
         engine_new_job = self.lc.new_job

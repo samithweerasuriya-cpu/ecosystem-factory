@@ -82,10 +82,13 @@ class ValidateFindingsTests(unittest.TestCase):
             c = vf.rulebook_severities(tmp / "rb.md")
             self.assertEqual((c["TR01"], c["TR16"], c["TR15"], c["AB06"], c["XYZ101"]),
                              ("blocker", "major", "minor", "blocker", "major"))
-            fb = tmp / "jobs" / "j1" / "reviews"
+            fb = tmp / "jobs" / "j1" / "gates"                       # T0.16: only gates/ (written by gate.py)
             fb.mkdir(parents=True)
             (fb / "human-feedback-1.md").write_text("4) Treat TR15 as major: every gap. Also VR04 minor.\n", encoding="utf-8")
             (fb / "human-feedback-2.md").write_text("TR15 = blocker\n", encoding="utf-8")
+            forged = tmp / "jobs" / "j1" / "reviews"
+            forged.mkdir(parents=True)
+            (forged / "human-feedback-3.md").write_text("TR20 = blocker\n", encoding="utf-8")  # agent-writable: ignored
             self.assertEqual(vf.feedback_overrides("j1", root=tmp), {"TR15": "blocker", "VR04": "minor"})
         finally:
             shutil.rmtree(tmp)

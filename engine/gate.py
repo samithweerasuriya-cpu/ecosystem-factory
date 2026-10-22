@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """HUMAN-ONLY gate tool. The approver runs this in their own terminal, never via Claude Code.
 
-  python engine/gate.py show <job>                      # what is waiting for approval
-  python engine/gate.py approve <job> [--note TEXT]     # writes gate token bound to artifact hash
+  python engine/gate.py show <job>                      # the gate brief (what is waiting for approval)
+  python engine/gate.py approve <job> [--as pilot] [--note TEXT]   # gate token bound to the artifact hash
   python engine/gate.py reject <job> --feedback TEXT    # sends job back to REVISING
+  python engine/gate.py hold <job> --note TEXT          # parks the job (ESCALATED, not a rejection)
+  python engine/gate.py resume <job>                    # restarts a held or paused job
   python engine/gate.py verify <job> <gate> [--chain]   # exit 0 if the token (or the whole chain) is valid
   python engine/gate.py relink <job>                    # point a stopped child at its parent's new approval
   python engine/gate.py lock | unlock                   # operate mode on/off (protects framework files)
   python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
 
-approve/reject/lock/unlock refuse to run without an interactive terminal.
+approve/reject/hold/resume/lock/unlock refuse to run without an interactive terminal.
+approve, reject and hold print the gate brief; approve and reject ask for a mark on every blocker and
+major finding and on a sample of the minors (one letter and Enter each: v valid, n noise, s skip, q cancel), then
+for any missed issues; the brief shown and the verdicts are saved in the job's gates/ folder
+(engine/gatereview.py, T0.16).
 lock also refuses unless passing evaluation reports cover the current agents, rules, schemas and
 config, for the pinned model and the installed CLI (engine/evalcheck.py, T0.13), and refuses on any
 doctor FAIL (engine/doctor.py fast checks, T0.14).
@@ -17,6 +23,7 @@ The approver's name comes from config/gates.json; without it every gate action i
 Claude Code is also blocked from calling this file by settings.json and the hook.
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -53,17 +60,140 @@ def eval_lock_problems():
     return evalcheck.lock_problems()
 
 
-def confirm(job_or_word):
+def require_terminal():
     if not interactive_terminal():
         print("Refusing: no interactive terminal. Run this yourself.", file=sys.stderr)
         sys.exit(1)
+
+
+def read_key(prompt, allowed):
+    """One letter, then Enter; anything else asks again. Ctrl+C or closed input = q.
+    Plain line input on purpose: a no-Enter keypress reader behaved differently across terminals and
+    left stray keys that answered the next question (found live, T0.16)."""
+    while True:
+        try:
+            ch = input(prompt + " ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return "q"
+        if len(ch) == 1 and ch in allowed:
+            return ch
+        print(f"  type one of: {', '.join(allowed)}, then Enter")
+
+
+def mark_findings(job):
+    """Ask for a mark on every blocker and major, and on the sampled minors. None if cancelled (q)."""
+    import gatereview as gr
+    must, sampled, minors = gr.to_mark(job)
+    marks = []
+    if must or sampled:
+        print(f"\nMark each finding with one letter and Enter: v valid, n noise"
+              f"{', s skip (minors only)' if sampled else ''}, q cancel (nothing is recorded).")
+    for f, keys in [(f, "vnq") for f in must] + [(f, "vnsq") for f in sampled]:
+        k = read_key(f"  {f['finding_id']} [{f['severity']} {f['rule']}] {f['reviewer']} {f['version']} "
+                     f"{f['location']}: {f['issue']}\n    mark ({'/'.join(keys)}):", keys)
+        if k == "q":
+            return None
+        marks.append({k2: f[k2] for k2 in ("file", "reviewer", "version", "finding_id", "rule", "severity")}
+                     | {"mark": gr.MARKS[k], "sampled": f["severity"] == "minor"})
+    return marks, [m["finding_id"] for m in marks if m["sampled"]], minors
+
+
+def ask_missed(job):
+    """Missed issues: a rule ID and one line each, until an empty rule ID. None if cancelled."""
+    import gatereview as gr
+    import validate_findings as vf
+    out = []
+    while True:
+        try:
+            rule = input("Missed issue? Rule ID the reviewers should have applied (Enter: none, q: cancel): ").strip().upper()
+        except EOFError:
+            return None
+        if not rule:
+            return out
+        if rule == "Q":
+            return None
+        if not re.fullmatch(vf.RULE_ID, rule):
+            print("  not a rule ID (e.g. CC01)")
+            continue
+        try:
+            text = input("  One line: what should have been caught: ").strip()
+        except EOFError:
+            return None
+        if not text:
+            print("  a description is needed")
+            continue
+        names = gr.reviewers_for_rule(rule)
+        if len(names) > 1:
+            k = read_key("  Which reviewer missed it? " + ", ".join(f"{i + 1} {n}" for i, n in enumerate(names)) + ":",
+                         [str(i + 1) for i in range(len(names))] + ["q"])
+            if k == "q":
+                return None
+            reviewer = names[int(k) - 1]
+        else:
+            reviewer = names[0] if names else "unassigned"
+        out.append({"rule": rule, "reviewer": reviewer, "description": text})
+        print(f"  recorded missed issue {len(out)}: {rule} ({reviewer}). Next rule ID, or Enter to finish.")
+
+
+def decide(args):
+    """approve, reject or hold: brief, marks, missed issues, confirmation, then the records."""
+    import gatereview as gr
+    lc.approver()
+    require_terminal()
+    st = lc.load_state(args.job)
+    if st["state"] != "GATE":
+        raise lc.LabError(f"{args.job} is {st['state']}, not GATE")
+    lc.gate_mode(st["route"]["gate"])
+    text = gr.brief(args.job)
+    print(text)
+    marks, sampled, minors, missed = [], [], 0, []
+    if args.cmd != "hold":
+        got = mark_findings(args.job)
+        missed = ask_missed(args.job) if got is not None else None
+        if got is None or missed is None:
+            print("Cancelled: nothing was recorded.", file=sys.stderr)
+            return 1
+        marks, sampled, minors = got
+        counts = {m: sum(1 for x in marks if x["mark"] == m) for m in ("valid", "noise", "skipped")}
+        print(f"\nTo be recorded: {len(marks)} mark(s) ({counts['valid']} valid, {counts['noise']} noise, "
+              f"{counts['skipped']} skipped) and {len(missed)} missed issue(s)"
+              + (": " + ", ".join(f"{x['rule']} ({x['reviewer']})" for x in missed) if missed else "")
+              + ". Type the job ID to confirm, or anything else to cancel.")
+    confirm(args.job)
+    files, review = gr.record(args.job, args.cmd, text, marks, missed, sampled, minors)
+    if args.cmd == "approve":
+        note = f"[pilot] {args.note}".strip() if args.as_ == "pilot" else args.note
+        st = lc.approve_gate(args.job, note, review=review)
+        gr.write(files, args.job)
+        lc.gate_audit("approve", args.job, note=note, review=review)
+        print(f"Approved {st['route']['gate']} for {args.job}. State: {st['state']}")
+    elif args.cmd == "reject":
+        try:
+            st = lc.reject_gate(args.job, args.feedback)
+        except lc.CapExceeded:  # rejection was recorded and the job escalated: record and audit it too
+            gr.write(files, args.job)
+            lc.gate_audit("reject", args.job, feedback=args.feedback, review=review, cap_exceeded=True)
+            raise
+        gr.write(files, args.job)
+        lc.gate_audit("reject", args.job, feedback=args.feedback, review=review)
+        print(f"Rejected. State: {st['state']}")
+    else:
+        st = lc.hold_gate(args.job, args.note)
+        gr.write(files, args.job)
+        lc.gate_audit("hold", args.job, note=args.note, brief_sha256=review["brief_sha256"], brief=review["brief"])
+        print(f"Held at {st['route']['gate']}: {args.job} is ESCALATED until: python engine/gate.py resume {args.job}")
+    return 0
+
+
+def confirm(job_or_word):
+    require_terminal()
     try:
         typed = input(f"Type '{job_or_word}' to confirm: ").strip()
     except EOFError:
         print("Refusing: no interactive terminal (input closed). Run this yourself.", file=sys.stderr)
         sys.exit(1)
     if typed != job_or_word:
-        print("Not confirmed.", file=sys.stderr)
+        print(f"Not confirmed: you typed {typed!r}, expected {job_or_word!r}. Nothing was recorded.", file=sys.stderr)
         sys.exit(1)
 
 
@@ -73,7 +203,10 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("show"); s.add_argument("job")
     a = sub.add_parser("approve"); a.add_argument("job"); a.add_argument("--note", default="")
+    a.add_argument("--as", dest="as_", choices=["pilot"], help="approve as a pilot (recorded in the note)")
     r = sub.add_parser("reject"); r.add_argument("job"); r.add_argument("--feedback", required=True)
+    h = sub.add_parser("hold"); h.add_argument("job"); h.add_argument("--note", required=True)
+    rs = sub.add_parser("resume"); rs.add_argument("job")
     v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("gate"); v.add_argument("--chain", action="store_true")
     rl = sub.add_parser("relink"); rl.add_argument("job")
     sub.add_parser("lock"); sub.add_parser("unlock")
@@ -81,6 +214,18 @@ def main(argv=None):
     c.add_argument("--minutes", type=float)
     args = ap.parse_args(argv)
     try:
+        if args.cmd in ("approve", "reject", "hold"):
+            return decide(args)
+        if args.cmd == "resume":
+            confirm(args.job)
+            st = lc.apply(args.job, "resume", actor=lc.approver(), _human=True)
+            lc.gate_audit("resume", args.job)
+            print(f"Resumed {args.job}. State: {st['state']}")
+            return 0
+        if args.cmd == "show" and lc.load_state(args.job)["state"] == "GATE":
+            import gatereview as gr
+            print(gr.brief(args.job))
+            return 0
         if args.cmd == "show":
             st = lc.load_state(args.job)
             d = lc.job_dir(args.job)
@@ -100,19 +245,6 @@ def main(argv=None):
                         print(f"Built from: {link['kind']} {link['job']}/{link['gate']}  approved content {link['artifact_sha256']}")
                     for i in bf["inputs"]:
                         print(f"Input:    {i['id']} {i['path']}  {i['sha256']}")
-        elif args.cmd == "approve":
-            confirm(args.job); st = lc.approve_gate(args.job, args.note)
-            lc.gate_audit("approve", args.job, note=args.note)
-            print(f"Approved {st['route']['gate']} for {args.job}. State: {st['state']}")
-        elif args.cmd == "reject":
-            confirm(args.job)
-            try:
-                st = lc.reject_gate(args.job, args.feedback)
-            except lc.CapExceeded:  # rejection was recorded and the job escalated: audit it too
-                lc.gate_audit("reject", args.job, feedback=args.feedback, cap_exceeded=True)
-                raise
-            lc.gate_audit("reject", args.job, feedback=args.feedback)
-            print(f"Rejected. State: {st['state']}")
         elif args.cmd == "verify":
             if args.chain:
                 ok, chain = lc.verify_chain(args.job, args.gate)

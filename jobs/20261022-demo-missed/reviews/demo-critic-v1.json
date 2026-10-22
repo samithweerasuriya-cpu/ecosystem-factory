@@ -1,0 +1,32 @@
+{
+  "job_id": "20261022-demo-missed",
+  "reviewer": "demo-critic",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v1.md",
+  "artifact_version": "v1",
+  "verdict": "pass",
+  "rules_checked": [
+    "DM01",
+    "DM02",
+    "DM03",
+    "DM04"
+  ],
+  "findings": [
+    {
+      "id": "F-01",
+      "rule": "DM04",
+      "severity": "minor",
+      "location": "first sentence",
+      "issue": "'Three topics:' reads abruptly.",
+      "fix": "Add a verb."
+    },
+    {
+      "id": "F-02",
+      "rule": "DM04",
+      "severity": "minor",
+      "location": "title",
+      "issue": "The title could name the month.",
+      "fix": "Add the month."
+    }
+  ],
+  "summary": "Stand-in demo-critic."
+}

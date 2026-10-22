@@ -19,3 +19,4 @@ Commands the guard blocks although they are harmless. Each one failed closed, as
 |---|---|---|---|---|
 | H1 | A read-only PowerShell line with a bare string as a separator next to protected paths, e.g. `Get-Content logs\usage.jsonl; "---"; Get-Content logs\usage-unmatched.jsonl` | "this command names a protected path and is not entirely read-only" | T0.12 | Read each file in its own call, or use `Write-Output "---"` |
 | H2 | A heredoc appending documentation text that contains the word "eval" (e.g. "eval runner") to a tracked file | "eval / iex / Invoke-Expression / base64 decoding and encoded commands are not allowed" | T0.13 | Write documentation with the Edit or Write tool, not a shell heredoc |
+| H3 | Running a scratch script whose own file name ends in `gate.py` (e.g. `demo_gate.py`) | "engine/gate.py is human-only" | T0.16 | Don't name scripts `*gate.py` |

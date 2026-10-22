@@ -1,0 +1,25 @@
+{
+  "gate": "G1-demo",
+  "job_id": "20261022-demo-missed",
+  "artifact_path": "jobs/20261022-demo-missed/drafts/v2.md",
+  "sha256": "93840b9797f6042f91c487df1cf10280e1e6f66a9c251ad46fdef3bf297e5612",
+  "approved_by": "Samith",
+  "approved_at": "2026-10-22T19:24:51+00:00",
+  "note": "T0.16 missed-issue check",
+  "built_from": {
+    "links": [],
+    "inputs": []
+  },
+  "review": {
+    "verdicts": "jobs/20261022-demo-missed/gates/G1-demo.verdicts-2.json",
+    "verdicts_sha256": "da63dd5c90c79c9135976d32152346fd5604aa746bc801b62309c715e54a197c",
+    "brief": "jobs/20261022-demo-missed/gates/G1-demo.brief-2.md",
+    "brief_sha256": "a5560b1620a7ecf096dbd1b0ea501273737bad37cc8f06d1f5e6573c2df428ee",
+    "marked": {
+      "valid": 1,
+      "noise": 0,
+      "skipped": 0
+    },
+    "missed": 1
+  }
+}

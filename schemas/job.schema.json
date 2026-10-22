@@ -145,6 +145,11 @@
         "null"
       ]
     },
+    "hold": {
+      "type": ["object", "null"],
+      "description": "set by engine/gate.py hold (T0.16): the job waits at ESCALATED until gate.py resume",
+      "properties": {"note": {"type": "string"}, "at": {"type": "string"}, "by": {"type": "string"}}
+    },
     "resume_to": {
       "type": [
         "string",
