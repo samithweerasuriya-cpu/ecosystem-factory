@@ -11,7 +11,8 @@
 
 approve/reject/lock/unlock refuse to run without an interactive terminal.
 lock also refuses unless passing evaluation reports cover the current agents, rules, schemas and
-config, for the pinned model and the installed CLI (engine/evalcheck.py, T0.13).
+config, for the pinned model and the installed CLI (engine/evalcheck.py, T0.13), and refuses on any
+doctor FAIL (engine/doctor.py fast checks, T0.14).
 The approver's name comes from config/gates.json; without it every gate action is refused.
 Claude Code is also blocked from calling this file by settings.json and the hook.
 """
@@ -38,6 +39,12 @@ def interactive_terminal():
         mode = ctypes.c_uint32()
         return bool(ctypes.windll.kernel32.GetConsoleMode(ctypes.c_void_p(handle), ctypes.byref(mode)))
     return True
+
+
+def doctor_failures():
+    """The doctor's FAIL lines (engine/doctor.py fast checks, no Claude calls); empty means none."""
+    import doctor
+    return doctor.failures()
 
 
 def eval_lock_problems():
@@ -128,6 +135,12 @@ def main(argv=None):
         elif args.cmd == "lock":
             lc.approver()  # refuse before anything changes (no unaudited lock)
             confirm("lock")
+            failed = doctor_failures()
+            if failed:
+                print("Refusing to lock: the doctor found failures (python engine/doctor.py).", file=sys.stderr)
+                for p in failed:
+                    print(f"  - {p}", file=sys.stderr)
+                return 1
             problems = eval_lock_problems()
             if problems:
                 print("Refusing to lock: the evaluations don't cover the current framework files.", file=sys.stderr)

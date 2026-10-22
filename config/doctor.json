@@ -1,0 +1,5 @@
+{
+  "_doc": "engine/doctor.py settings. min_cli: the lowest Claude Code version accepted for the PATH CLI and the desktop app's own copy. min_python: the venv's lowest Python. Acknowledged warnings live in the untracked config/doctor.local.json (written only by 'doctor.py ack <check>' in the approver's terminal); an acknowledgement lapses when the warning's details change.",
+  "min_cli": "2.1.295",
+  "min_python": "3.13"
+}

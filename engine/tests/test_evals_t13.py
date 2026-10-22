@@ -268,6 +268,7 @@ class LockRuleTests(EvalBase):
     def test_gate_lock_uses_the_rule(self):
         g = importlib.import_module("gate")
         g.confirm = lambda word: None
+        g.doctor_failures = lambda: []                                     # the doctor rule: test_doctor_t14
         os.environ["FAKE_CLAUDE_VERSION"] = CLI
         self.assertEqual(g.main(["lock"]), 1)
         self.assertFalse((self.tmp / ".lab/OPERATE").exists())

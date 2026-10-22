@@ -205,6 +205,7 @@ class FailClosedShellTests(HookBase):
         self.operate()                                                    # T0.13: the job loop and the evaluations
         self.assertAllowed(self.sh(f".venv/Scripts/python.exe engine/agent_call.py job {J} .claude/agents/critic.md"))
         self.assertAllowed(self.sh(".venv/Scripts/python.exe evals/run_evals.py run calibration-critic --quick"))
+        self.assertAllowed(self.sh(".venv/Scripts/python.exe engine/doctor.py --json"))           # T0.14
         self.assertBlocked(self.sh(f"python engine/agent_call.py job {J} .claude/agents/critic.md > rules/x.md"))
 
 

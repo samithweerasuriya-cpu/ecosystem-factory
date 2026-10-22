@@ -1,0 +1,7 @@
+{
+  "_doc": "SHA-256 fingerprints of the guard hooks (engine/doctor.py checks them; engine/tests/test_doctor_t14.py fails if a file and its pin differ). The launchers are never edited. A change to a real hook updates its pin in the same commit, so every hook edit shows in review. In operate mode engine/ is write-locked, so pins can't drift.",
+  "pre_tool_use_launcher.py": "55cec23fbf4a1e34a229fa7a31f199fb4dab1ff098f137f23d7195eecf768ec6",
+  "pre_tool_use.py": "68cb288bb3131bfec274aa9eb583025ea44c6b6bb0239e550521e42c384de3b0",
+  "post_tool_use_launcher.py": "a3399b40c52174ab98ad3791769b1097e3d30b5e48479c894a3542c33aca8f76",
+  "post_tool_use.py": "d001c61b11ed977bda16e2587524c1af4c3131d24fcc16ba52ad9e93313b4de5"
+}

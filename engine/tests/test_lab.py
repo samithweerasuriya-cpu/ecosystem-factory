@@ -269,6 +269,7 @@ class GateAuditTests(LabTestBase):
         g = importlib.import_module("gate")
         g.confirm = lambda word: None  # tests have no tty; confirmation is covered by gate.confirm itself
         g.eval_lock_problems = lambda: []  # the T0.13 lock rule has its own tests (test_evals_t13)
+        g.doctor_failures = lambda: []     # and the T0.14 doctor rule (test_doctor_t14)
         return g
 
     def audit(self):

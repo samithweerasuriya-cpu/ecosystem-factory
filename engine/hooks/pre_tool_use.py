@@ -91,7 +91,7 @@ DELETE_CALL = re.compile(r"\b(rmtree|remove|unlink|rmdir|removedirs|unlinkSync|r
                          r"\bFileUtils\.rm\b|\bfs\.rm\s*\(|\bRemove-Item\b", re.IGNORECASE)
 ENGINE_TOOLS = {"engine/state.py", "engine/validate_findings.py", "engine/check_refs.py",
                 "engine/check_coverage.py", "engine/run_tests.py", "engine/evidence.py", "engine/registry_check.py",
-                "engine/agent_call.py", "evals/run_evals.py"}
+                "engine/agent_call.py", "evals/run_evals.py", "engine/doctor.py"}
 HARMLESS_TARGETS = {"/dev/null", "nul", "$null", "&1", "&2", "1", "2"}
 OBFUSCATION = re.compile(r"(^|[\s;&|(`])(eval|iex|invoke-expression)(\s|$|\()|frombase64string|"
                          r"\bbase64\b[^|;&]*\s(-d|--decode|-D)\b|\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",

@@ -110,7 +110,7 @@ class LabTestBase(unittest.TestCase):
         os.environ.pop("CLAUDE_PROJECT_DIR", None)
         sys.path.insert(0, str(self.tmp / "engine"))
         for mod in ("schemacheck", "check_refs", "labcore", "gate", "state", "validate_findings", "pre_tool_use",
-                    "evidence", "registry_check", "post_tool_use", "agent_call", "run_evals", "evalcheck"):
+                    "evidence", "registry_check", "post_tool_use", "agent_call", "run_evals", "evalcheck", "doctor"):
             sys.modules.pop(mod, None)
         self.lc = importlib.import_module("labcore")
         self.assertEqual(self.lc.ROOT, self.tmp)  # never the real repo

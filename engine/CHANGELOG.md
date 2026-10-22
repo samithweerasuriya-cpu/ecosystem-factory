@@ -1,5 +1,14 @@
 # Engine changelog
 
+## 0.9.0 (2026-10-22)
+
+Doctor (T0.14).
+
+- `engine/doctor.py`: fast checks with no Claude calls (tools, logins, API key, auto-updates, hooks and their pins, registration, user-level and stray files, local config, evaluations, mode, layout), optional `--wsl`, and `--deep` (one live headless call, cost shown and confirmed first). Every failure has a Fix line. Home shown as `~`; no user name, email or organisation; settings and env key names only. Acknowledged warnings in the untracked `config/doctor.local.json` lapse when their details change.
+- `engine/hooks/PINS.json`: pinned fingerprints of both launchers and both hooks; a test fails when a hook file and its pin differ.
+- `gate.py lock` refuses on any doctor FAIL.
+- `config/doctor.json`: minimum CLI and Python versions.
+
 ## 0.8.0 (2026-10-22)
 
 Headless agent calls and evaluations (T0.13).
