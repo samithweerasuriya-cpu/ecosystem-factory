@@ -1,0 +1,13 @@
+{
+  "gate": "G1-demo",
+  "job_id": "20261022-demo-drill",
+  "artifact_path": "jobs/20261022-demo-drill/drafts/v1.md",
+  "sha256": "e9202a1ea2f66c74ef92062e71829ed225b3d15a0ce4d806ee48223632e75d22",
+  "approved_by": "Samith",
+  "approved_at": "2026-10-22T05:47:20+00:00",
+  "note": "T0.12 live drill",
+  "built_from": {
+    "links": [],
+    "inputs": []
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "job_id": "20261022-demo-drill",
+  "reviewer": "demo-critic",
+  "artifact_path": "jobs/20261022-demo-drill/drafts/v1.md",
+  "artifact_version": "v1",
+  "verdict": "pass",
+  "rules_checked": ["DM01", "DM02", "DM03", "DM04"],
+  "findings": [],
+  "summary": "Stand-in critic (live drill): the summary answers the goal."
+}
