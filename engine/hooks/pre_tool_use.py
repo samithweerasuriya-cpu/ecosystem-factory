@@ -573,9 +573,9 @@ def condition_error(entry, ctx=None):
     if "states" in entry and st["state"] not in entry["states"]:
         return f"only in states {entry['states']} (now {st['state']})"
     if "gate" in entry:
-        ok, why = lc.verify_gate(job, entry["gate"])
+        ok, chain = lc.verify_chain(job, entry["gate"])
         if not ok:
-            return f"needs a valid {entry['gate']} token: {why}"
+            return f"needs a valid {entry['gate']} approval chain: " + lc._broken(chain)
     return None
 
 

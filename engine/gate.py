@@ -4,7 +4,8 @@
   python engine/gate.py show <job>                      # what is waiting for approval
   python engine/gate.py approve <job> [--note TEXT]     # writes gate token bound to artifact hash
   python engine/gate.py reject <job> --feedback TEXT    # sends job back to REVISING
-  python engine/gate.py verify <job> <gate>             # exit 0 if token valid
+  python engine/gate.py verify <job> <gate> [--chain]   # exit 0 if the token (or the whole chain) is valid
+  python engine/gate.py relink <job>                    # point a stopped child at its parent's new approval
   python engine/gate.py lock | unlock                   # operate mode on/off (protects framework files)
   python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
 
@@ -58,7 +59,8 @@ def main(argv=None):
     s = sub.add_parser("show"); s.add_argument("job")
     a = sub.add_parser("approve"); a.add_argument("job"); a.add_argument("--note", default="")
     r = sub.add_parser("reject"); r.add_argument("job"); r.add_argument("--feedback", required=True)
-    v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("gate")
+    v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("gate"); v.add_argument("--chain", action="store_true")
+    rl = sub.add_parser("relink"); rl.add_argument("job")
     sub.add_parser("lock"); sub.add_parser("unlock")
     c = sub.add_parser("ceiling"); c.add_argument("job"); c.add_argument("--tokens", type=int)
     c.add_argument("--minutes", type=float)
@@ -73,6 +75,16 @@ def main(argv=None):
                 print(f"SHA256:   {lc.sha256_path(st['artifact_path'])}")
             for f in sorted((d / "reviews").glob("*")):
                 print(f"Review:   {lc.rel(f)}")
+            if st["state"] == "GATE":  # exactly what an approval would bind
+                try:
+                    bf = lc.built_from(st)
+                except lc.LabError as e:
+                    print(f"Built from: NOT APPROVABLE: {e}")
+                else:
+                    for link in bf["links"]:
+                        print(f"Built from: {link['kind']} {link['job']}/{link['gate']}  approved content {link['artifact_sha256']}")
+                    for i in bf["inputs"]:
+                        print(f"Input:    {i['id']} {i['path']}  {i['sha256']}")
         elif args.cmd == "approve":
             confirm(args.job); st = lc.approve_gate(args.job, args.note)
             lc.gate_audit("approve", args.job, note=args.note)
@@ -87,7 +99,18 @@ def main(argv=None):
             lc.gate_audit("reject", args.job, feedback=args.feedback)
             print(f"Rejected. State: {st['state']}")
         elif args.cmd == "verify":
+            if args.chain:
+                ok, chain = lc.verify_chain(args.job, args.gate)
+                for c in chain:
+                    print(f"{'  ' * c['level']}{c['job']} [{c['kind']}] {c['path'] or ''}  recorded {(c['recorded'] or '-')[:12]}"
+                          f"  current {(c['current'] or '-')[:12]}  {c['status']}")
+                print("chain OK" if ok else "chain BROKEN")
+                return 0 if ok else 1
             ok, why = lc.verify_gate(args.job, args.gate); print(why); return 0 if ok else 1
+        elif args.cmd == "relink":
+            confirm(args.job); st = lc.relink(args.job)
+            lc.gate_audit("relink", args.job, parent_link=st.get("parent_link"))
+            print(f"Relinked {args.job} to its parent's current approval. State: {st['state']} ({st['stage']})")
         elif args.cmd == "ceiling":
             if args.tokens is None and args.minutes is None:
                 print("ceiling needs --tokens and/or --minutes", file=sys.stderr); return 1

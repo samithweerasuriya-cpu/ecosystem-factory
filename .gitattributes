@@ -1,0 +1,8 @@
+# Files whose exact bytes are fingerprinted (gate tokens, approval chains, the engine manifest) must never
+# have their line endings converted by Git, whatever core.autocrlf says on the machine that checks them out.
+jobs/** -text
+engine/** -text
+config/** -text
+schemas/** -text
+rules/** -text
+templates/** -text

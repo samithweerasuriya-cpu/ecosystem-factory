@@ -399,7 +399,11 @@ def check(job_id, artifact):
                 elif kind == "G":
                     try:
                         g = lc.load_state(sid)
-                        ok, why = lc.verify_gate(sid, g["route"]["gate"]) if g["route"].get("gate") else (False, "no gate")
+                        if g["route"].get("gate"):  # valid only while the whole approval chain holds
+                            ok, chain = lc.verify_chain(sid, g["route"]["gate"])
+                            why = lc._broken(chain) if not ok else "ok"
+                        else:
+                            ok, why = False, "no gate"
                     except lc.LabError as e:
                         ok, why = False, str(e)
                     if not ok:

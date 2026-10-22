@@ -33,7 +33,9 @@ SCHEMAS = ROOT / "schemas"
 
 TERMINAL = {"DONE", "CANCELLED"}
 PAUSED = {"BLOCKED", "ESCALATED"}
-HUMAN_ONLY = {"approve", "reject"}
+HUMAN_ONLY = {"approve", "reject", "relink"}
+CHAIN_MAX_DEPTH = 8          # deeper approval chains are treated as broken
+G_CITE_RE = re.compile(r"\[G:([A-Za-z0-9._-]+)\]")
 SCRIPT_ONLY = {"script_fail"}
 KIND_STATE = {"critic": "REVIEW", "verifier": "VERIFY"}
 JOB_ID_RE = re.compile(r"^\d{8}-[a-z]+-[a-z0-9-]+$")
@@ -236,11 +238,14 @@ def sha256_path(path):
     h = hashlib.sha256()
     if p.is_file():
         h.update(p.read_bytes())
-    elif p.is_dir():
-        for f in sorted(x for x in p.rglob("*") if x.is_file() and x.name != ".DS_Store"):
-            h.update(f.relative_to(p).as_posix().encode())
+    elif p.is_dir():  # deterministic: sorted relative posix paths and file contents only (no times, no modes)
+        files = sorted((x.relative_to(p).as_posix(), x) for x in p.rglob("*")
+                       if x.is_file() and x.name != ".DS_Store" and "__pycache__" not in x.parts)
+        for name, f in files:
+            h.update(name.encode("utf-8"))
             h.update(b"\0")
             h.update(f.read_bytes())
+            h.update(b"\0")
     else:
         raise LabError(f"artifact not found: {path}")
     return h.hexdigest()
@@ -271,6 +276,116 @@ def verify_gate(job_id, gate):
     return True, "ok"
 
 
+def _token(job_id, gate):
+    f = gate_file(job_id, gate)
+    return load_json(f) if f.exists() else None
+
+
+def _approved(job_id):
+    """(gate, token) of a job's approval, or (gate, None)."""
+    st = load_state(job_id)
+    gate = st["route"].get("gate")
+    return gate, (_token(job_id, gate) if gate else None)
+
+
+def cited_jobs(artifact):
+    """Job ids an artifact cites as approved artifacts ([G:<job>])."""
+    import check_refs
+    return sorted({m for _, text in check_refs.artifact_texts(ROOT, artifact) for m in G_CITE_RE.findall(text)})
+
+
+def built_from(st):
+    """What this job's artifact is built from: upstream approvals (by approved artifact content) and
+    the inputs present now. Raises LabError if an upstream approval is missing or broken."""
+    links = []
+    if st.get("parent_link"):
+        links.append({**st["parent_link"], "kind": "parent"})
+    if st.get("continued_link"):
+        links.append({**st["continued_link"], "kind": "continued"})
+    for cited in cited_jobs(st["artifact_path"]) if st.get("artifact_path") else []:
+        gate, tok = _approved(cited)
+        if tok is None:
+            raise LabError(f"cites [G:{cited}], which has no approval")
+        links.append({"job": cited, "gate": gate, "artifact_sha256": tok["sha256"], "kind": "cited"})
+    for link in links:
+        ok, chain = verify_chain(link["job"], link["gate"])
+        if not ok:
+            raise LabError(f"upstream approval {link['job']}/{link['gate']} is not valid: " +
+                           "; ".join(f"{c['job']}: {c['status']}" for c in chain if c["status"] != "ok"))
+        if _token(link["job"], link["gate"])["sha256"] != link["artifact_sha256"]:
+            raise LabError(f"upstream {link['job']} was approved with different content since this job was built on it; "
+                           f"the approver runs engine/gate.py relink {st['job_id']}")
+    inputs = [{"id": i["id"], "path": i["path"], "sha256": i["sha256"]} for i in st.get("inputs", [])]
+    return {"links": links, "inputs": inputs}
+
+
+def verify_chain(job_id, gate=None, _depth=0, _seen=()):
+    """(ok, links) for a job's approval and everything it was built from, recursively.
+    Each link: {level, job, gate, kind, path, recorded, current, status}. A link is broken when the
+    approved artifact changed, a recorded input changed or disappeared, an upstream approval is missing
+    or has different content, the chain is deeper than CHAIN_MAX_DEPTH, or it loops."""
+    out = []
+
+    def walk(job, gate, depth, seen, kind):
+        entry = {"level": depth, "job": job, "gate": gate, "kind": kind, "path": None, "recorded": None,
+                 "current": None, "status": "ok"}
+        out.append(entry)
+        if depth > CHAIN_MAX_DEPTH:
+            entry["status"] = f"chain deeper than {CHAIN_MAX_DEPTH}: treated as broken"
+            return
+        if job in seen:
+            entry["status"] = "cycle: treated as broken"
+            return
+        try:
+            gate = gate or load_state(job)["route"].get("gate")
+            entry["gate"] = gate
+            tok = _token(job, gate) if gate else None
+        except LabError as e:
+            entry["status"] = str(e)
+            return
+        if tok is None:
+            entry["status"] = f"no {gate} token"
+            return
+        entry.update(path=tok["artifact_path"], recorded=tok["sha256"])
+        try:
+            entry["current"] = sha256_path(tok["artifact_path"])
+        except LabError as e:
+            entry["status"] = str(e)
+            return
+        if entry["current"] != tok["sha256"]:
+            entry["status"] = "token void: artifact changed after approval"
+        bf = tok.get("built_from") or {"links": [], "inputs": []}
+        for i in bf["inputs"]:
+            ie = {"level": depth, "job": job, "gate": gate, "kind": f"input {i['id']}", "path": i["path"],
+                  "recorded": i["sha256"], "current": None, "status": "ok"}
+            out.append(ie)
+            f = ROOT / i["path"]
+            if not f.is_file():
+                ie["status"] = "token void: recorded input missing"
+                continue
+            ie["current"] = hashlib.sha256(f.read_bytes()).hexdigest()
+            if ie["current"] != i["sha256"]:
+                ie["status"] = "token void: recorded input changed"
+        for link in bf["links"]:
+            le = {"level": depth + 1, "job": link["job"], "gate": link["gate"], "kind": f"{link['kind']} content",
+                  "path": None, "recorded": link["artifact_sha256"], "current": None, "status": "ok"}
+            out.append(le)
+            try:
+                up = _token(link["job"], link["gate"])
+            except LabError as e:
+                le["status"] = str(e)
+                continue
+            le["current"] = up["sha256"] if up else None
+            if up is None:
+                le["status"] = "upstream approval missing"
+            elif up["sha256"] != link["artifact_sha256"]:
+                le["status"] = "upstream approved with different content"
+            walk(link["job"], link["gate"], depth + 1, seen | {job}, link["kind"])
+
+    walk(job_id, gate, _depth, frozenset(_seen), "self")
+    return all(e["status"] == "ok" for e in out), out
+
+
 def approve_gate(job_id, note="", actor=None):
     actor = actor or approver()
     st = load_state(job_id)
@@ -279,7 +394,7 @@ def approve_gate(job_id, note="", actor=None):
     gate = st["route"]["gate"]
     token = {"gate": gate, "job_id": job_id, "artifact_path": st["artifact_path"],
              "sha256": sha256_path(st["artifact_path"]), "approved_by": actor,
-             "approved_at": now(), "note": note}
+             "approved_at": now(), "note": note, "built_from": built_from(st)}
     save_json(gate_file(job_id, gate), token)
     return apply(job_id, "approve", note=note, actor=actor, _human=True)
 
@@ -338,9 +453,10 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic")
     if r.get("requires_parent_gate"):
         if not parent:
             raise LabError(f"{jtype} jobs need --parent with {r['requires_parent_gate']}")
-        ok, why = verify_gate(parent, r["requires_parent_gate"])
+        ok, chain = verify_chain(parent, r["requires_parent_gate"])
         if not ok:
-            raise LabError(f"parent not approved: {why}")
+            raise LabError("parent not approved: " + "; ".join(f"{c['job']} {c['kind']}: {c['status']}"
+                                                              for c in chain if c["status"] != "ok"))
     job_home(cls)
     if parent:
         pcls = load_state(parent).get("class", "synthetic")
@@ -364,8 +480,14 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic")
     cont = f"Continued from: {continue_from}\n" if continue_from else ""
     (d / "brief.md").write_text(f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n{cont}\n## Goal\n{goal}\n", encoding="utf-8")
     st = _fresh_state(job_id, jtype, goal, parent, r, cls)
+    if parent and r.get("requires_parent_gate"):
+        st["parent_link"] = {"job": parent, "gate": r["requires_parent_gate"],
+                             "artifact_sha256": _token(parent, r["requires_parent_gate"])["sha256"]}
     if old:
         st["continued_from"] = continue_from
+        ogate, otok = _approved(continue_from)
+        if otok is not None and verify_chain(continue_from, ogate)[0]:
+            st["continued_link"] = {"job": continue_from, "gate": ogate, "artifact_sha256": otok["sha256"]}
         if old["artifact_path"]:
             src = ROOT / old["artifact_path"]
             dst = d / "drafts" / f"seed-{src.name}"
@@ -583,6 +705,9 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
         if not artifact:
             raise LabError("revised needs --artifact (the new version)")
         new = new_artifact()
+    elif event == "relink":
+        new = enter_review(0) if st["artifact_path"] else cur
+        extra["relinked_to"] = st.get("parent_link")
     elif (cur, event) == ("GATE", "approve"):
         new = "APPROVED"
     elif (cur, event) == ("GATE", "reject"):
@@ -594,15 +719,16 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     elif (cur, event) == ("APPROVED", "deliver"):
         if not r.get("deliver"):
             raise LabError("route has no delivery stage; use complete")
-        ok, why = verify_gate(job_id, r["gate"])   # an edit after approval voids the token and blocks delivery
+        ok, chain = verify_chain(job_id, r["gate"])   # an edit anywhere in the chain blocks delivery
         if not ok:
-            raise LabError(f"delivery refused: {why}")
+            raise LabError("delivery refused: " + _broken(chain))
         new = "DELIVERING"
         st["stage_kind"], st["stage"] = "deliver", r["deliver"]
     elif cur in ("APPROVED", "DELIVERING") and event == "complete":
-        ok, why = verify_gate(job_id, r["gate"])   # DONE only on the artifact that was approved
-        if not ok:
-            raise LabError(f"complete refused: {why}")
+        if r.get("gate"):
+            ok, chain = verify_chain(job_id, r["gate"])   # DONE only on what was approved, chain intact
+            if not ok:
+                raise LabError("complete refused: " + _broken(chain))
         new = "DONE"
         st["stage_kind"], st["stage"] = None, None
     else:
@@ -617,6 +743,31 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     if capmsg:
         raise CapExceeded(f"{job_id}: {capmsg} -> {new}")
     return st
+
+
+def _broken(chain):
+    return "; ".join(f"{c['job']} {c['kind']}: {c['status']}" for c in chain if c["status"] != "ok")
+
+
+def relink(job_id, actor=None):
+    """Human-only (engine/gate.py relink): point a child at its parent's current approval, void the
+    child's own approval if any, and send it back to its first review."""
+    st = load_state(job_id)
+    link = st.get("parent_link")
+    if not link:
+        raise LabError(f"{job_id} has no parent approval to relink")
+    ok, chain = verify_chain(link["job"], link["gate"])
+    if not ok:
+        raise LabError("the parent's approval is not valid: " + _broken(chain))
+    new_sha = _token(link["job"], link["gate"])["sha256"]
+    st["parent_link"] = {**link, "artifact_sha256": new_sha}
+    gate = st["route"].get("gate")
+    old = gate_file(job_id, gate) if gate else None
+    if old and old.exists():
+        n = len(list(old.parent.glob(f"{gate}.void-*.json"))) + 1
+        old.replace(old.parent / f"{gate}.void-{n}.json")
+    save_json(job_dir(job_id) / "state.json", st)
+    return apply(job_id, "relink", note=f"parent {link['job']} now at {new_sha[:12]}", actor=actor or approver(), _human=True)
 
 
 # ---------- human inputs ----------

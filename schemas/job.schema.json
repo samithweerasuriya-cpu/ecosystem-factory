@@ -476,6 +476,46 @@
           "type": "number"
         }
       }
+    },
+    "parent_link": {
+      "type": "object",
+      "required": [
+        "job",
+        "gate",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "job": {
+          "type": "string"
+        },
+        "gate": {
+          "type": "string"
+        },
+        "artifact_sha256": {
+          "type": "string"
+        }
+      },
+      "description": "the parent's approved artifact content this job is built on"
+    },
+    "continued_link": {
+      "type": "object",
+      "required": [
+        "job",
+        "gate",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "job": {
+          "type": "string"
+        },
+        "gate": {
+          "type": "string"
+        },
+        "artifact_sha256": {
+          "type": "string"
+        }
+      },
+      "description": "the approved job a --continue-from seed came from"
     }
   }
 }

@@ -1,5 +1,15 @@
 # Engine changelog
 
+## 0.7.0 (2026-10-22)
+
+Approval chain.
+
+- A gate token records what its artifact was built from: the parent's approved artifact content (`requires_parent_gate`), the approved job a `--continue-from` seed came from, every approved artifact it cites as `[G:<job>]`, and the inputs present at approval.
+- `verify_chain`: the token's own artifact, each recorded input (edited or deleted voids; a new one does not), each upstream approval by content (an identical re-approval keeps children valid; different content stops them), recursively; depth capped at 8; cycles broken. Used where it matters: child creation, approval, delivery, completion, gated actions and `[G:]` citations in the evidence check.
+- `gate.py verify <job> <gate> --chain` prints every link; `gate.py show` lists what an approval would bind; `gate.py relink <job>` (human-only, terminal, audited) points a stopped child at its parent's new approval, voids the child's own approval and sends it back to its first review.
+- Folder hashing is deterministic: sorted relative paths and file contents only.
+- `.gitattributes`: fingerprinted folders (`jobs/`, `engine/`, `config/`, `schemas/`, `rules/`, `templates/`) never have line endings converted.
+
 ## 0.6.1 (2026-10-21)
 
 Fixes found by the delivery path test (T0.10).
