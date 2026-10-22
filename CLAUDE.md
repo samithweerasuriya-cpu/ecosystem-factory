@@ -34,6 +34,7 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 6. **One question at a time**, only when the answer changes what you build.
 7. **Recommend, don't just list.**
 8. **Effort log.** Each build-log row has an estimate and an actual (sessions), and what broke.
+9. **Test tiers.** During work, run the fast tier: `.venv\Scripts\python.exe engine\run_tests.py --fast` (unit tests; the log guard stays on). Run the full suite (`engine\run_tests.py`, no flag) before every commit and in every Check. A Check passed on the fast tier alone is not a pass.
 
 ## Hard rules
 
@@ -70,7 +71,7 @@ Every agent the factory writes, and every factory agent, includes these:
 
 ## Definition of done for any task
 
-- Its Check passes and has been run in front of Samith.
+- Its Check passes and has been run in front of Samith, including the full test suite.
 - Samith has seen how to run it himself (one or two commands, or a prompt).
 - The build-log row is written (date, pass/fail, estimate, actual, notes).
 - The change is committed.

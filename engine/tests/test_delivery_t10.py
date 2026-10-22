@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 
 from support import REPO, LabTestBase
+
+TIER = "full"  # end-to-end, slow: skipped by run_tests.py --fast
 import demo_support as ds
 
 MAIN_TRAIL = [("new", "PLANNED", None), ("dispatch", "WORKING", "demo-planner"),

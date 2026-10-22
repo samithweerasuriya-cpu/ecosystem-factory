@@ -49,6 +49,17 @@ class GuardSelfTests(unittest.TestCase):
             lambda: (self.repo / "notes.txt").write_text("edited\n", encoding="utf-8"))
         self.assertEqual(changed, [])
 
+    def test_fast_tier_skips_only_full_tier_modules(self):
+        fast, skipped = run_tests.collect(fast=True)
+        full, none_skipped = run_tests.collect(fast=False)
+        modules = lambda s: {type(t).__module__ for t in run_tests._walk(s)}
+        self.assertIn("test_delivery_t10", skipped)
+        self.assertNotIn("test_delivery_t10", modules(fast))
+        self.assertIn("test_delivery_t10", modules(full))
+        self.assertEqual(none_skipped, [])
+        self.assertEqual(modules(full) - modules(fast), set(skipped))
+        self.assertIn("test_check_coverage", modules(fast))                            # the repo's own tests/ too
+
     def test_job_files_are_guarded(self):
         _, changed, _ = self.run_guard(
             lambda: (self.repo / "jobs/20260101-demo-a/state.json").write_text("{}", encoding="utf-8"))
