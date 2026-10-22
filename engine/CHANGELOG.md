@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.7.1 (2026-10-22)
+
+Fixes from the live drills (T0.12).
+
+- The approver's name is required in `config/gates.json`; without it every gate action is refused. There is no fallback to the operating-system user name, and the audit log no longer records it.
+- Hook rule 7: while a job is active (not DONE or CANCELLED), a subagent call (Agent, Task) is refused unless it sets `run_in_background` to false. A background call returns before the subagent finishes, so the usage hook sees no figures (drill 11: 0 recorded against 46,923 used).
+
 ## 0.7.0 (2026-10-22)
 
 Approval chain.

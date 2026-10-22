@@ -31,6 +31,11 @@ Rules
  6. MCP: blocked unless an `mcp` entry in config/gated-actions.json allows the tool; entries may
     require roles (["main"]: only the main session, keyed on the absence of agent_id), job types,
     states or a gate token.
+ 7. Subagent calls (Agent, Task) while a job is active (the .lab/active_job pointer names a job
+    that is not DONE or CANCELLED, or can't be read): allowed only with run_in_background set
+    explicitly to false. A background call returns before the subagent finishes, so the usage
+    hook would see no figures; some apps run subagents in the background unless told otherwise,
+    so a call that doesn't say is refused too.
 Limits: this is pattern-based analysis, not a sandbox. It stops accidents and prompt drift,
 not a determined attacker on your own machine: a path assembled at run time is not recognised,
 and inline interpreter code is judged by what it names and by its delete calls (rmtree, remove,
@@ -59,6 +64,7 @@ OPERATE = [".claude/*", "engine/*", "rules/*", "config/*", "schemas/*", "templat
 WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 READ_TOOLS = {"Read", "Grep", "Glob", "NotebookRead", "LS"}
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor"}
+AGENT_TOOLS = {"Agent", "Task"}
 
 SECRET_NAME = re.compile(r"^(\.env(\..*)?|master\.key)$", re.IGNORECASE)
 INTERPRETERS = {"python", "python3", "py", "python.exe", "python3.exe", "py.exe", "pythonw", "ruby", "node",
@@ -588,10 +594,26 @@ def check_mcp(ctx):
         raise Blocked(f"MCP tool {ctx.tool}: {why}")
 
 
+def check_agent(ctx):
+    job = lc.active_job()
+    if not job:
+        return
+    try:
+        if lc.load_state(job)["state"] in lc.TERMINAL:
+            return
+    except (lc.LabError, KeyError, ValueError, OSError):
+        pass                                                    # unreadable job: treat as active
+    if ctx.ti.get("run_in_background") is not False:
+        raise Blocked(f"job {job} is active: subagent calls must run in the foreground so their usage is "
+                      "recorded; set run_in_background to false (a call that doesn't say may run in the background).")
+
+
 def decide(data):
     ctx = Ctx(data)
     try:
-        if ctx.tool in WRITE_TOOLS:
+        if ctx.tool in AGENT_TOOLS:
+            check_agent(ctx)
+        elif ctx.tool in WRITE_TOOLS:
             check_write(ctx)
         elif ctx.tool in READ_TOOLS:
             check_read(ctx)

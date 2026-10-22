@@ -386,6 +386,51 @@ class LauncherTests(LabTestBase):
         self.assertEqual(digest, LAUNCHER_SHA256, "the launcher changed: it must never be edited")
 
 
+class BackgroundAgentTests(HookBase):
+    """T0.12 drill 11 follow-up (rule 7): while a job is active, subagent calls must say they run in
+    the foreground, because a background call returns before the usage is known."""
+
+    def agent(self, tool="Agent", **ti):
+        return self.call(tool, description="x", subagent_type="Explore", prompt="JOB: x", **ti)
+
+    def test_no_active_job_leaves_subagent_calls_alone(self):
+        self.assertAllowed(self.agent())
+        self.assertAllowed(self.agent(run_in_background=True))
+
+    def test_active_job_needs_an_explicit_foreground_call(self):
+        j = self.lc.new_job("spec", "bgjob", "x")["job_id"]
+        self.lc.set_active(j)
+        for tool in ("Agent", "Task"):
+            self.assertBlocked(self.agent(tool), f"{tool}: not said, so the app may run it in the background")
+            self.assertBlocked(self.agent(tool, run_in_background=True), tool)
+            self.assertBlocked(self.agent(tool, run_in_background="false"), f"{tool}: only a real false counts")
+            self.assertAllowed(self.agent(tool, run_in_background=False), tool)
+        log = (self.tmp / "logs/blocked.jsonl").read_text(encoding="utf-8")
+        self.assertIn("run_in_background", log)
+        self.assertIn(j, log)
+
+    def test_paused_jobs_are_still_active_and_finished_ones_are_not(self):
+        lc = self.lc
+        j = lc.new_job("spec", "pausejob", "x")["job_id"]
+        lc.set_active(j)
+        lc.apply(j, "escalate")
+        self.assertBlocked(self.agent(), "ESCALATED is not finished")
+        lc.apply(j, "cancel")
+        self.assertAllowed(self.agent(), "CANCELLED")
+
+    def test_an_unreadable_active_job_counts_as_active(self):
+        (self.tmp / ".lab").mkdir(exist_ok=True)
+        (self.tmp / ".lab/active_job").write_text("20260101-spec-gone", encoding="utf-8")
+        self.assertBlocked(self.agent())
+        self.assertAllowed(self.agent(run_in_background=False))
+
+    def test_other_tools_are_unaffected_by_an_active_job(self):
+        j = self.lc.new_job("spec", "otherjob", "x")["job_id"]
+        self.lc.set_active(j)
+        self.assertAllowed(self.sh("ls"))
+        self.assertAllowed(self.call("Read", file_path="README.md"))
+
+
 class T07FollowupTests(HookBase):
     """Samith's changes after T0.7: role-limited MCP entries, a stricter read-only list, and
     inline code that deletes files."""
