@@ -8,7 +8,6 @@ terminal confirmation. Routes, caps, scripts and the approver name come from con
 no agent name is written into this file.
 """
 import datetime
-import getpass
 import hashlib
 import json
 import os
@@ -106,10 +105,13 @@ def reviewers():
 
 
 def approver():
-    """Approver name from config/gates.json; falls back to the OS user name."""
+    """Approver name from config/gates.json. There is no fallback: without a configured name every
+    gate action is refused (the OS user name must never reach a token or the tracked audit log)."""
     f = CONFIG / "gates.json"
     name = load_json(f).get("approver") if f.exists() else None
-    return name or getpass.getuser()
+    if not (isinstance(name, str) and name.strip()):
+        raise LabError("no approver name in config/gates.json: set \"approver\" before any gate action")
+    return name.strip()
 
 
 def stage_kind(stage):
@@ -401,7 +403,7 @@ def approve_gate(job_id, note="", actor=None):
 
 def gate_audit(action, job_id=None, **detail):
     """Append one human gate action to logs/gate-audit.jsonl (hook-protected; written only by gate.py)."""
-    rec = {"ts": now(), "action": action, "job_id": job_id, "approver": approver(), "os_user": getpass.getuser()}
+    rec = {"ts": now(), "action": action, "job_id": job_id, "approver": approver()}
     if job_id:
         try:
             st = load_state(job_id)

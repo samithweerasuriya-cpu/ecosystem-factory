@@ -10,7 +10,7 @@
   python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
 
 approve/reject/lock/unlock refuse to run without an interactive terminal.
-The approver's name comes from config/gates.json (fallback: the OS user name).
+The approver's name comes from config/gates.json; without it every gate action is refused.
 Claude Code is also blocked from calling this file by settings.json and the hook.
 """
 import argparse

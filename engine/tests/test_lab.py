@@ -290,7 +290,7 @@ class GateAuditTests(LabTestBase):
         self.assertEqual((rej["job_id"], rej["gate"], rej["state"]), (j, "G1-spec", "REVISING"))
         self.assertEqual((app["state"], app["note"]), ("APPROVED", "ok"))
         self.assertEqual(app["sha256"], self.lc.sha256_path(art))
-        self.assertTrue(all(r["ts"] and r["os_user"] and r["approver"] for r in recs))
+        self.assertTrue(all(r["ts"] and r["approver"] and "os_user" not in r for r in recs))
 
     def test_failed_action_is_not_audited(self):
         g = self.gate_cli()

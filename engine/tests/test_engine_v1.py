@@ -1,6 +1,7 @@
 """Tests for what is new in engine 0.1.0: route format v1, fan-out, script stages,
 approver from config, the file-lock retry and stdlib-only imports."""
 import copy
+import importlib
 import json
 import subprocess
 import sys
@@ -250,14 +251,31 @@ class ApproverTests(LabTestBase):
         tok = json.loads((self.tmp / "jobs" / j / "gates/G1-spec.json").read_text())
         self.assertEqual(tok["approved_by"], "Test Approver")
 
-    def test_fallback_is_the_os_user(self):
-        self.dump("config/gates.json", {"approver": ""})
-        with mock.patch.object(self.lc.getpass, "getuser", return_value="os-user-x"):
-            self.assertEqual(self.lc.approver(), "os-user-x")
-        (self.tmp / "config/gates.json").unlink()
-        with mock.patch.object(self.lc.getpass, "getuser", return_value="os-user-y"):
-            self.assertEqual(self.lc.approver(), "os-user-y")
-
+    def test_fallback_is_the_os_user_removed(self):
+        """Changed in T0.12: no OS user fallback. Without an approver name every gate action is refused."""
+        import getpass
+        os_user = getpass.getuser()
+        j, _ = self.spec_to_gate()
+        for cfg in ({"approver": ""}, {}):
+            self.dump("config/gates.json", cfg)
+            with self.assertRaises(self.lc.LabError) as cm:
+                self.lc.approve_gate(j)
+            self.assertIn("no approver name", str(cm.exception))
+        self.assertFalse((self.tmp / f"jobs/{j}/gates/G1-spec.json").exists())
+        self.assertEqual(self.lc.load_state(j)["state"], "GATE")
+        g = importlib.import_module("gate")
+        g.confirm = lambda word: None
+        self.assertEqual(g.main(["lock"]), 1)                                          # refused, not audited
+        self.assertFalse((self.tmp / "logs/gate-audit.jsonl").exists())
+        self.dump("config/gates.json", {"approver": "Test Approver"})                 # with the config value
+        self.lc.approve_gate(j)
+        self.lc.gate_audit("approve", j)
+        self.assertEqual(g.main(["lock"]), 0)
+        audit = (self.tmp / "logs/gate-audit.jsonl").read_text(encoding="utf-8")
+        token = (self.tmp / f"jobs/{j}/gates/G1-spec.json").read_text(encoding="utf-8")
+        self.assertNotIn(os_user, audit)
+        self.assertNotIn(os_user, token)
+        self.assertNotIn("os_user", audit)
 
 class EngineRobustnessTests(LabTestBase):
     def test_save_json_retries_a_briefly_locked_file(self):
