@@ -265,8 +265,10 @@ class ApproverTests(LabTestBase):
         self.assertEqual(self.lc.load_state(j)["state"], "GATE")
         g = importlib.import_module("gate")
         g.confirm = lambda word: None
+        g.eval_lock_problems = lambda: []                                              # T0.13 rule tested in test_evals_t13
         self.assertEqual(g.main(["lock"]), 1)                                          # refused, not audited
         self.assertFalse((self.tmp / "logs/gate-audit.jsonl").exists())
+        self.assertFalse((self.tmp / ".lab/OPERATE").exists())                         # and nothing changed
         self.dump("config/gates.json", {"approver": "Test Approver"})                 # with the config value
         self.lc.approve_gate(j)
         self.lc.gate_audit("approve", j)

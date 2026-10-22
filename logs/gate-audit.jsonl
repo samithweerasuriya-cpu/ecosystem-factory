@@ -1,3 +1,5 @@
 {"ts": "2026-10-22T05:24:10+00:00", "action": "lock", "job_id": null, "approver": "Samith"}
 {"ts": "2026-10-22T05:26:32+00:00", "action": "unlock", "job_id": null, "approver": "Samith"}
 {"ts": "2026-10-22T05:47:20+00:00", "action": "approve", "job_id": "20261022-demo-drill", "approver": "Samith", "gate": "G1-demo", "state": "APPROVED", "artifact_path": "jobs/20261022-demo-drill/drafts/v1.md", "sha256": "e9202a1ea2f66c74ef92062e71829ed225b3d15a0ce4d806ee48223632e75d22", "note": "T0.12 live drill"}
+{"ts": "2026-10-22T12:00:02+00:00", "action": "lock", "job_id": null, "approver": "Samith"}
+{"ts": "2026-10-22T12:00:22+00:00", "action": "unlock", "job_id": null, "approver": "Samith"}

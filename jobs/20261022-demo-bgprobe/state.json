@@ -1,0 +1,74 @@
+{
+  "job_id": "20261022-demo-bgprobe",
+  "type": "demo",
+  "class": "synthetic",
+  "goal": "Live check: a background subagent call is refused while a job is active (synthetic)",
+  "parent": null,
+  "route": {
+    "stages": [
+      {
+        "agent": "demo-planner"
+      },
+      {
+        "fanout": {
+          "agent": "demo-researcher",
+          "max": 3,
+          "split_by": "topic"
+        }
+      },
+      {
+        "agent": "demo-writer"
+      }
+    ],
+    "reviews": [
+      {
+        "agent": "demo-critic",
+        "kind": "critic"
+      },
+      {
+        "agent": "demo-verifier",
+        "kind": "verifier"
+      }
+    ],
+    "revise_with": "demo-writer",
+    "gate": "G1-demo",
+    "deliver": "demo-publisher"
+  },
+  "state": "CANCELLED",
+  "stage": null,
+  "stage_kind": null,
+  "stage_index": 0,
+  "review_index": 0,
+  "fanout": null,
+  "fixing": false,
+  "artifact_path": null,
+  "resume_to": null,
+  "last_failed_by": null,
+  "visit": 2,
+  "calls": [],
+  "retry": null,
+  "last_handoff": null,
+  "handoffs": 0,
+  "handoff_log": [],
+  "ceiling": null,
+  "inputs": [],
+  "awaiting": null,
+  "continued_from": null,
+  "seed": [],
+  "counters": {
+    "critic_revisions": 0,
+    "verifier_revisions": 0,
+    "total_revisions": 0,
+    "fix_attempts": 0,
+    "infra_errors": 0,
+    "lifetime_agent_calls": 0,
+    "lifetime_revisions": 0,
+    "lifetime_resumes": 0,
+    "input_rounds": 0,
+    "repairs": 0,
+    "gate_rejections": 0,
+    "agent_calls": 0
+  },
+  "created": "2026-10-22T06:10:53+00:00",
+  "updated": "2026-10-22T06:11:16+00:00"
+}

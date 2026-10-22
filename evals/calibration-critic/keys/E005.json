@@ -1,0 +1,13 @@
+{
+  "case": "E005",
+  "must_find": [
+    "CC04"
+  ],
+  "must_not_find": [],
+  "verdict": "fail",
+  "leak_terms": [
+    "missing Risks",
+    "planted"
+  ],
+  "why": "The Risks section is absent."
+}

@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.8.0 (2026-10-22)
+
+Headless agent calls and evaluations (T0.13).
+
+- `engine/agent_call.py`: the one way to run an agent. `claude -p` with the agent's instructions as a system prompt file, the prompt on stdin, the pinned model (`config/models.json`, unless the agent file names another), project-only settings, no MCP, usage from the JSON. A tool-less agent runs in a fresh empty folder in safe mode, so no CLAUDE.md reaches it; an agent with tools runs only in a folder whose settings register the guard hook. `ANTHROPIC_API_KEY` is removed from the child's environment. `call_job` builds the handoff, records the call and closes it with the headless usage; the job loop uses it from T1.5.
+- `evals/run_evals.py`: leak check, cost estimate (the approver confirms above 1,000,000 tokens in their own terminal), token ceiling and call cap, cache by agent, prompt, model and CLI version, quick (1 run), full (3 runs) and smoke (one case, 3 fresh runs) modes, scoring by case majority, invalid-output rate reported separately, reports with numbers and IDs only.
+- `engine/evalcheck.py` and `gate.py lock`: lock is refused unless passing reports cover every agent, rule, schema and config file at its current hash, for the pinned model and the installed CLI; minimum case counts for agents used by routes.
+- `gate.py lock` checks the approver name before anything changes (a lock without one used to switch operate mode on, unaudited).
+- The usage hook records a background subagent launch as "usage pending" and leaves its call open.
+- The hook treats `engine/agent_call.py` and `evals/run_evals.py` like the other engine tools.
+
 ## 0.7.1 (2026-10-22)
 
 Fixes from the live drills (T0.12).

@@ -1,0 +1,15 @@
+{
+  "_doc": "Evaluation thresholds (evals/run_evals.py; prose in evals/README.md). Each case runs runs_per_case times (1 in quick mode); a case counts a rule as found, or its verdict as matched, when at least case_majority runs agree. Rates are over cases, except invalid_output_rate, which is over runs and reported separately with no threshold. min_counts apply only to agents used by a route (config/routes.json). Never lower a threshold to make a run pass.",
+  "runs_per_case": 3,
+  "case_majority": 2,
+  "reviewer": {
+    "recall_blocker_min": 1.0,
+    "recall_major_min": 0.8,
+    "false_fail_rate_max": 0.2,
+    "verdict_match_min": 0.85
+  },
+  "min_counts": {
+    "reviewer": {"cases": 20, "clean": 5},
+    "agent": {"cases": 5}
+  }
+}

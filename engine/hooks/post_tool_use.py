@@ -6,7 +6,9 @@ scripted handoff, so it carries "JOB: <job>" and "HANDOFF: H<nnn>". The hook fin
 that used that handoff and closes it with the app's own figures from tool_response: status,
 totalTokens, the token breakdown (input, output, cache read, cache write), totalDurationMs and
 the model. A call it cannot match (no handoff in the prompt, unknown job, no open call) is
-written to logs/usage-unmatched.jsonl (numbers and the reason only), never dropped.
+written to logs/usage-unmatched.jsonl (numbers and the reason only), never dropped. A background
+launch (status async_launched) is logged there as "usage pending" with no figures, and its call
+stays open: it is never closed as failed or with 0 tokens (T0.12 drill 11).
 run(raw) returns 0, or 2 to tell the session that usage could not be recorded.
 """
 import json
@@ -39,6 +41,13 @@ def run(raw):
         return 0
     ti, tr = data.get("tool_input") or {}, data.get("tool_response") or {}
     tr = tr if isinstance(tr, dict) else {}
+    if tr.get("isAsync") or str(tr.get("status", "")).lower() == "async_launched":
+        # A background launch returns before the subagent finishes: no figures yet. The call stays
+        # open (never closed as failed or with 0 tokens); the hook refuses such launches during jobs.
+        m = JOB_RE.search(str(ti.get("prompt") or ""))
+        job_id = m.group(1) if m and lc.find_job(m.group(1)) is not None else None
+        unmatched("background launch: usage pending (the subagent was still running)", data, None, job_id)
+        return 0
     usage = lc.usage_from_tokens(tr.get("usage"), total=tr.get("totalTokens"), duration_ms=tr.get("totalDurationMs"),
                                  model=tr.get("resolvedModel"))
     prompt = str(ti.get("prompt") or "")

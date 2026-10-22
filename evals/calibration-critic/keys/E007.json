@@ -1,0 +1,17 @@
+{
+  "case": "E007",
+  "must_find": [],
+  "must_not_find": [
+    "CC01",
+    "CC02",
+    "CC03",
+    "CC04",
+    "CC05"
+  ],
+  "verdict": "pass",
+  "leak_terms": [
+    "clean case",
+    "planted"
+  ],
+  "why": "Clean spec, worded differently."
+}

@@ -1,0 +1,6 @@
+{
+  "_doc": "Evaluation suite for the calibration critic (T0.13): proves the runner, the leak check and the lock rule. Not used by a route, so the minimum case counts don't apply.",
+  "agent": "evals/agents/calibration-critic.md",
+  "rulebook": "rules/calibration-critic.md",
+  "kind": "reviewer"
+}

@@ -38,3 +38,16 @@ Result values: **confirmed** (works as the plan assumed) · **changed** (works d
 ## Probe usage
 
 Six successful headless runs (the sixth, for deny rules, added after T0.4 review), client-side estimate about USD 1.58 at list price (on the subscription, not billed separately). The largest was the 8-step probe (about USD 0.66). Restricting setting sources cut a trivial run from about USD 0.28 to 0.04, because the agent catalogue no longer loads into context.
+
+## T0.13 probes (2026-10-22, CLI 2.1.308)
+
+Headless runs for the eval runner and `engine/agent_call.py`. Each run: `claude -p` in a fresh folder outside the repo, `--strict-mcp-config --setting-sources project,local --no-session-persistence --output-format json --system-prompt <instructions>`.
+
+| # | Item | Result | Evidence | Consequence |
+|---|---|---|---|---|
+| T13-2 | No tools: a planted key file can't be read | **confirmed** | Run by Samith in PowerShell with `--tools=`: the answer says it has no file tools; the planted term is absent; `permission_denials` empty; the JSON carries `usage`, `total_cost_usd`, `modelUsage` (model name) and `subagent_stats`; about 950 tokens, USD 0.011 at list price (drill 11's in-session subagent: 46,923 tokens) | Tool-less agents get their inputs inline in the prompt; usage comes from this JSON |
+| T13-1 | CLAUDE.md with project-only settings and a replaced system prompt | **changed** | Marker CLAUDE.md files in the run folder **and in its parent folder** were both loaded and quoted | `--setting-sources` does not stop CLAUDE.md discovery; a home-folder or user-level CLAUDE.md would reach every run |
+| T13-5 | The same with `--safe-mode` | **confirmed** | No marker loaded, no tools, still on the subscription login (same model, cost reported). The environment description (folder, shell) is still given to the model | Tool-less agents run with `--safe-mode`. Safe mode also disables hooks, so agents with tools can't use it: their folder must have no stray CLAUDE.md above it (doctor warning, T0.14); probed in T2.5. The answer text can name local paths, so reports store IDs and numbers only |
+| T13-4 | Spelling of "no tools" | **confirmed** | Python `subprocess` with `["--tools", ""]` and with `"--tools="`: both answered "NO TOOLS" and read no file. Samith's PowerShell run used `--tools=` (PowerShell 5.1 drops a bare `""` argument) | `agent_call.py` passes `--tools=` |
+| T13-6 | Instructions from a file, prompt on stdin | **confirmed** | `--system-prompt-file <file>` (not listed in `--help`, but accepted) with the prompt piped on stdin: the answer followed the file's instruction and used the piped word | `agent_call.py` writes the instructions to a temporary file outside the run folder and sends the prompt on stdin (no command-line length limit) |
+| T13-3 | Real review shape (calibration critic, inline case) | **confirmed** | Two full live runs through `engine/agent_call.py` (7 synthetic cases x 3 runs each): every planted defect found in every run, both clean specs passed, 0 of 21 outputs invalid each time; 71,460 and 72,669 tokens (about 3,400 per call; the estimate was 110,082) | The runner's estimate is conservative by about a third; recalibrate it from reports when real factory agents arrive |

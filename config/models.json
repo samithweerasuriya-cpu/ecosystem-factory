@@ -1,0 +1,5 @@
+{
+  "_doc": "Pinned model for every headless agent call (engine/agent_call.py). An agent uses \"default\" unless its file names another model (\"inherit\" or no model means the default). Evaluation reports record this model and the CLI version; a change makes earlier reports stale for locking (evals/run_evals.py stale). claude_command: the CLI as an argument list.",
+  "default": "claude-opus-5-5",
+  "claude_command": ["claude"]
+}

@@ -10,6 +10,8 @@
   python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
 
 approve/reject/lock/unlock refuse to run without an interactive terminal.
+lock also refuses unless passing evaluation reports cover the current agents, rules, schemas and
+config, for the pinned model and the installed CLI (engine/evalcheck.py, T0.13).
 The approver's name comes from config/gates.json; without it every gate action is refused.
 Claude Code is also blocked from calling this file by settings.json and the hook.
 """
@@ -36,6 +38,12 @@ def interactive_terminal():
         mode = ctypes.c_uint32()
         return bool(ctypes.windll.kernel32.GetConsoleMode(ctypes.c_void_p(handle), ctypes.byref(mode)))
     return True
+
+
+def eval_lock_problems():
+    """Why operate mode may not be locked (engine/evalcheck.py); empty means it may."""
+    import evalcheck
+    return evalcheck.lock_problems()
 
 
 def confirm(job_or_word):
@@ -118,7 +126,15 @@ def main(argv=None):
             lc.gate_audit("ceiling", args.job, ceiling=st["ceiling"])
             print(f"Usage ceiling for {args.job}: {st['ceiling']}. Resume the job when ready.")
         elif args.cmd == "lock":
-            confirm("lock"); lc.LAB.mkdir(exist_ok=True); (lc.LAB / "OPERATE").write_text(lc.now())
+            lc.approver()  # refuse before anything changes (no unaudited lock)
+            confirm("lock")
+            problems = eval_lock_problems()
+            if problems:
+                print("Refusing to lock: the evaluations don't cover the current framework files.", file=sys.stderr)
+                for p in problems:
+                    print(f"  - {p}", file=sys.stderr)
+                return 1
+            lc.LAB.mkdir(exist_ok=True); (lc.LAB / "OPERATE").write_text(lc.now())
             lc.gate_audit("lock")
             print("Operate mode ON: framework files are write-protected.")
         elif args.cmd == "unlock":

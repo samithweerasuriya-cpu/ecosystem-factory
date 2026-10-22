@@ -201,6 +201,12 @@ class FailClosedShellTests(HookBase):
         self.assertAllowed(self.sh(f".venv/Scripts/python.exe engine/validate_findings.py jobs/{J}/reviews/critic-v1.json"))
         self.assertBlocked(self.sh(f"python engine/state.py status {J} > jobs/{J}/state.json"))
 
+    def test_headless_agent_tools_may_name_framework_files_in_operate_mode(self):
+        self.operate()                                                    # T0.13: the job loop and the evaluations
+        self.assertAllowed(self.sh(f".venv/Scripts/python.exe engine/agent_call.py job {J} .claude/agents/critic.md"))
+        self.assertAllowed(self.sh(".venv/Scripts/python.exe evals/run_evals.py run calibration-critic --quick"))
+        self.assertBlocked(self.sh(f"python engine/agent_call.py job {J} .claude/agents/critic.md > rules/x.md"))
+
 
 class SpellingTests(HookBase):
     """(g) the hook, not the prefix-matching deny rules, is the real guard: spellings resolve."""

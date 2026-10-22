@@ -19,6 +19,12 @@
     "agent_minutes": 180,
     "per_call_warning_tokens": 500000
   },
+  "evals": {
+    "_doc": "Cost controls for evals/run_evals.py (T0.13). Before every run the runner prints a token and time estimate; above confirm_above_tokens the approver must confirm in their own terminal. A run stops when its actual tokens reach the larger of tokens_per_invocation and 1.5 times a confirmed estimate, or after max_runs_per_invocation agent calls.",
+    "confirm_above_tokens": 1000000,
+    "tokens_per_invocation": 1000000,
+    "max_runs_per_invocation": 120
+  },
   "fetches_per_call": 15,
   "fetches_per_job": 60
 }
