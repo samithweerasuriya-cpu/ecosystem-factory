@@ -283,7 +283,8 @@ def write(files, job_id):
         for m in doc["marks"]:                                   # IDs, rule, severity and mark only: never text
             fh.write(json.dumps({**base, "kind": "mark", "reviewer": m["reviewer"], "version": m["version"],
                                  "finding_id": m["finding_id"], "rule": m["rule"], "severity": m["severity"],
-                                 "mark": m["mark"], "sampled": m["sampled"]}) + "\n")
+                                 "mark": m["mark"], "sampled": m["sampled"],
+                                 "corrected_severity": m.get("corrected_severity")}) + "\n")
         for x in doc["missed"]:
             fh.write(json.dumps({**base, "kind": "missed", "reviewer": x["reviewer"], "rule": x["rule"]}) + "\n")
 
@@ -298,18 +299,33 @@ def _log_lines():
     return out
 
 
+SEV_RANK = {"minor": 0, "major": 1, "blocker": 2}
+
+
 def rates(lines, key):
-    """{group: {valid, noise, skipped, missed, noise_rate, miss_rate}} grouped by 'reviewer' or 'rule'."""
+    """{group: counts and rates} grouped by 'reviewer' or 'rule'. Severity errors (T0.20): valid findings the
+    approver re-rated, higher (under-rated) or lower (over-rated), over all valid findings; kept apart from
+    the noise and miss rates."""
     out = {}
     for x in lines:
-        g = out.setdefault(x.get(key) or "unassigned", {"valid": 0, "noise": 0, "skipped": 0, "missed": 0})
+        g = out.setdefault(x.get(key) or "unassigned", {"valid": 0, "noise": 0, "skipped": 0, "missed": 0,
+                                                        "under_rated": 0, "over_rated": 0})
         if x["kind"] == "missed":
             g["missed"] += 1
-        else:
-            g[x["mark"]] += 1
+            continue
+        g[x["mark"]] += 1
+        fix = x.get("corrected_severity")
+        if x["mark"] == "valid" and fix in SEV_RANK and x.get("severity") in SEV_RANK:
+            if SEV_RANK[fix] > SEV_RANK[x["severity"]]:
+                g["under_rated"] += 1
+            elif SEV_RANK[fix] < SEV_RANK[x["severity"]]:
+                g["over_rated"] += 1
+    rate = lambda k, n: round(k / n, 3) if n else None
     for g in out.values():
-        g["noise_rate"] = round(g["noise"] / (g["valid"] + g["noise"]), 3) if g["valid"] + g["noise"] else None
-        g["miss_rate"] = round(g["missed"] / (g["valid"] + g["missed"]), 3) if g["valid"] + g["missed"] else None
+        g["noise_rate"] = rate(g["noise"], g["valid"] + g["noise"])
+        g["miss_rate"] = rate(g["missed"], g["valid"] + g["missed"])
+        g["under_rated_rate"] = rate(g["under_rated"], g["valid"])
+        g["over_rated_rate"] = rate(g["over_rated"], g["valid"])
     return out
 
 
@@ -323,10 +339,14 @@ def quality_text(reviewer=None, rule=None):
     q = quality(reviewer, rule)
     L = [f"Finding verdicts: {q['lines']} record(s)" + (f" for {reviewer}" if reviewer else "")
          + (f", rule {rule}" if rule else ""),
-         "  noise rate = noise / (valid + noise); miss rate = missed / (valid + missed); skipped not counted"]
+         "  noise = noise / (valid + noise); miss = missed / (valid + missed); under- and over-rated = re-rated "
+         "valid findings / valid; skipped not counted; each rate shows k of n"]
+    kn = lambda k, n, r: f"{k} of {n} ({r})" if n else "n/a"
     for title, key in (("By reviewer", "by_reviewer"), ("By rule", "by_rule")):
         L.append(title)
         for g, v in sorted(q[key].items()):
-            L.append(f"  {g:<20} valid {v['valid']}  noise {v['noise']}  skipped {v['skipped']}  missed {v['missed']}"
-                     f"  noise rate {v['noise_rate']}  miss rate {v['miss_rate']}")
+            L.append(f"  {g:<20} noise {kn(v['noise'], v['valid'] + v['noise'], v['noise_rate'])}  "
+                     f"miss {kn(v['missed'], v['valid'] + v['missed'], v['miss_rate'])}  "
+                     f"under-rated {kn(v['under_rated'], v['valid'], v['under_rated_rate'])}  "
+                     f"over-rated {kn(v['over_rated'], v['valid'], v['over_rated_rate'])}  skipped {v['skipped']}")
     return "\n".join(L)

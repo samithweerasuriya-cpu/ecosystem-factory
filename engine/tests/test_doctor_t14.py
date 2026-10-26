@@ -351,6 +351,8 @@ class AckTests(DoctorBase):
         r = self.results()["user_skills"]
         self.assertEqual(r["status"], "WARN")
         self.assertIn("details changed", r["message"])
+        self.doc.ack(self.ctx(), "user_skills", interactive=True)                # re-acknowledged after the lapse
+        self.assertEqual(self.results()["user_skills"]["status"], "INFO")        # found in T0.20: it must stick
         with self.assertRaisesRegex(self.lc.LabError, "no current warning"):
             self.doc.ack(self.ctx(), "venv", interactive=True)                  # only warnings
         self.assertIn("doctor.local.json", (REPO / ".gitignore").read_text(encoding="utf-8").replace(

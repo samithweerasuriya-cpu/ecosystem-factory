@@ -33,7 +33,7 @@ class GateBase(LabTestBase):
         self.g.require_terminal = lambda: None
         self.keys, self.asked = [], []
 
-        def read_key(prompt, allowed):
+        def read_key(prompt, allowed, severity=False):
             self.asked.append((prompt, allowed))
             return self.keys.pop(0)
         self.g.read_key = read_key
@@ -280,7 +280,8 @@ class RecordTests(GateBase):
         lines = [json.loads(l) for l in log.splitlines()]
         self.assertEqual(len(lines), 6)
         self.assertEqual(set(lines[0]) - {"ts"}, {"job_id", "gate", "action", "n", "kind", "reviewer", "version",
-                                                  "finding_id", "rule", "severity", "mark", "sampled"})
+                                                  "finding_id", "rule", "severity", "mark", "sampled",
+                                                  "corrected_severity"})
         self.assertEqual(lines[-1]["kind"], "missed")
         audit = json.loads((self.tmp / "logs/gate-audit.jsonl").read_text(encoding="utf-8").splitlines()[-1])
         self.assertEqual(audit["review"]["verdicts_sha256"], tok["review"]["verdicts_sha256"])
@@ -357,4 +358,40 @@ class QualityTests(GateBase):
         p = subprocess.run([sys.executable, str(self.tmp / "engine/state.py"), "quality", "--reviewer", "critic"],
                            capture_output=True, text=True, env=self.hook_env())
         self.assertEqual(p.returncode, 0, p.stderr)
-        self.assertIn("noise rate 0.25", p.stdout)
+        self.assertIn("noise 1 of 4 (0.25)", p.stdout)                      # k of n beside every rate
+
+    def test_severity_errors_are_their_own_rates(self):
+        """T0.20: 'v major' on a minor is under-rated, 'v minor' on a major over-rated, plain 'v' neither."""
+        j, jp = self.to_gate_with_findings(minors=0)                        # F-01 major, F-02 blocker, F-21, F-31 minor
+        must, sampled, _ = self.gr.to_mark(j)
+        self.keys = ["v minor", "v", "v major"][:len(must) + len(sampled)]
+        self.keys += ["v"] * (len(must) + len(sampled) - len(self.keys))
+        self.assertEqual(self.g.main(["approve", j]), 0)
+        doc = json.loads((self.tmp / f"{jp}/gates/G1-spec.verdicts-1.json").read_text(encoding="utf-8"))
+        fixes = {m["finding_id"]: m["corrected_severity"] for m in doc["marks"]}
+        self.assertEqual(fixes["F-01"], "minor")                            # major re-rated down
+        self.assertIsNone(fixes["F-02"])
+        q = self.gr.quality()["by_reviewer"]["critic"]
+        self.assertEqual((q["over_rated"], q["over_rated_rate"]), (1, round(1 / q["valid"], 3)))
+        self.assertNotIn("v major", (self.tmp / "logs/finding-verdicts.jsonl").read_text(encoding="utf-8"))
+        g = importlib.reload(self.g)                                         # the real reader
+        self.inputs = ["v major", "v  MAJOR", "v huge", "v"]
+        self.assertEqual(g.read_key("mark:", "vnq", severity=True), "v major")
+        self.assertEqual(g.read_key("mark:", "vnq", severity=True), "v major")
+        self.assertEqual(g.read_key("mark:", "vnq", severity=True), "v")     # 'v huge' asked again
+        self.inputs = ["v major", "v"]
+        self.assertEqual(g.read_key("mark:", "vnq"), "v")                    # without severity: 'v major' refused
+
+    def test_under_rated_counts_on_a_minor(self):
+        log = self.tmp / "logs/finding-verdicts.jsonl"
+        log.parent.mkdir(exist_ok=True)
+        rows = [{"kind": "mark", "reviewer": "critic", "rule": "TR15", "severity": "minor", "mark": "valid",
+                 "corrected_severity": "major"},
+                {"kind": "mark", "reviewer": "critic", "rule": "TR16", "severity": "major", "mark": "valid",
+                 "corrected_severity": None},
+                {"kind": "mark", "reviewer": "critic", "rule": "TR16", "severity": "major", "mark": "noise",
+                 "corrected_severity": "minor"}]                             # a noise mark is never a severity error
+        log.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+        c = self.gr.quality()["by_reviewer"]["critic"]
+        self.assertEqual((c["under_rated"], c["over_rated"], c["under_rated_rate"]), (1, 0, 0.5))
+        self.assertIn("under-rated 1 of 2 (0.5)", self.gr.quality_text())

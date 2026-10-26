@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.10.1 (2026-10-26)
+
+Phase 0 retrospective (T0.20).
+
+- Severity-error rate: at marking, a valid finding may get a corrected severity (`v major`); it is stored with the mark (the ID-only log gets the corrected severity, never text); `state.py quality` reports under-rated and over-rated findings apart from noise and misses, and shows k of n beside every rate.
+- Doctor: a warning re-acknowledged after a lapse now sticks (the fingerprint uses the check's own message).
+
 ## 0.10.0 (2026-10-26)
 
 Gate modes, gate review support and publish readiness (T0.15, T0.16, T0.19).

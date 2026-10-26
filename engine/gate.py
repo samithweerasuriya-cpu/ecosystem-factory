@@ -66,18 +66,25 @@ def require_terminal():
         sys.exit(1)
 
 
-def read_key(prompt, allowed):
-    """One letter, then Enter; anything else asks again. Ctrl+C or closed input = q.
+SEVERITIES = ("blocker", "major", "minor")
+
+
+def read_key(prompt, allowed, severity=False):
+    """One letter, then Enter; anything else asks again. Ctrl+C or closed input = q. With severity=True,
+    'v' may be followed by a corrected severity ('v major'), returned as typed ('v major').
     Plain line input on purpose: a no-Enter keypress reader behaved differently across terminals and
     left stray keys that answered the next question (found live, T0.16)."""
     while True:
         try:
-            ch = input(prompt + " ").strip().lower()
+            ch = " ".join(input(prompt + " ").strip().lower().split())
         except (EOFError, KeyboardInterrupt):
             return "q"
         if len(ch) == 1 and ch in allowed:
             return ch
-        print(f"  type one of: {', '.join(allowed)}, then Enter")
+        if severity and ch.startswith("v ") and ch[2:] in SEVERITIES:
+            return ch
+        print(f"  type one of: {', '.join(allowed)}" + (" (or v plus a severity, e.g. v major)" if severity else "")
+              + ", then Enter")
 
 
 def mark_findings(job):
@@ -87,14 +94,17 @@ def mark_findings(job):
     marks = []
     if must or sampled:
         print(f"\nMark each finding with one letter and Enter: v valid, n noise"
-              f"{', s skip (minors only)' if sampled else ''}, q cancel (nothing is recorded).")
+              f"{', s skip (minors only)' if sampled else ''}, q cancel (nothing is recorded). A valid finding "
+              "with the wrong severity: v and the right one (e.g. v major).")
     for f, keys in [(f, "vnq") for f in must] + [(f, "vnsq") for f in sampled]:
         k = read_key(f"  {f['finding_id']} [{f['severity']} {f['rule']}] {f['reviewer']} {f['version']} "
-                     f"{f['location']}: {f['issue']}\n    mark ({'/'.join(keys)}):", keys)
+                     f"{f['location']}: {f['issue']}\n    mark ({'/'.join(keys)}):", keys, severity=True)
         if k == "q":
             return None
+        corrected = k.split()[1] if " " in k else None
         marks.append({k2: f[k2] for k2 in ("file", "reviewer", "version", "finding_id", "rule", "severity")}
-                     | {"mark": gr.MARKS[k], "sampled": f["severity"] == "minor"})
+                     | {"mark": gr.MARKS[k[0]], "sampled": f["severity"] == "minor",
+                        "corrected_severity": corrected if corrected != f["severity"] else None})
     return marks, [m["finding_id"] for m in marks if m["sampled"]], minors
 
 

@@ -564,13 +564,17 @@ def scrub(ctx, text):
 
 
 def fingerprint(r):
-    return hashlib.sha256(json.dumps({"id": r["id"], "status": r["status"], "details": r["details"],
-                                      "message": r["message"]}, sort_keys=True).encode()).hexdigest()
+    # The check's own message, not the one apply_acks annotates: a re-acknowledgement after a lapse must
+    # match the next run (found in T0.20: the annotated message made re-acknowledgements never stick).
+    return hashlib.sha256(json.dumps({"id": r["id"], "status": r.get("raw_status", r["status"]),
+                                      "details": r["details"], "message": r.get("raw_message", r["message"])},
+                                     sort_keys=True).encode()).hexdigest()
 
 
 def apply_acks(ctx, results):
     acks = load(ctx.root / "config" / "doctor.local.json").get("acknowledged", {})
     for r in results:
+        r["raw_message"], r["raw_status"] = r["message"], r["status"]
         if r["status"] == WARN and r["id"] in acks:
             if acks[r["id"]] == fingerprint(r):
                 r["status"], r["acknowledged"] = INFO, True
