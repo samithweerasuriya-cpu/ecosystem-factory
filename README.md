@@ -14,7 +14,7 @@ Every step between those gates is done by agents; every gate is a person approvi
 
 ## How it was built
 
-Samith, an ERP product manager who does not write code, specified, reviewed and decided every step. Claude Code wrote, ran and tested all the code, one planned task at a time: plan, approval, build, a Check run in front of Samith, a build-log row, a commit. Mistakes found along the way are kept as lessons in [docs/lessons.md](docs/lessons.md). The engine and method are derived from the author's earlier private labs; the role catalogue credit is in [NOTICE.md](NOTICE.md).
+Samith, a product manager who does not write code, specified, reviewed and decided every step. Claude Code wrote, ran and tested all the code, one planned task at a time: plan, approval, build, a Check run in front of Samith, a build-log row, a commit. Mistakes found along the way are kept as lessons in [docs/lessons.md](docs/lessons.md). The engine and method are derived from the author's earlier private labs; the role catalogue credit is in [NOTICE.md](NOTICE.md).
 
 ## What makes it different
 
