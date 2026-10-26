@@ -2,6 +2,8 @@
 
 Reference figures from the author's earlier private labs, so the factory's own reviewers can be compared with something. Anonymised: counts only, no topics, names or finding text.
 
+The factory's own calibration suite (`evals/calibration-critic/`, 7 short synthetic cases, every planted defect found in every run) proves that the evaluation runner, scoring and lock rule work. It does not measure reviewer quality: real reviewer suites follow the Suite design rules in `evals/README.md`.
+
 ## Critic noise rate (T0.17)
 
 A spec-writing chain in an earlier lab: a writer drafts a spec from a research brief, a critic reviews it, the writer revises. The approver marked every critic finding valid or noise after the chain ran.

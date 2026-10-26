@@ -51,6 +51,19 @@ Each case runs 3 times; a case counts a rule as found, or its verdict as matched
 
 **Minimum case counts** apply only to agents used by a route (`config/routes.json`): a reviewer needs at least 20 cases, 5 of them clean; another agent at least 5. The calibration critic is used by no route: its 7 cases prove the mechanics (runner, leak check, scoring, lock rule), not a factory agent.
 
+## Suite design rules
+
+Every suite for an agent used by a route (T2.5, T3.5, and the suites the generator writes in T4.1) follows these rules. The calibration critic's 7 cases predate them: they prove the runner, not reviewer quality.
+
+1. **Difficulty mix:** at least a third of the cases are subtle (the defect is easy to read past), and some cases carry 2 or 3 defects at once.
+2. **Boundary pairs:** for each rule, a planted case and a near-miss clean twin that comes close to breaking the rule but doesn't.
+3. **Scoring is bound to the defect:** a finding counts only if it targets the planted location; extra findings on a planted case count as false findings; near-miss twins carry `must_not_find` for their rule.
+4. **Real length:** some cases are at the length of a real document, not a short excerpt.
+5. **Discrimination check:** a new suite also runs once on a weaker model. If that model also scores 100%, the suite is too easy and gets harder cases before it can count.
+6. **Evidence shown:** reports show k of n beside every rate, and mark any rule backed by fewer than 3 cases as "insufficient evidence".
+7. **Gate misses become cases:** every missed issue or severity error marked at a gate becomes a new, neutral eval case for that reviewer's suite.
+8. **Hard cases included:** injection cases (instructions hidden in the material under review) and context-dependent severity cases (the same defect is minor in one setting and major in another).
+
 ## Lock rule
 
 `engine/gate.py lock` refuses unless (see `engine/evalcheck.py`):
