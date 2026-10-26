@@ -1,5 +1,15 @@
 # Engine changelog
 
+## 0.10.0 (2026-10-26)
+
+Gate modes, gate review support and publish readiness (T0.15, T0.16, T0.19).
+
+- Gates accept only `human` mode until Phase 5; a missing mode is refused.
+- `engine/gatereview.py` and `gate.py`: script-written gate brief, saved and fingerprinted at approve, reject and hold; one letter per finding marking with a seeded minor sample; missed issues; verdict files in `gates/`; an ID-only verdict log; `state.py quality` (noise and miss rates). Rejection feedback is read only from `gates/`. `gate.py hold` and `resume`; `approve --as pilot`.
+- `engine/publish_check.py`: denylist (whole word, any case; `case:` for exact), secrets, source-folder and home paths, email domains, forbidden paths and names; tree, staged, message, push and history modes; `install` writes the pre-commit, commit-msg and pre-push hooks. Fails closed.
+- `state.py stage-record <job>` (`engine/stagerecord.py`): stages one job's folder and only its log lines, after the publish check.
+- Doctor: publish-hook check.
+
 ## 0.9.0 (2026-10-22)
 
 Doctor (T0.14).

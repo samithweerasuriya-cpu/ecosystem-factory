@@ -17,6 +17,7 @@
   python engine/state.py routes                            # print routes (validated)
   python engine/state.py check-config                      # validate routes, caps, scripts and gate modes
   python engine/state.py quality [--reviewer R] [--rule ID]  # noise and miss rates from gate marks
+  python engine/state.py stage-record <job>                # stage one job's folder and log lines (publish-checked)
   python engine/state.py check-private <job>               # internal job: nothing of it can reach a commit
 
 Events: dispatch, stage_done, artifact_ready, fixed, infra_error, repair (--reason invalid_output|
@@ -64,6 +65,7 @@ def main(argv=None):
     rs.add_argument("status", choices=["done", "failed"]); rs.add_argument("--usage-json"); rs.add_argument("--note")
     us = sub.add_parser("usage"); us.add_argument("job")
     qu = sub.add_parser("quality"); qu.add_argument("--reviewer"); qu.add_argument("--rule")
+    sr = sub.add_parser("stage-record"); sr.add_argument("job")
     a = sub.add_parser("activate"); a.add_argument("job")
     s = sub.add_parser("status"); s.add_argument("job", nargs="?")
     sub.add_parser("routes"); sub.add_parser("check-config")
@@ -113,6 +115,11 @@ def main(argv=None):
                 return 3
         elif args.cmd == "usage":
             print("\n".join(lc.usage_summary(args.job)))
+        elif args.cmd == "stage-record":   # T0.19: one job's folder and log lines, after the publish check
+            import stagerecord
+            files, logs = stagerecord.stage(args.job)
+            print(f"staged {len(files)} file(s) of {args.job}"
+                  + "".join(f"; {n} line(s) of {p}" for p, n in logs.items()) + " (commit when ready)")
         elif args.cmd == "quality":   # T0.16: reviewer noise and miss rates from the approver's marks
             import gatereview
             print(gatereview.quality_text(args.reviewer, args.rule))

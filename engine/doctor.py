@@ -471,6 +471,26 @@ def check_layout(ctx):
     return result("layout", "mode", OK, "folder layout, .gitattributes and .gitignore as the engine expects")
 
 
+def check_publish_hooks(ctx):
+    """T0.19: the publish-check hooks (pre-commit, commit-msg, pre-push) and the denylist they need."""
+    if not (ctx.root / ".git").exists():
+        return result("publish_hooks", "mode", INFO, "not a Git repository here: no publish hooks to check")
+    import publish_check
+    got = publish_check.hooks_installed(ctx.root) or {}
+    missing = [n for n, ok in got.items() if not ok] or ([] if got else list(publish_check.HOOKS))
+    factory = (ctx.root / "private").is_dir()
+    if missing:
+        return result("publish_hooks", "mode", FAIL if factory else WARN,
+                      f"publish-check hook(s) not installed: {', '.join(missing)} (private material could be "
+                      "committed or pushed)", "python engine/publish_check.py install", {"missing": missing})
+    try:
+        publish_check.Rules(ctx.root)
+    except publish_check.Fail as e:
+        return result("publish_hooks", "mode", FAIL, f"the hooks are installed but can't check anything: {e}",
+                      "write the denylist (one term per line), then run the doctor again")
+    return result("publish_hooks", "mode", OK, "publish-check hooks installed (commit, message, push) with a denylist")
+
+
 def check_wsl(ctx):
     if ctx.platform != "win32":
         return result("wsl", "mode", INFO, "not Windows: WSL not applicable")
@@ -568,7 +588,7 @@ def fast_checks(ctx=None):
     for check in (check_venv, check_hook_python, check_git, check_cli, check_auth, check_settings_json, check_api_key,
                   check_auto_updates,
                   check_hooks, check_user_level, check_stray_claude_md, check_local_config,
-                  lambda c: check_evals(c, operate), lambda c: mode, check_layout):
+                  lambda c: check_evals(c, operate), lambda c: mode, check_layout, check_publish_hooks):
         try:
             r = check(ctx)
         except Exception as e:  # a broken check is a failure, never a traceback (it could print raw paths)

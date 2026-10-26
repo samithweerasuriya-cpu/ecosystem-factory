@@ -61,10 +61,18 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 1. **One task per session.** At a task's end, tell Samith to start a new session for the next one.
 2. **Read only what's needed.** Search the plan for the current task's row and read the latest build-log rows, not whole files.
 3. **Run tests quietly:** failures and the summary line only.
-4. **Reports use a fixed short format** of about 15 lines: what was built, the Check result, what broke, Samith's steps, commits, primer rows. Details go in the build log.
+4. **Reports: 10 lines at most:** built, Check, broke, Samith's steps, commits, primer rows. Details go in the build log.
 5. **No background subagents or polling loops;** look things up directly.
 6. **Batch CLAUDE.md edits** at task boundaries.
-7. **Plan checklist**, applied before presenting any plan:
+7. **Plans: only decisions, deviations from BUILD_PLAN and questions;** don't restate the plan text. The checklist line is "Plan checklist: OK", or lists only the exceptions.
+8. **One message to Samith per plan and one per result;** batch questions.
+9. **Before the full suite, run `git diff --stat`** and fix any whole-file rewrites (line endings), so the suite runs once per task, on final bytes.
+10. **Edit files with the Edit tool, not inline scripts;** don't re-read files you just wrote.
+11. **Build-log rows: 8 lines at most.**
+12. **Combine small tasks in one session** (e.g. a recording-only task with the next task).
+13. **Search before reading;** read only the lines needed.
+14. **For documentation-only tasks,** tell Samith he may switch to a lighter model with `/model`.
+15. **Plan checklist**, applied before presenting any plan:
    - Public repo: no user names, emails, employer, colleague or domain content in tracked files.
    - Internal jobs stay entirely under `private/`.
    - Fingerprinted files keep their line endings.
