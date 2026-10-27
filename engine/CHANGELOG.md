@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.12.0 (2026-10-27)
+
+Generator v0 (T1.3).
+
+- `engine/generate.py generate <blueprint> <target> [--dry-run] | verify <target> | lint <target>`: copies `engine/` (except `check_coverage.py` and `designcheck.py`), the evaluation runner, the engine's schemas, rulebooks and config byte for byte; fixed templates from `templates/ecosystem/` (settings with `disableClaudeAiConnectors: true` and the Agent and Task tools denied, commands, `.gitignore`); renders config, the rulebook, `CLAUDE.md` and every agent file's front matter from the blueprint; `rules/default-agent-rules.md` word for word in `CLAUDE.md` and every agent; `generation.json` holds the manifest, the exclusions, every agent's headless call line and the venv's versions; then the ecosystem's `.venv` (uv, jsonschema at the factory's version) and `git init`. Lint: allowed front matter keys, explicit tool lists (`[]` for none, never empty or unreadable), no Agent or Task, `maxTurns` 1–20, the guard hook block, the default rules byte for byte; `tools: []` needs the in-session deny until T1.4 verifies it.
+- Hook tuning H1–H3 (`docs/lessons.md`): a bare PowerShell string separator is read-only; "eval" inside the single literal `-m` message of a lone `git commit`; only the file name `gate.py` itself is human-only. Pins updated.
+- Tests: `test_design_t12` moved to the factory's `tests/`; `test_evals_t13` uses its own calibration fixture (`engine/tests/fixtures/calibration/`), so the engine's tests pass inside a generated ecosystem.
+
 ## 0.11.0 (2026-10-27)
 
 Thin charter and blueprint (T1.2).

@@ -1,0 +1,13 @@
+{
+  "case": "E003",
+  "must_find": [
+    "CC02"
+  ],
+  "must_not_find": [],
+  "verdict": "fail",
+  "leak_terms": [
+    "low-confidence answer",
+    "planted"
+  ],
+  "why": "Q1 is closed on F4 alone, a low-confidence fact."
+}

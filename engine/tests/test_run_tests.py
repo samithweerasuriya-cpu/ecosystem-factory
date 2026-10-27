@@ -58,7 +58,8 @@ class GuardSelfTests(unittest.TestCase):
         self.assertIn("test_delivery_t10", modules(full))
         self.assertEqual(none_skipped, [])
         self.assertEqual(modules(full) - modules(fast), set(skipped))
-        self.assertIn("test_check_coverage", modules(fast))                            # the repo's own tests/ too
+        own = {f.stem for f in (run_tests.REPO / "tests").glob("test_*.py")}        # the repo's own tests/ too
+        self.assertLessEqual(own, modules(fast) | set(skipped), own)
 
     def test_job_files_are_guarded(self):
         _, changed, _ = self.run_guard(

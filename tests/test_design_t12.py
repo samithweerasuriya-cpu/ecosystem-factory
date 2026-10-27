@@ -16,7 +16,7 @@ from pathlib import Path
 from test_agent_call_t13 import TOOLLESS
 from test_evals_t13 import CLI, EvalBase
 
-REPO = Path(__file__).resolve().parent.parent.parent
+REPO = Path(__file__).resolve().parent.parent   # factory-only test (tests/): never copied into an ecosystem
 THIN = REPO / "docs" / "thin"
 sys.path.insert(0, str(REPO / "engine"))
 import designcheck  # noqa: E402

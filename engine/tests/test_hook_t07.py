@@ -481,6 +481,61 @@ class T07FollowupTests(HookBase):
         self.assertAllowed(self.sh("python engine/state.py event x needs_input --note \"remove the old section\""))
 
 
+class HookTuningT13Tests(HookBase):
+    """T1.3: the tuning list H1-H3 (docs/lessons.md), each freed shape with the shapes that stay blocked."""
+
+    def test_H1_a_bare_string_separator_is_read_only(self):
+        p, q = f"jobs\\{J}\\state.json", f"jobs\\{J}\\brief.md"
+        for cmd in (f"Get-Content {p}; \"---\"; Get-Content {q}", f"Get-Content {p}; '---'; Get-Content {q}"):
+            self.assertAllowed(self.sh(cmd, tool="PowerShell"), cmd)
+        for cmd in (f"Get-Content {p}; \"---\" > {q}", f"Get-Content {p}; \"---\" > $null",
+                    f"Get-Content {p}; \"---\" >> out.txt", f"Get-Content {p}; \"$(Remove-Item {q})\"",
+                    f"Get-Content {p}; \"$env:X\"", f"Get-Content {p}; \"---\" \"x\""):
+            self.assertBlocked(self.sh(cmd, tool="PowerShell"), cmd)
+        for cmd in (f"Get-Content {p}; & \"wipe.ps1\"", f"powershell -Command \"Set-Content {p} x\""):
+            self.assertBlocked(self.sh(cmd, tool="PowerShell"), cmd)    # the call operator and -Command run the string
+        self.assertBlocked(self.sh(f"cat jobs/{J}/state.json; '---'"))          # bash runs a bare word as a program
+
+    def test_H2_eval_inside_one_literal_commit_message(self):
+        self.assertAllowed(self.sh("git commit -m \"T1.3: 25 eval cases\""))
+        self.assertAllowed(self.sh("git commit -m 'eval runner\n\nsecond paragraph'"))
+        self.assertAllowed(self.sh("git commit -m 'T1.3: eval cases'", tool="PowerShell"))
+        blocked = {
+            "dollar substitution": "git commit -m \"x $(eval echo x)\"",
+            "backticks": "git commit -m \"x eval `whoami`\"",
+            "variable": "git commit -m \"x eval $X\"",
+            "semicolon": "git commit -m \"x eval y\" ; echo x",
+            "and": "git commit -m \"x eval y\" && echo x",
+            "or": "git commit -m \"x eval y\" || echo x",
+            "pipe": "git commit -m \"x eval y\" | cat",
+            "newline": "git commit -m \"x eval y\"\necho x",
+            "-F": "git commit -F \"x eval y\"",
+            "--file": "git commit --file \"x eval y\"",
+            "-F with -m": "git commit -m \"x eval y\" -F msg.txt",
+            "unparseable": "git commit -m \"x eval",
+            "redirection": "git commit -m \"x eval y\" > out.txt",
+            "two messages": "git commit -m \"x eval y\" -m \"x eval y\"",
+            "clustered -am": "git commit -am \"x eval y\"",
+            "--message": "git commit --message \"x eval y\"",
+            "eval outside the message": "git commit -m \"ok\" eval",
+            "not a commit": "git log --grep \"x eval y\"",
+            "nested shell": "bash -c \"git commit -m 'x eval y'\"",
+            "eval command": "eval echo hello",
+        }
+        for what, cmd in blocked.items():
+            self.assertTrue(self.hook.OBFUSCATION.search(cmd), f"{what}: the case must trip the pattern")
+            self.assertBlocked(self.sh(cmd), what)
+
+    def test_H3_only_the_exact_file_name_gate_py_is_human_only(self):
+        for cmd in (f"python Gate.PY approve {J}", f"python .\\gate.py approve {J}", f"python engine\\..\\gate.py approve {J}",
+                    f"py -3 C:\\x\\engine\\gate.py approve {J}", f"python ENGINE/GATE.py approve {J}",
+                    f"python \"engine/gate.py\" approve {J}", f"python engine/gate.py approve \"{J}"):
+            self.assertBlocked(self.sh(cmd), cmd)
+        self.assertBlocked(self.sh(f"py -3 .\\Engine\\Gate.py approve {J}", tool="PowerShell"))
+        for cmd in ("python delegate.py", "python demo_gate.py --help", "py -3 scripts\\delegate.py"):
+            self.assertAllowed(self.sh(cmd), cmd)
+
+
 class SettingsRegistrationTests(unittest.TestCase):
     """(f) ported from the earlier lab: the project settings register the launcher, fail-closed."""
 

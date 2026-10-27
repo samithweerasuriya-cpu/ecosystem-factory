@@ -11,7 +11,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from support import REPO, LabTestBase
+from support import FIX, REPO, LabTestBase
 
 TIER = "full"  # end-to-end, slow: skipped by run_tests.py --fast
 import demo_support as ds
@@ -37,8 +37,8 @@ class DeliveryBase(LabTestBase):
 
     def setUp(self):
         super().setUp()
-        for name in ("routes.json", "reviewers.json", "scripts.json"):           # the shipped demo config
-            shutil.copy2(REPO / "config" / name, self.tmp / "config" / name)
+        for name in ("routes.json", "reviewers.json", "scripts.json"):           # the factory's demo config (fixture)
+            shutil.copy2(FIX / "factory/config" / name, self.tmp / "config" / name)
         ds.prepare_root(self.tmp)
         self.d = ds.Driver(self.tmp, self.base)
 

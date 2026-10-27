@@ -17,10 +17,10 @@ What building the factory taught, kept so later tasks and generated ecosystems d
 
 ## Hook tuning list
 
-Commands the guard blocks although they are harmless. Each one failed closed, as designed; none is fixed yet. They are collected here so the read-only list can be widened in one reviewed change, with a test per entry.
+Commands the guard blocks although they are harmless. Each one failed closed, as designed. They are collected here so the read-only list can be widened in one reviewed change, with a test per entry. H1 to H3 were fixed in T1.3 (engine 0.12.0; tests in `engine/tests/test_hook_t07.py`, `HookTuningT13Tests`), each as narrowly as possible.
 
-| # | Command shape | Message | Seen in | Workaround |
-|---|---|---|---|---|
-| H1 | A read-only PowerShell line with a bare string as a separator next to protected paths, e.g. `Get-Content logs\usage.jsonl; "---"; Get-Content logs\usage-unmatched.jsonl` | "this command names a protected path and is not entirely read-only" | T0.12 | Read each file in its own call, or use `Write-Output "---"` |
-| H2 | A heredoc appending documentation text that contains the word "eval" (e.g. "eval runner") to a tracked file | "eval / iex / Invoke-Expression / base64 decoding and encoded commands are not allowed" | T0.13 | Write documentation with the Edit or Write tool, not a shell heredoc |
-| H3 | Running a scratch script whose own file name ends in `gate.py` (e.g. `demo_gate.py`) | "engine/gate.py is human-only" | T0.16 | Don't name scripts `*gate.py` |
+| # | Command shape | Message | Seen in | Workaround | Status |
+|---|---|---|---|---|---|
+| H1 | A read-only PowerShell line with a bare string as a separator next to protected paths, e.g. `Get-Content logs\usage.jsonl; "---"; Get-Content logs\usage-unmatched.jsonl` | "this command names a protected path and is not entirely read-only" | T0.12 | Read each file in its own call, or use `Write-Output "---"` | Fixed T1.3: PowerShell only, top level, a quoted string with nothing to expand, no redirection, no `&` anywhere |
+| H2 | Any command whose text contains the word "eval": a heredoc appending documentation (e.g. "eval runner") to a tracked file, or a `git commit` message (e.g. "25 eval cases") | "eval / iex / Invoke-Expression / base64 decoding and encoded commands are not allowed" | T0.13, T1.2 | Write documentation with the Edit or Write tool, not a shell heredoc; write "evaluation" in commit messages | Fixed T1.3 for commit messages only: one `git commit` with one literal `-m` argument; `$`, backticks, chaining, `-F`/`--file`, redirection or anything unparseable stay blocked. Heredocs stay blocked |
+| H3 | Running a scratch script whose own file name ends in `gate.py` (e.g. `demo_gate.py`) | "engine/gate.py is human-only" | T0.16 | Don't name scripts `*gate.py` | Fixed T1.3: only the file name `gate.py` itself (any case, any path form) is human-only |

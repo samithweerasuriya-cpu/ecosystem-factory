@@ -1,0 +1,13 @@
+{
+  "case": "E006",
+  "must_find": [
+    "CC05"
+  ],
+  "must_not_find": [],
+  "verdict": "fail",
+  "leak_terms": [
+    "scope creep",
+    "planted"
+  ],
+  "why": "Room fees and payments are out of scope."
+}

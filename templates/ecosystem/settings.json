@@ -1,0 +1,52 @@
+{
+  "disableClaudeAiConnectors": true,
+  "permissions": {
+    "deny": [
+      "Agent",
+      "Task",
+      "Bash(python engine/gate.py *)",
+      "Bash(python3 engine/gate.py *)",
+      "Bash(py -3 engine/gate.py *)",
+      "Bash(.venv/Scripts/python.exe engine/gate.py *)",
+      "PowerShell(python engine/gate.py *)",
+      "PowerShell(python3 engine/gate.py *)",
+      "PowerShell(py -3 engine/gate.py *)",
+      "PowerShell(.venv\\Scripts\\python.exe engine\\gate.py *)",
+      "Bash(git push *)",
+      "PowerShell(git push *)",
+      "Read(./.env*)",
+      "Read(./**/.env*)",
+      "Read(./**/master.key)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py",
+            "args": ["-3", "${CLAUDE_PROJECT_DIR}/engine/hooks/pre_tool_use_launcher.py"],
+            "onFailure": "block",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py",
+            "args": ["-3", "${CLAUDE_PROJECT_DIR}/engine/hooks/post_tool_use_launcher.py"],
+            "onFailure": "block",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

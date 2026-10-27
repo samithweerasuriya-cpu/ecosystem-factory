@@ -1,0 +1,9 @@
+{
+  "id": "E001",
+  "kind": "clean",
+  "inputs": [
+    "brief.md",
+    "artifact.md"
+  ],
+  "artifact": "artifact.md"
+}

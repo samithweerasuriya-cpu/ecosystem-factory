@@ -99,6 +99,9 @@ class LabTestBase(unittest.TestCase):
             if (REPO / d).is_dir():
                 shutil.copytree(REPO / d, self.tmp / d, ignore=shutil.ignore_patterns("__pycache__", "tests", "*.local.json",
                                                                                      "reports"))
+        # The factory config the tests assume (caps, gates, the demo route, publish settings), frozen as a fixture,
+        # so the engine's tests behave the same in the factory and in every generated ecosystem (T1.3).
+        shutil.copytree(FIX / "factory", self.tmp, dirs_exist_ok=True)
         (self.tmp / "jobs").mkdir()
         self.dump("config/routes.json", TEST_ROUTES)
         self.dump("config/scripts.json", TEST_SCRIPTS)

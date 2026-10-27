@@ -1,0 +1,7 @@
+{
+  "_doc": "engine/publish_check.py settings (T0.19). denylist: the approver's untracked list of terms that must never be published (one per line; whole word, any case; 'case: Term' for exact case). allowed_email_domains: email addresses are allowed only at these domains and their subdomains (example domains for tests, GitHub noreply, the co-author line). forbidden_dirs and forbidden_names: tracked paths that must never exist. The source folders' absolute paths come from config/protected-paths.local.json.",
+  "denylist": "private/denylist.txt",
+  "allowed_email_domains": ["users.noreply.github.com", "example.org", "example.com", "example.net", "example", "test", "invalid", "anthropic.com"],
+  "forbidden_dirs": ["vendor/", "private/", "cache/"],
+  "forbidden_names": [".env*", "*.local.json"]
+}

@@ -1,0 +1,13 @@
+{
+  "case": "E002",
+  "must_find": [
+    "CC01"
+  ],
+  "must_not_find": [],
+  "verdict": "fail",
+  "leak_terms": [
+    "trace gap",
+    "planted"
+  ],
+  "why": "R4 cites F2, which says nothing about phone numbers or text messages."
+}

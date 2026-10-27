@@ -4,9 +4,11 @@ background launches. The calibration-critic suite runs against fake_claude.py: n
 import importlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 
+from support import FIX
 from test_agent_call_t13 import AgentCallBase
 from test_usage_t08 import UsageBase
 
@@ -28,6 +30,11 @@ def answer(case, rules, verdict, severity="major", job=None, fence=False):
 class EvalBase(AgentCallBase):
     def setUp(self):
         super().setUp()
+        # The suite comes from the tests' own fixture, so these tests also run in a generated ecosystem (T1.3).
+        shutil.copytree(FIX / "calibration", self.tmp, dirs_exist_ok=True)
+        for s in (self.tmp / "evals").glob("*/suite.json"):       # an ecosystem's own suites are not part of these tests
+            if s.parent.name != SUITE:
+                shutil.rmtree(s.parent)
         sys.path.insert(0, str(self.tmp / "evals"))
         self.re = importlib.import_module("run_evals")
         self.ec = importlib.import_module("evalcheck")

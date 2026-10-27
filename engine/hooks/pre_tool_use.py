@@ -26,7 +26,8 @@ Rules
     allowed only if every part of it is on the read-only allow-list (nested bash -c, sh -c,
     powershell -Command, cmd /c and wsl are checked recursively); anything the parser can't
     follow is blocked. Always blocked: executing gate.py, git push, reading secret files,
-    eval / iex / Invoke-Expression / base64 decoding / encoded PowerShell commands. Commands
+    eval / iex / Invoke-Expression / base64 decoding / encoded PowerShell commands (the one exception:
+    those words inside the single literal -m message of a lone `git commit`, T1.3 H2). Commands
     matching a `shell` entry in config/gated-actions.json need that entry's conditions.
  6. MCP: blocked unless an `mcp` entry in config/gated-actions.json allows the tool; entries may
     require roles (["main"]: only the main session, keyed on the absence of agent_id), job types,
@@ -97,6 +98,7 @@ OBFUSCATION = re.compile(r"(^|[\s;&|(`])(eval|iex|invoke-expression)(\s|$|\()|fr
                          r"\bbase64\b[^|;&]*\s(-d|--decode|-D)\b|\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
                          re.IGNORECASE)
 SUBST = re.compile(r"\$\(|`")
+BARE_STRING = re.compile(r"'[^'$`]*'|\"[^\"$`]*\"")   # a quoted literal with nothing to expand
 PATH_CHUNK = re.compile(r"[A-Za-z0-9_.~:/\\\-*?$%{}@+]+")
 
 
@@ -341,6 +343,11 @@ def segment_read_only(words, reds, ctx, depth):
         return False
     if not words:
         return True
+    # H1 (T1.3): a bare string separator just prints itself. Top level only (inside -Command it is code),
+    # and never with an & anywhere (the call operator & "x.ps1" runs the string).
+    if ctx.tool == "PowerShell" and depth == 0 and "&" not in (ctx.ti.get("command") or "") \
+            and len(words) == 1 and not reds and BARE_STRING.fullmatch(words[0]):
+        return True
     inner = nested_command(words)
     if inner is not None:
         return command_read_only(inner[0], ctx, depth + 1, powershell=inner[1])
@@ -426,13 +433,41 @@ def shell_paths(cmd, ctx):
 
 
 def executes_gate(words):
+    # H3 (T1.3): the file name must be exactly gate.py (any case, any path form); demo_gate.py is not it.
+    # Bash tokenizing drops backslashes (.\gate.py becomes .gate.py), so a dot before the name counts too.
     if not words:
         return False
-    if base(words[0]) == "gate.py":
+    is_gate = lambda w: re.search(r"(^|[\\/.])gate\.py$", w.strip("'\"").casefold()) is not None
+    if is_gate(words[0]):
         return True
     if base(words[0]) in INTERPRETERS:
-        return any(base(w) == "gate.py" or "gate.py" in w.casefold() for w in words[1:])
+        return any(is_gate(w) for w in words[1:])
     return False
+
+
+def commit_message_only(cmd, ps):
+    """H2 (T1.3): True only if the command is one `git commit` whose obfuscation-pattern hits (e.g. the
+    word "eval") all sit inside its single literal -m argument. Fails closed: substitution anywhere,
+    a second segment, -F/--file, a redirection or anything unparseable gives False."""
+    if "$" in cmd or "`" in cmd:
+        return False
+    try:
+        segs = tokenize(cmd, ps)
+    except Unparseable:
+        return False
+    if len(segs) != 1 or segs[0][1]:
+        return False
+    words = segs[0][0]
+    if len(words) < 4 or words[0] != "git" or words[1] != "commit":
+        return False
+    flags = [w for w in words[2:] if w.startswith("-")]
+    if any(w.startswith("--file") or (w != "-m" and re.fullmatch(r"-[A-Za-z]*[mF].*", w)) for w in flags):
+        return False                             # -F, --file, -Fmsg, -am, -mmsg: only a bare -m is accepted
+    m = [i for i, w in enumerate(words) if w == "-m" or w.startswith("--message")]
+    if len(m) != 1 or words[m[0]] != "-m" or m[0] + 1 >= len(words):
+        return False
+    rest = words[:m[0]] + words[m[0] + 2:]
+    return not OBFUSCATION.search(" ".join(rest))
 
 
 def inline_code(segs, cmd, ps):
@@ -461,7 +496,7 @@ def inline_code(segs, cmd, ps):
 def check_shell(ctx):
     cmd = ctx.ti.get("command", "") or ""
     ps = ctx.tool == "PowerShell"
-    if OBFUSCATION.search(cmd):
+    if OBFUSCATION.search(cmd) and not commit_message_only(cmd, ps):
         raise Blocked("eval / iex / Invoke-Expression / base64 decoding and encoded commands are not allowed.")
     try:
         segs = list(walk_segments(cmd, powershell=ps))
@@ -469,15 +504,17 @@ def check_shell(ctx):
     except Unparseable:
         segs, parsed = [], False
     if not parsed:
-        if re.search(r"gate\.py", cmd, re.IGNORECASE):
+        if re.search(r"(?<![\w-])gate\.py", cmd, re.IGNORECASE):
             raise Blocked("engine/gate.py is human-only (command could not be parsed; failing closed).")
         if re.search(r"\bgit\b.*\bpush\b", cmd):
             raise Blocked("git push is disabled (command could not be parsed; failing closed).")
     code = inline_code(segs, cmd, ps)
     if code and DELETE_CALL.search(code):
         raise Blocked("inline interpreter code that deletes files is not allowed, whatever path it names.")
+    # Bash tokenizing turns C:\x\gate.py into C:xgate.py, so interpreter commands are also checked on the raw text.
+    runs_code = any(words and base(words[0]) in INTERPRETERS for words, _ in segs)
     for words, _ in segs:
-        if executes_gate(words):
+        if executes_gate(words) or (runs_code and re.search(r"(?<![\w-])gate\.py", cmd, re.IGNORECASE)):
             raise Blocked("engine/gate.py is human-only. Ask the approver to run it in their own terminal.")
         if words and base(words[0]) == "git" and "push" in [w.casefold() for w in words[1:]]:
             raise Blocked("git push is disabled: this repo runs local-only.")

@@ -1,0 +1,4 @@
+{
+  "_doc": "Allow-list of commands that script stages may run (engine/state.py run). This list is the real control for script stages and is locked in operate mode. Each entry: argv (no shell; placeholders {job}, {job_dir}, {job_path} (repo-relative job folder; use it instead of jobs/{job} so internal jobs under private/jobs/ work), {root}; an entry of exactly {python} is the engine's own interpreter), timeout in seconds, and, for a route's final stage, the artifact path it produces ({job_path} or {job} allowed).",
+  "scripts": {}
+}

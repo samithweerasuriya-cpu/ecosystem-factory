@@ -1,0 +1,13 @@
+{
+  "case": "E004",
+  "must_find": [
+    "CC03"
+  ],
+  "must_not_find": [],
+  "verdict": "fail",
+  "leak_terms": [
+    "vague target",
+    "planted"
+  ],
+  "why": "'instantly' and 'in real time' are not measurable targets."
+}

@@ -240,13 +240,6 @@ class CeilingTests(UsageBase):
         summary = "\n".join(lc.usage_summary(j))
         self.assertIn("WARNING: 1 call(s) over the per-call threshold", summary)
 
-    def test_shipped_ceiling_is_marked_provisional(self):
-        caps = json.loads((REPO / "config/caps.json").read_text(encoding="utf-8"))
-        u = caps["usage_ceiling"]
-        self.assertIn("PROVISIONAL", u["_provisional"])
-        self.assertIn("T1.4", u["_provisional"])
-        self.assertEqual((u["tokens"], u["agent_minutes"], u["per_call_warning_tokens"]), (2000000, 180, 500000))
-
 
 class SummaryAndCliTests(UsageBase):
     def test_summary_totals_and_main_session_note(self):

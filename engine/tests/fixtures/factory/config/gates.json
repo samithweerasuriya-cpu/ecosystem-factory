@@ -1,0 +1,8 @@
+{
+  "_doc": "Gate settings. approver: the name written into gate tokens and the audit log. Required: without it every gate action is refused (there is no OS user name fallback). default_mode and gates.<gate>.mode: how a gate is decided; 'human' is the only accepted value until Phase 5 (T0.15): anything else, or a missing mode, is refused by state.py check-config, when a job reaches the gate, and by approve, reject and hold.",
+  "approver": "Test Approver",
+  "default_mode": "human",
+  "gates": {
+    "G1-demo": {"mode": "human"}
+  }
+}

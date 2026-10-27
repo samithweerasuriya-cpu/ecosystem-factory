@@ -1,0 +1,17 @@
+# Internal jobs and their logs: never tracked
+private/
+
+# Local Python environment
+.venv/
+__pycache__/
+
+# Runtime state that stays local
+logs/blocked.jsonl
+.lab/active_job
+cache/
+
+# Secrets and personal settings
+.env*
+.claude/settings.local.json
+# Machine-specific config: never tracked
+config/*.local.json
