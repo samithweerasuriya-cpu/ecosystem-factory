@@ -176,8 +176,9 @@ def open_questions(path):
 
 
 def brief(job_id):
-    """The gate brief as text (Markdown)."""
+    """The gate brief as text (Markdown). Refused when a saved headless answer changed after it was saved."""
     st = lc.load_state(job_id)
+    lc.verify_outputs(job_id, st)
     gate, art, d = st["route"]["gate"], st["artifact_path"], lc.job_dir(job_id)
     version = lc._version(art) if art else None
     L = [f"# Gate brief: {job_id} at {gate}", "",

@@ -39,9 +39,9 @@ Start a job with `/new-job` and run it with `/run-job <job_id>`. For each step:
 | State | Your action |
 |---|---|
 | PLANNED | `state.py event <job> dispatch` |
-| WORKING | Run the agent named in `stage`: `engine\agent_call.py job <job> .claude\agents\<stage>.md`. On success: `artifact_ready --artifact <path>`. Infrastructure failure: `infra_error`. |
-| REVIEW | Run the reviewer the same way. Validate its findings with `engine\validate_findings.py <file>`, then `review_pass` or `review_fail`. |
-| REVISING | Run the agent in `stage` with the latest findings as revision input; it produces a new version. Then `revised --artifact <new path>`. |
+| WORKING | Run the agent named in `stage`: `engine\agent_call.py job <job> .claude\agents\<stage>.md`. The script checks the answer, re-asks once if it is invalid, and records any failure itself (`infra_error`). On success it prints `saved <path>`: then `artifact_ready --artifact <path>`. |
+| REVIEW | Run the reviewer the same way; the script has already checked its findings (schema, severity lock, IDs). Read the saved file's verdict: `review_pass` or `review_fail`. |
+| REVISING | Run the agent in `stage` the same way; it receives the latest findings and its answer is saved as the next version. Then `revised --artifact <saved path>`. |
 | AWAITING_INPUT | Relay the agent's questions to the approver word for word; record the answers with `state.py input <job> <file>`, then `answered`. |
 | GATE | Stop. Report to the approver (section 6). Do nothing else for this job. |
 | APPROVED | `complete`. |
@@ -53,7 +53,9 @@ Start a job with `/new-job` and run it with `/run-job <job_id>`. For each step:
 ## 4. Handoffs
 
 The engine builds every handoff by script (`state.py handoff <job>`); `agent_call.py job` sends it. Never write or
-change a handoff yourself. An agent's output is only the structured object its schema names.
+change a handoff yourself. An agent's output is only the structured object its schema names. The script saves
+each valid answer with its fingerprint; never edit, rewrite or repair a saved answer (every later step re-checks the
+fingerprint and refuses a changed file), and never open the `rejected/` folder's answers as input.
 
 ## 5. Routing rules
 

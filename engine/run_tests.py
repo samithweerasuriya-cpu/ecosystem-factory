@@ -8,6 +8,8 @@ Tests run against temporary copies (LAB_ROOT). This runner fingerprints every fi
 logs/, jobs/ and .lab/ of the real repo before and after the suite and fails if anything
 was added, changed or removed. The guard itself is tested against a fake repo
 (engine/tests/test_run_tests.py). Exit 0 = all tests passed and nothing changed.
+Keyboard input is closed first (T1.3 follow-up): the runner and every process a test starts read an empty
+input, so no test can wait on the keyboard in a real terminal (it behaves as with `$null |` piped in).
 """
 import hashlib
 import os
@@ -62,8 +64,17 @@ def collect(fast=False):
     return unittest.TestSuite(tests), sorted(skipped)
 
 
+def close_stdin():
+    """Point standard input (file descriptor 0, inherited by child processes) at the null device."""
+    fd = os.open(os.devnull, os.O_RDONLY)
+    os.dup2(fd, 0)
+    os.close(fd)
+    sys.stdin = open(os.devnull, encoding="utf-8")
+
+
 def main(argv):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    close_stdin()
     os.environ.pop("LAB_ROOT", None)  # a stray LAB_ROOT must not redirect the guard
     fast = "--fast" in argv
     suite, skipped = collect(fast)

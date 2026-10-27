@@ -104,6 +104,13 @@ def reviewers():
     return load_json(f).get("reviewers", {}) if f.exists() else {}
 
 
+def outputs():
+    """{agent: {"schema": path, "findings": bool}}: the schema each agent's headless answer must match
+    (agent_call.call_job). An agent without an entry is never called headless."""
+    f = CONFIG / "outputs.json"
+    return load_json(f).get("agents", {}) if f.exists() else {}
+
+
 def approver():
     """Approver name from config/gates.json. There is no fallback: without a configured name every
     gate action is refused (the OS user name must never reach a token or the tracked audit log)."""
@@ -251,6 +258,22 @@ def sha256_path(path):
     else:
         raise LabError(f"artifact not found: {path}")
     return h.hexdigest()
+
+
+def verify_outputs(job_id, st=None):
+    """Every headless answer the script saved for this job still has the sha256 on its call record.
+    Run before each later use: artifact_ready, the handoff that passes it on, the gate brief and approval."""
+    st = st or load_state(job_id)
+    for c in st["calls"]:
+        out = c.get("output")
+        if not out:
+            continue
+        p = ROOT / out["path"]
+        got = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+        if got != out["sha256"]:
+            raise LabError(f"saved answer {out['path']} (call {c['id']}) "
+                           + ("is missing" if got is None else "changed after it was saved")
+                           + ": refusing to use it")
 
 
 # ---------- gates ----------
@@ -427,6 +450,7 @@ def approve_gate(job_id, note="", actor=None, review=None):
         raise LabError(f"{job_id} is {st['state']}, not GATE")
     gate = st["route"]["gate"]
     gate_mode(gate)
+    verify_outputs(job_id, st)
     token = {"gate": gate, "job_id": job_id, "artifact_path": st["artifact_path"],
              "sha256": sha256_path(st["artifact_path"]), "approved_by": actor,
              "approved_at": now(), "note": note, "built_from": built_from(st)}
@@ -615,6 +639,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
 
     def new_artifact():
         """Set the new version, run the reference check, then hand it to the first reviewer."""
+        verify_outputs(job_id, st)
         st["artifact_path"] = rel(artifact)
         sha256_path(st["artifact_path"])
         version = _version(st["artifact_path"])
@@ -997,6 +1022,7 @@ def build_handoff(job_id, item=None):
     if st["state"] not in CALL_STATES:
         raise LabError(f"{job_id} is {st['state']}; no handoff to build")
     r, kind, d = st["route"], st["stage_kind"], job_dir(job_id)
+    verify_outputs(job_id, st)
     if kind == "script":
         raise LabError("script stage: no agent handoff; run it with 'state.py run'")
     j = rel(d)
@@ -1052,7 +1078,7 @@ def build_handoff(job_id, item=None):
             "inputs": [{"label": a, "path": b} for a, b in inputs], "rules": rules, "output_dir": out}
 
 
-def render_handoff(h, hid):
+def render_handoff(h, hid, headless=False):
     lines = [f"JOB: {h['job']}    TYPE: {h['type']}    STAGE: {h['stage']} ({h['kind']})    HANDOFF: {hid}",
              f"GOAL: {h['goal']}"]
     if h["template"]:
@@ -1069,18 +1095,20 @@ def render_handoff(h, hid):
     if h["kind"] in ("agent", "fanout", "revise") and (CONFIG / "evidence.json").exists():
         lines.append(f"FETCH: python engine/evidence.py fetch {h['job']} <url> --handoff {hid}"
                      "    (WebFetch is for discovery only; cite only sources stored this way)")
-    lines += [f"OUTPUT_DIR: {h['output_dir']}",
-              "End your reply with the STATUS block: STATUS, OUTPUTS, OPEN_ITEMS, VERDICT (reviewers), SUMMARY."]
+    lines.append(f"OUTPUT_DIR: {h['output_dir']}")
+    # headless (agent_call.call_job): the script saves the answer itself, so the reply is the JSON object alone
+    lines.append("Reply with only the JSON object: the first character is { and the last is }." if headless else
+                 "End your reply with the STATUS block: STATUS, OUTPUTS, OPEN_ITEMS, VERDICT (reviewers), SUMMARY.")
     return "\n".join(lines) + "\n"
 
 
-def handoff(job_id, item=None):
+def handoff(job_id, item=None, headless=False):
     """Build, record and return (handoff dict, rendered text). The next agent call links to it."""
     h = build_handoff(job_id, item)
     st = load_state(job_id)
     st["handoffs"] += 1
     hid = f"H{st['handoffs']:03d}"
-    text = render_handoff(h, hid)
+    text = render_handoff(h, hid, headless)
     st["last_handoff"] = hid
     st["handoff_log"].append({"id": hid, "agent": h["stage"], "item": item, "used_by": None})
     _save(job_id, st, {"event": "handoff", "handoff": hid, "agent": h["stage"], "item": item,
@@ -1153,9 +1181,11 @@ def ceiling_exceeded(st):
     return None
 
 
-def record_result(job_id, call_id, status, usage=None, source="manual", note=None):
+def record_result(job_id, call_id, status, usage=None, source="manual", note=None, output=None, rejected=None):
     """Close an open call with its outcome and usage; log the numbers; pause the job if it has now
-    reached its usage ceiling. Returns (state, ceiling message or None)."""
+    reached its usage ceiling. Returns (state, ceiling message or None). output: {"path", "sha256"} of the
+    answer the script saved (verify_outputs checks it before every later use); rejected: where an invalid
+    answer was kept for audit (never an input to any handoff)."""
     if status not in ("done", "failed"):
         raise LabError("result status must be done or failed")
     st = load_state(job_id)
@@ -1174,8 +1204,13 @@ def record_result(job_id, call_id, status, usage=None, source="manual", note=Non
     warn = caps().get("usage_ceiling", {}).get("per_call_warning_tokens")
     call.update(status=status, ended=ended, usage=usage, usage_source=source,
                 warning=bool(warn and usage.get("total") and usage["total"] >= warn))
+    if output:
+        call["output"] = output
+    if rejected:
+        call["rejected"] = rejected
     _save(job_id, st, {"event": "call_result", "call": call_id, "status": status, "source": source,
-                       "tokens": usage.get("total"), "note": note, "actor": source})
+                       "tokens": usage.get("total"), "note": note, "actor": source,
+                       **({"output": output} if output else {}), **({"rejected": rejected} if rejected else {})})
     _usage_log(job_id, {"call": call_id, "agent": call["agent"], "item": call["item"], "attempt": call["attempt"],
                         "status": status, "source": source,
                         "tokens": {k: usage.get(k) for k in USAGE_KEYS + ("total",)} if usage.get("total") is not None else None,

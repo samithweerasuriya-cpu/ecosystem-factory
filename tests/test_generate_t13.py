@@ -101,6 +101,9 @@ class GenerateTests(GenBase):
         rb = (self.out / "rules/action-rules.md").read_text(encoding="utf-8")
         for rid in ("TR01", "TR02", "TR03"):
             self.assertIn(f"| {rid} |", rb)
+        self.assertEqual(cfg("outputs")["agents"], {                         # T1.3 follow-up: headless answers
+            "action-writer": {"schema": "schemas/action-items.schema.json", "findings": False},
+            "action-critic": {"schema": "schemas/findings.schema.json", "findings": True}})
 
     def test_the_default_rules_go_into_claude_md_and_every_agent_byte_for_byte(self):
         self.make()

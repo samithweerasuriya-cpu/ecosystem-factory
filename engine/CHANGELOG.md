@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.13.0 (2026-10-27)
+
+Headless answers saved and checked by script (T1.3 follow-up; pulled forward from T1.5).
+
+- `agent_call.call_job`: the answer must be one bare JSON object (first character `{`, last `}`), not empty or cut off, valid against the agent's schema in the new `config/outputs.json` (reviewers: also the severity lock and the verdict rule), with the job ID (reviewers: reviewer, artifact path and version) copied exactly. A valid answer is saved as a new file (drafts: the next version after the one in state.json; reviews: `<agent>-<version>-<call>.json`; never over an existing file) and its sha256 goes on the call record. An invalid one is kept in `<job>/rejected/` (audit only), recorded as a repair and asked again once with only sanitized problems (path, rule, value cut to 40 characters, control characters removed); invalid again is an infra_error, as is any CLI failure (the script records the event itself; the ecosystem's CLAUDE.md template says so). A `STATUS: needs_input` answer is an infra_error at once (until T1.5). An agent without an output schema is never called.
+- `labcore.verify_outputs`: every saved answer is re-hashed before `artifact_ready`, every handoff, the gate brief (`gate.py show`, approve, reject, hold) and the gate approval; a changed or missing file is refused.
+- Headless handoffs end "Reply with only the JSON object"; in-session ones keep the STATUS block.
+- `schemacheck.details`: the same errors as `check`, as (path, rule, value, message).
+- `run_tests.py` closes keyboard input for itself and every process it starts.
+- The generator renders `config/outputs.json` from the blueprint.
+
 ## 0.12.0 (2026-10-27)
 
 Generator v0 (T1.3).

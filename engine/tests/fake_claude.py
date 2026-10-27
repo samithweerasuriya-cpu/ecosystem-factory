@@ -6,6 +6,7 @@ FAKE_CLAUDE_MODE: ok (default) | error | nojson | exit3 | sleep | subagent.
 FAKE_CLAUDE_RESPONSES: a JSON file of [[substring, result text or list of texts], ...]; the first
 substring found in the prompt picks the answer (default "{}"); a list answers the first, second ...
 call with that substring in turn (the last entry repeats).
+FAKE_CLAUDE_STOP_REASON: the stop_reason the JSON reports (default end_turn), e.g. max_tokens.
 """
 import json
 import os
@@ -46,6 +47,7 @@ if rf:
 model = argv[argv.index("--model") + 1] if "--model" in argv else "unknown"
 print(json.dumps({"type": "result", "subtype": "error_during_execution" if mode == "error" else "success",
                   "is_error": mode == "error", "result": text, "num_turns": 1, "duration_ms": 4953,
+                  "stop_reason": os.environ.get("FAKE_CLAUDE_STOP_REASON", "end_turn"),
                   "total_cost_usd": 0.0114,
                   "usage": {"input_tokens": 2, "output_tokens": 325, "cache_read_input_tokens": 0,
                             "cache_creation_input_tokens": 617},

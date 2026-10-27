@@ -14,6 +14,7 @@ What building the factory taught, kept so later tasks and generated ecosystems d
 | 8 | **Line endings are content when files are fingerprinted.** Edits flipped CRLF and LF in several files; the diff looked like a full rewrite and some changes needed a second full test run. | Phase 0, T0.11 to T0.19 | `git diff --stat` before the full suite; whole-file rewrites are fixed first, so the suite runs once, on final bytes. |
 | 9 | **A guard must pass its own repository.** The new publish hook blocked the commit that added it, because its tests contained the fake secrets they test for. | Phase 0, T0.19 | Test fixtures for guards are assembled at run time; new files are publish-checked before the suite. |
 | 10 | **An acknowledgement must be taken from the raw signal, not its annotation.** A re-acknowledged warning never stuck, because the fingerprint was taken after the doctor had added "details changed" to it. | Phase 0, T0.20 | Fingerprints use the check's own message; a test re-acknowledges after a lapse. |
+| 11 | **Write commands for the shell the approver actually has.** A command joined with `&&` failed in the approver's Windows PowerShell 5.1, which has no `&&`; and a full test run sat for 30 minutes on a test waiting for keyboard input in a real terminal. | Phase 1, T1.3 | Commands for the approver come one per block, never chained. The test runner closes keyboard input itself (T1.3 follow-up), so nothing needs to be piped in. |
 
 ## Hook tuning list
 

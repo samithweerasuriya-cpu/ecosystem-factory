@@ -9,7 +9,7 @@ Generation (T1.3, blueprint v0):
 - copied byte for byte: engine/ (except EXCLUDED), the evaluation runner, the engine's own schemas, rulebooks
   and config, .gitattributes; fixed templates from templates/ecosystem/ (settings.json, commands, .gitignore);
   the blueprint's evaluation suites and output schemas, the charter and the blueprint;
-- rendered from the blueprint: config (route, gate, caps, reviewers, gated actions, protected paths, scripts),
+- rendered from the blueprint: config (route, gate, caps, reviewers, gated actions, protected paths, scripts, outputs),
   the rulebook, CLAUDE.md and every agent file. The script writes each agent's front matter itself: only the
   keys in AGENT_KEYS, only the blueprint's tools, never Agent. The default agent rules
   (rules/default-agent-rules.md) go word for word into CLAUDE.md and into every agent file;
@@ -225,6 +225,11 @@ def build(bp_path):
         "read_blocks": {"subagents": ["evals/**/keys/**", "evals/**/*-key.*"],
                         "operate_main": ["evals/**/keys/**", "evals/**/*-key.*"],
                         "operate_main_read_only": []}}))
+    put("config/outputs.json", "rendered", dump({
+        "_doc": "The schema each agent's headless answer must match (engine/agent_call.py call_job); findings: "
+                "the answer is a reviewer's findings, also held to the severity lock. Rendered from the blueprint.",
+        "agents": {a["name"]: {"schema": a["output_schema"], "findings": a["role"] == "reviewer"}
+                   for a in bp["agents"]}}))
     put("config/scripts.json", "rendered", dump({
         "_doc": "Allow-list of commands that script stages may run (engine/state.py run). The blueprint has no "
                 "script stages.", "scripts": {}}))

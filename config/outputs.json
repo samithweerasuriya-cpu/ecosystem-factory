@@ -1,0 +1,4 @@
+{
+  "_doc": "Read by engine/agent_call.py call_job (T1.3 follow-up): the schema each agent's headless answer must match; findings: true means the answer is a reviewer's findings, also held to the severity lock in config/reviewers.json. An agent without an entry is never called headless. The factory has no headless job agents yet; a generated ecosystem gets this file rendered from its blueprint.",
+  "agents": {}
+}

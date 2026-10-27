@@ -20,17 +20,32 @@ a job is active: the hook refuses them, T0.12). One call = one `claude -p` run:
 - The result: status "done" (JSON parsed, not an error), "failed" (the agent reported an error) or
   "infra_error" (no JSON, non-zero exit, timeout, could not start); the answer text; usage in the
   engine's format (lc.usage_from_tokens), taken from the JSON; the model(s) the JSON names.
-Job calls (call_job): handoff built by script, call recorded, run, call closed with the JSON's usage
-(usage_source "headless"); an infra_error closes the call as failed.
+Job calls (call_job): handoff built by script (ending "Reply with only the JSON object"), call recorded,
+run, call closed with the JSON's usage (usage_source "headless"); an infra_error closes the call as failed and
+the script records the infra_error event itself.
+The answer (T1.3 follow-up) is checked before any state event: one bare JSON object (first character {,
+last }), not empty or cut off, valid against the agent's schema in config/outputs.json (reviewers: also the
+severity lock and the verdict rule), with the job ID (reviewers: also reviewer, artifact path and version)
+copied exactly from the handoff. A valid answer is saved by the script as a new file in the stage's output
+folder (drafts: the next version after the one in state.json; never overwritten) and its sha256 goes on the
+call record; labcore.verify_outputs re-checks it before every later use. An invalid answer is kept in
+<job>/rejected/<call>.txt (audit only, never a handoff input), recorded as a repair (invalid_output) and
+asked again once, with only the sanitized problem list (path, rule, value cut to 40 characters, control
+characters removed). Invalid again: infra_error. A STATUS: needs_input answer is an infra_error at once
+(not supported headless until T1.5). The main session never repairs an answer.
 """
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 import labcore as lc
+import schemacheck
+import validate_findings as vf
 
 DEFAULT_TIMEOUT = 600
 CHARS_PER_TOKEN = 4
@@ -193,7 +208,7 @@ def call(agent, prompt, workspace=None, timeout=DEFAULT_TIMEOUT, cmd=None):
     stats = d.get("subagent_stats") or {}
     out = {**base, "status": status, "error": d.get("subtype") if status == "failed" else None,
            "text": d.get("result"), "usage": usage_of(d), "models": models_of(d), "turns": d.get("num_turns"),
-           "subagents_spawned": stats.get("spawned", 0)}
+           "stop_reason": d.get("stop_reason"), "subagents_spawned": stats.get("spawned", 0)}
     if out["subagents_spawned"]:
         out.update(status="failed", error=f"the agent started {out['subagents_spawned']} subagent(s)")
     return out
@@ -225,20 +240,189 @@ def inline_inputs(h):
     return "\n\n".join(parts)
 
 
+NEEDS_INPUT = re.compile(r"(?mi)^\s*STATUS:\s*needs_input\b")
+NEEDS_INPUT_NOTE = "needs_input not supported headless until T1.5"
+# control and invisible formatting characters (bidi overrides, zero-width) never reach a re-ask prompt
+CONTROL = re.compile("[\x00-\x1f\x7f-\x9f​-‏ -‮⁠-⁯﻿]")
+VALUE_CHARS = 40
+PATH_CHARS = 80
+TRUNCATED = ("max_tokens",)
+
+
+def output_spec(agent_name):
+    """The agent's entry in config/outputs.json with its schema loaded (and, for reviewers, the rulebook path).
+    Refused before any call when anything is missing."""
+    spec = lc.outputs().get(agent_name)
+    if not spec or not spec.get("schema"):
+        raise lc.LabError(f"no output schema for {agent_name!r} in config/outputs.json: it is never called headless")
+    p = lc.ROOT / spec["schema"]
+    try:
+        schema = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise lc.LabError(f"output schema {spec['schema']} for {agent_name} is unreadable ({e})") from None
+    out = {"schema_path": spec["schema"], "schema": schema, "findings": bool(spec.get("findings")), "rulebook": None}
+    if out["findings"]:
+        rb = vf.reviewer_rulebook(agent_name, lc.ROOT)
+        if rb is None or not rb.is_file():
+            raise lc.LabError(f"reviewer {agent_name} has no readable rulebook in config/reviewers.json")
+        out["rulebook"] = rb
+    return out
+
+
+def clean(value, limit):
+    """A value or path as plain text: control characters removed, cut to `limit` characters."""
+    s = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    s = CONTROL.sub("", s)
+    return s if len(s) <= limit else s[:limit] + " [cut]"
+
+
+def check_answer(text, stop_reason, spec, job_id, st, agent_name):
+    """(parsed object or None, problems). A problem is (path, rule, value); the value is the agent's own
+    data and is only ever shown cleaned (reask_text)."""
+    if not isinstance(text, str) or not text.strip():
+        return None, [("$", "empty or unreadable answer", None)]
+    if stop_reason in TRUNCATED:
+        return None, [("$", "answer cut off (stop reason " + str(stop_reason) + ")", None)]
+    t = text.strip()
+    if not (t.startswith("{") and t.endswith("}")):
+        return None, [("$", "not one bare JSON object: the first character must be { and the last }", None)]
+    try:
+        doc = json.loads(t)
+    except ValueError:
+        return None, [("$", "not valid JSON (unreadable or cut off)", None)]
+    if not isinstance(doc, dict):
+        return None, [("$", "not a JSON object", None)]
+    problems = [(p, rule, v) for p, rule, v, _ in schemacheck.details(doc, spec["schema"])]
+    expect = {"job_id": job_id}
+    if spec["findings"]:
+        expect.update(reviewer=agent_name, artifact_path=st["artifact_path"],
+                      artifact_version=lc._version(st["artifact_path"]) if st["artifact_path"] else None)
+    for k, want in expect.items():
+        if k in doc and doc[k] != want:
+            problems.append((f"$.{k}", f"must be copied exactly from the handoff: {want}", doc[k]))
+    if spec["findings"]:
+        findings = doc.get("findings") if isinstance(doc.get("findings"), list) else []
+        rulebook = vf.rulebook_severities(spec["rulebook"])
+        overrides = vf.feedback_overrides(job_id, lc.ROOT)
+        serious = False
+        ids = []
+        for i, f in enumerate(findings):
+            if not isinstance(f, dict):
+                continue
+            want, why = vf.required_severity(str(f.get("rule", "")).strip().upper(), rulebook, overrides,
+                                             lc.rel(spec["rulebook"]))
+            if want and f.get("severity") != want:
+                problems.append((f"$.findings[{i}].severity", f"severity lock: must be {want} per {why}",
+                                 f.get("severity")))
+            serious = serious or (want or f.get("severity")) in ("blocker", "major")
+            ids.append(f.get("id"))
+        if serious and doc.get("verdict") != "fail":
+            problems.append(("$.verdict", "must be fail: there is a blocker or major finding", doc.get("verdict")))
+        if any(i is not None and ids.count(i) > 1 for i in ids):
+            problems.append(("$.findings", "finding ids must be unique", None))
+    return doc, problems
+
+
+def reask_text(problems):
+    """The problem list for the second prompt: path, rule and a cleaned value only, never a message text
+    (schema messages quote the agent's value in full)."""
+    lines = []
+    for path, rule, value in problems:
+        line = f"  - {clean(path, PATH_CHARS)}: {clean(rule, 200)}"
+        if value is not None:
+            line += f" (value: {json.dumps(clean(value, VALUE_CHARS), ensure_ascii=False)})"
+        lines.append(line)
+    return ("\nYOUR PREVIOUS ANSWER WAS REJECTED BY THE SCRIPT. Problems (path: rule (value)):\n" + "\n".join(lines)
+            + "\nAnswer again: only the JSON object, every problem fixed.\n")
+
+
+def output_target(job_id, h, st, agent_name, item, call_id):
+    """Where a valid answer is saved: a new file in the stage's output folder. Drafts take the next version
+    after the artifact in state.json (default rule 2: never from listing the folder)."""
+    out = h["output_dir"]
+    if out.endswith("/drafts/"):
+        n = 0
+        if st["artifact_path"]:
+            m = re.fullmatch(r"v(\d+)", lc._version(st["artifact_path"]))
+            if not m:
+                raise lc.LabError(f"no version number in {st['artifact_path']}: cannot name the next draft")
+            n = int(m.group(1))
+        name = f"v{n + 1}.json"
+    elif h["kind"] == "review":
+        name = f"{agent_name}-{lc._version(st['artifact_path'])}-{call_id}.json"
+    else:
+        name = f"{agent_name}{'-' + item if item else ''}-{call_id}.json"
+    target = out + name
+    if (lc.ROOT / target).exists():
+        raise lc.LabError(f"{target} already exists: an answer is never saved over an existing file")
+    return target
+
+
+def save_rejected(job_id, call_id, text):
+    """The invalid answer as received, for audit only (no handoff lists rejected/)."""
+    p = lc.job_dir(job_id) / "rejected" / f"{call_id}.txt"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, "x", encoding="utf-8", newline="") as fh:
+        fh.write(text if isinstance(text, str) else "(no answer text)")
+    return lc.rel(p)
+
+
 def call_job(job_id, agent_file, item=None, workspace=None, timeout=DEFAULT_TIMEOUT, cmd=None):
-    """One job step: handoff, record the call, run headless, close the call with the JSON's usage."""
+    """One job step: handoff, record the call, run headless, check and save the answer, close the call
+    with the JSON's usage and the answer's sha256. One re-ask for an invalid answer (see module doc)."""
     agent = parse_agent(agent_file)
-    h, text = lc.handoff(job_id, item)
-    if h["stage"] != agent["name"]:
-        raise lc.LabError(f"{job_id} is waiting on {h['stage']!r}, not {agent['name']!r}")
-    prompt = text if agent["tools"] else text + "\nINPUT FILE CONTENTS (you have no tools; everything is here):\n\n" + inline_inputs(h)
-    st = lc.record_call(job_id, agent["name"], item)
-    cid = st["calls"][-1]["id"]
-    res = call(agent, prompt, workspace=workspace, timeout=timeout, cmd=cmd)
-    closed = "done" if res["status"] == "done" else "failed"
-    _, over = lc.record_result(job_id, cid, closed, usage=res["usage"], source="headless" if res["usage"] else "manual",
-                               note=res.get("error"))
-    return {**res, "call": cid, "handoff": h, "ceiling": over}
+    stage = lc.load_state(job_id)["stage"]
+    if stage != agent["name"]:
+        raise lc.LabError(f"{job_id} is waiting on {stage!r}, not {agent['name']!r}")
+    spec = output_spec(agent["name"])
+    h, text = lc.handoff(job_id, item, headless=True)
+    base = text if agent["tools"] else text + "\nINPUT FILE CONTENTS (you have no tools; everything is here):\n\n" + inline_inputs(h)
+    prompt = base
+    for attempt in (1, 2):
+        st = lc.load_state(job_id)
+        target = output_target(job_id, h, st, agent["name"], item, f"C{len(st['calls']) + 1:03d}")
+        st = lc.record_call(job_id, agent["name"], item)
+        cid = st["calls"][-1]["id"]
+        res = call(agent, prompt, workspace=workspace, timeout=timeout, cmd=cmd)
+        source = "headless" if res["usage"] else "manual"
+        result = {**res, "call": cid, "handoff": h, "ceiling": None, "output": None}
+        if res["status"] != "done":
+            _, result["ceiling"] = lc.record_result(job_id, cid, "failed", usage=res["usage"], source=source,
+                                                    note=res.get("error"))
+            if not result["ceiling"]:
+                lc.apply(job_id, "infra_error", note=res.get("error"), actor="script")
+            return result
+        if isinstance(res["text"], str) and NEEDS_INPUT.search(res["text"]):
+            _, result["ceiling"] = lc.record_result(job_id, cid, "failed", usage=res["usage"], source=source,
+                                                    note=NEEDS_INPUT_NOTE, rejected=save_rejected(job_id, cid, res["text"]))
+            if not result["ceiling"]:
+                lc.apply(job_id, "infra_error", note=NEEDS_INPUT_NOTE, actor="script")
+            return {**result, "status": "infra_error", "error": NEEDS_INPUT_NOTE}
+        _, problems = check_answer(res["text"], res.get("stop_reason"), spec, job_id, st, agent["name"])
+        if not problems:
+            data = res["text"].strip().encode("utf-8")
+            p = lc.ROOT / target
+            p.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                with open(p, "xb") as fh:
+                    fh.write(data)
+            except FileExistsError:
+                raise lc.LabError(f"{target} appeared during the call: not saved over it") from None
+            output = {"path": target, "sha256": hashlib.sha256(data).hexdigest()}
+            _, result["ceiling"] = lc.record_result(job_id, cid, "done", usage=res["usage"], source=source,
+                                                    output=output)
+            return {**result, "output": output}
+        note = f"invalid output ({len(problems)} problem(s)), attempt {attempt}"
+        _, result["ceiling"] = lc.record_result(job_id, cid, "failed", usage=res["usage"], source=source, note=note,
+                                                rejected=save_rejected(job_id, cid, res["text"]))
+        result.update(status="invalid_output", error=note, problems=problems)
+        if result["ceiling"]:
+            return result
+        if attempt == 2:
+            lc.apply(job_id, "infra_error", note="invalid output after one re-ask", actor="script")
+            return {**result, "status": "infra_error", "error": "invalid output after one re-ask"}
+        lc.apply(job_id, "repair", reason="invalid_output", note=note, actor="script")  # CapExceeded at the repairs cap
+        prompt = base + reask_text(problems)
 
 
 def main(argv=None):
@@ -259,6 +443,10 @@ def main(argv=None):
         u = r["usage"] or {}
         print(f"{r['call']}: {r['status']}  tokens={u.get('total')}  model={', '.join(r['models']) or '?'}"
               + (f"  ({r['error']})" if r.get("error") else ""))
+        if r.get("output"):
+            print(f"saved {r['output']['path']}  sha256 {r['output']['sha256']}")
+        for path, rule, value in r.get("problems") or []:
+            print(f"  - {clean(path, PATH_CHARS)}: {clean(rule, 200)}")
         return 0 if r["status"] == "done" else 1
     except lc.LabError as e:
         print(f"ERROR: {e}")

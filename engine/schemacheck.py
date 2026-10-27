@@ -30,59 +30,65 @@ def resolve(schema, root):
 
 def check(value, schema, path="$", root=None):
     """Return a list of 'path: message' errors for value against schema."""
+    return [d[3] for d in details(value, schema, path, root)]
+
+
+def details(value, schema, path="$", root=None):
+    """The same errors as (path, rule, value, message): the keyword that failed and the value it failed on,
+    so a caller can report them without passing the message text (which quotes the value) through."""
     root = schema if root is None else root
     schema = resolve(schema, root)
     errs = []
     if "type" in schema:
         types = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
         if not any(type_ok(value, t) for t in types):
-            return [f"{path}: expected {'/'.join(types)}, got {type(value).__name__}"]
+            return [(path, "type", type(value).__name__, f"{path}: expected {'/'.join(types)}, got {type(value).__name__}")]
     if "enum" in schema and value not in schema["enum"]:
-        errs.append(f"{path}: {value!r} not one of {schema['enum']}")
+        errs.append((path, "enum", value, f"{path}: {value!r} not one of {schema['enum']}"))
     if "const" in schema and value != schema["const"]:
-        errs.append(f"{path}: must be {schema['const']!r}, got {value!r}")
+        errs.append((path, "const", value, f"{path}: must be {schema['const']!r}, got {value!r}"))
     if isinstance(value, str):
         if "pattern" in schema and not re.search(schema["pattern"], value):
-            errs.append(f"{path}: {value!r} does not match {schema['pattern']!r}")
+            errs.append((path, "pattern", value, f"{path}: {value!r} does not match {schema['pattern']!r}"))
         if len(value) < schema.get("minLength", 0):
-            errs.append(f"{path}: shorter than {schema['minLength']}")
+            errs.append((path, "minLength", None, f"{path}: shorter than {schema['minLength']}"))
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         if "minimum" in schema and value < schema["minimum"]:
-            errs.append(f"{path}: {value} is below {schema['minimum']}")
+            errs.append((path, "minimum", value, f"{path}: {value} is below {schema['minimum']}"))
         if "maximum" in schema and value > schema["maximum"]:
-            errs.append(f"{path}: {value} is above {schema['maximum']}")
+            errs.append((path, "maximum", value, f"{path}: {value} is above {schema['maximum']}"))
     if isinstance(value, dict):
         for key in schema.get("required", []):
             if key not in value:
-                errs.append(f"{path}: missing required field '{key}'")
+                errs.append((path, "required", key, f"{path}: missing required field '{key}'"))
         props = schema.get("properties", {})
         for key, sub in props.items():
             if key in value:
-                errs += check(value[key], sub, f"{path}.{key}", root)
+                errs += details(value[key], sub, f"{path}.{key}", root)
         extra = schema.get("additionalProperties", True)
         for key in value:
             if key in props:
                 continue
             if extra is False:
-                errs.append(f"{path}: unexpected field '{key}'")
+                errs.append((path, "additionalProperties", key, f"{path}: unexpected field '{key}'"))
             elif isinstance(extra, dict):
-                errs += check(value[key], extra, f"{path}.{key}", root)
+                errs += details(value[key], extra, f"{path}.{key}", root)
     if isinstance(value, list):
         if "items" in schema:
             for i, item in enumerate(value):
-                errs += check(item, schema["items"], f"{path}[{i}]", root)
+                errs += details(item, schema["items"], f"{path}[{i}]", root)
         if len(value) < schema.get("minItems", 0):
-            errs.append(f"{path}: needs at least {schema['minItems']} item(s)")
+            errs.append((path, "minItems", None, f"{path}: needs at least {schema['minItems']} item(s)"))
         if "contains" in schema and not any(not check(item, schema["contains"], path, root) for item in value):
-            errs.append(f"{path}: no item matches the required 'contains' schema")
+            errs.append((path, "contains", None, f"{path}: no item matches the required 'contains' schema"))
     for sub in schema.get("allOf", []):
-        errs += check(value, sub, path, root)
+        errs += details(value, sub, path, root)
     if "anyOf" in schema and all(check(value, sub, path, root) for sub in schema["anyOf"]):
-        errs.append(f"{path}: matches none of the allowed forms")
+        errs.append((path, "anyOf", None, f"{path}: matches none of the allowed forms"))
     if "oneOf" in schema:
         n = sum(1 for sub in schema["oneOf"] if not check(value, sub, path, root))
         if n != 1:
-            errs.append(f"{path}: must match exactly one allowed form (matched {n})")
+            errs.append((path, "oneOf", None, f"{path}: must match exactly one allowed form (matched {n})"))
     if "if" in schema and not check(value, schema["if"], path, root):
-        errs += check(value, schema.get("then", {}), path, root)
+        errs += details(value, schema.get("then", {}), path, root)
     return errs

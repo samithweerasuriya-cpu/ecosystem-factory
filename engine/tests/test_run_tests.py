@@ -1,5 +1,6 @@
 """Self-test of the logs guard in engine/run_tests.py, against a temporary fake repo."""
 import io
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -65,6 +66,27 @@ class GuardSelfTests(unittest.TestCase):
         _, changed, _ = self.run_guard(
             lambda: (self.repo / "jobs/20260101-demo-a/state.json").write_text("{}", encoding="utf-8"))
         self.assertEqual(changed, ["jobs/20260101-demo-a/state.json"])
+
+
+class KeyboardInputTests(unittest.TestCase):
+    """T1.3 follow-up: the runner closes keyboard input itself, for itself and every process it starts."""
+
+    def test_nothing_waits_on_an_open_keyboard(self):
+        child = ("import subprocess, sys; sys.path.insert(0, sys.argv[1]); import run_tests; run_tests.close_stdin()\n"
+                 "try:\n    input()\nexcept EOFError:\n    print('EOF')\n"
+                 "print(subprocess.run([sys.executable, '-c', 'import sys; print(repr(sys.stdin.read()))'],"
+                 " capture_output=True, text=True).stdout.strip())")
+        # stdin is a pipe this test never writes to or closes: without close_stdin both reads would wait forever
+        p = subprocess.Popen([sys.executable, "-c", child, str(REPO / "engine")], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, text=True)
+        try:
+            p.wait(timeout=60)
+        finally:
+            p.kill()
+            p.stdin.close()
+        self.assertEqual(p.stdout.read().split(), ["EOF", "''"])
+        p.stdout.close()
+
 
 
 if __name__ == "__main__":

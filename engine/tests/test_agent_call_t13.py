@@ -26,9 +26,10 @@ class AgentCallBase(LabTestBase):
         super().setUp()
         self.log = self.tmp / "fake-claude.jsonl"
         self._fake_env = {k: os.environ.get(k) for k in ("FAKE_CLAUDE_LOG", "FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES",
-                                                          "FAKE_CLAUDE_VERSION", "ANTHROPIC_API_KEY")}
+                                                          "FAKE_CLAUDE_VERSION", "FAKE_CLAUDE_STOP_REASON",
+                                                          "ANTHROPIC_API_KEY")}
         os.environ["FAKE_CLAUDE_LOG"] = str(self.log)
-        for k in ("FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES", "FAKE_CLAUDE_VERSION"):
+        for k in ("FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES", "FAKE_CLAUDE_VERSION", "FAKE_CLAUDE_STOP_REASON"):
             os.environ.pop(k, None)
         models = json.loads((self.tmp / "config/models.json").read_text(encoding="utf-8"))
         models["claude_command"] = [sys.executable, str(FAKE)]
@@ -147,6 +148,11 @@ class CallTests(AgentCallBase):
 class JobCallTests(AgentCallBase):
     auto_result = False
 
+    def setUp(self):
+        super().setUp()
+        self.dump("config/outputs.json", {"agents": {"planner": {"schema": "schemas/any-object.schema.json"}}})
+        self.dump("schemas/any-object.schema.json", {"type": "object"})
+
     def survey_at_planner(self):
         j = self.lc.new_job("survey", "headless", "Plan a survey")["job_id"]
         self.write(f"jobs/{j}/brief.md", "BRIEF-TEXT-4471")
@@ -174,6 +180,7 @@ class JobCallTests(AgentCallBase):
         self.assertEqual(r["status"], "infra_error")
         call = self.lc.load_state(j)["calls"][0]
         self.assertEqual((call["status"], call["usage_source"]), ("failed", "manual"))
+        self.assertEqual(self.lc.load_state(j)["counters"]["infra_errors"], 1)  # recorded by the script (T1.3 follow-up)
 
     def test_the_wrong_agent_for_the_step_is_refused(self):
         j = self.survey_at_planner()
