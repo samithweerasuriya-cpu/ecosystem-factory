@@ -1,0 +1,43 @@
+{
+  "expected": [
+    {
+      "id": "X1",
+      "action": "Order six copies of the December book from the bookshop",
+      "owner": "Yara",
+      "due": "2025-11-19",
+      "sources": [
+        "Yara will order six copies from the bookshop by Wednesday."
+      ]
+    },
+    {
+      "id": "X2",
+      "action": "Ask the cafe about Tuesday evenings",
+      "owner": "Ines",
+      "due": "not stated",
+      "sources": [
+        "Ines will ask the cafe about Tuesday evenings."
+      ]
+    },
+    {
+      "id": "X3",
+      "action": "Send the newcomers the reading list",
+      "owner": "Paul",
+      "due": "2025-11-21",
+      "sources": [
+        "Paul will send them the reading list by 21 November."
+      ]
+    }
+  ],
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "w-n5",
+    "notes": "N5",
+    "words": 158,
+    "real_length": false,
+    "injection": false
+  }
+}

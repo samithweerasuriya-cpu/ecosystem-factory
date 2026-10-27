@@ -1,0 +1,9 @@
+{
+  "id": "E019",
+  "kind": "clean",
+  "inputs": [
+    "notes.md",
+    "action-items.json"
+  ],
+  "artifact": "action-items.json"
+}

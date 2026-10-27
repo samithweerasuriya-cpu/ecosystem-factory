@@ -8,6 +8,12 @@
     "false_fail_rate_max": 0.2,
     "verdict_match_min": 0.85
   },
+  "agent": {
+    "expected_recall_min": 0.9,
+    "field_accuracy_min": 0.9,
+    "invented_cases_max": 0,
+    "duplicate_cases_max": 0
+  },
   "min_counts": {
     "reviewer": {"cases": 20, "clean": 5},
     "agent": {"cases": 5}

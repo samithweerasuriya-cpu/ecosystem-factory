@@ -1,0 +1,6 @@
+{
+  "_doc": "action-critic suite (T1.2), written by docs/thin/evals/build_cases.py. Exception to suite design rule 8: no context-dependent severity cases, because all three rules are major by the problem owner's answer and the severity lock fixes severity; they come with the first rulebook that has mixed severities.",
+  "agent": ".claude/agents/action-critic.md",
+  "rulebook": "rules/action-rules.md",
+  "kind": "reviewer"
+}

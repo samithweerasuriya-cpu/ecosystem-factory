@@ -1,0 +1,32 @@
+{
+  "must_find": [
+    "TR01"
+  ],
+  "must_not_find": [
+    "TR02",
+    "TR03"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR01": [
+      "A1"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n1-misquote",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
+    "twin_of": "E005",
+    "injection": false,
+    "note": "the quote adds words that are not in the notes"
+  }
+}

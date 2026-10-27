@@ -7,10 +7,11 @@ Evaluations prove that an agent does its job before operate mode is locked: revi
 ```
 evals/
   agents/<agent>.md               evaluation-only agents (not used by any route), e.g. the calibration critic
-  <suite>/suite.json              {"agent": <agent file>, "rulebook": <rulebook>, "kind": "reviewer"}
-  <suite>/cases/<id>/case.json    {"id", "kind": "planted" | "clean", "inputs": [...], "artifact": ...}
-  <suite>/cases/<id>/<inputs>     what the agent reviews (synthetic)
-  <suite>/keys/<id>.json          the answer: must_find, must_not_find, verdict, leak_terms (never shown to agents)
+  <suite>/suite.json              {"agent": <agent file>, "rulebook": <rulebook>, "kind": "reviewer" | "agent", ...}
+  <suite>/cases/<id>/case.json    {"id", "kind": "planted" | "clean" | "expected", "inputs": [...], "artifact": ...}
+  <suite>/cases/<id>/<inputs>     what the agent reviews or works from (synthetic)
+  <suite>/keys/<id>.json          the answer (never shown to agents): must_find, must_not_find, verdict,
+                                  locations, leak_terms, design; or, for list agents, expected and leak_terms
   thresholds.json                 thresholds and minimum case counts (machine-readable)
   reports/<time>-<suite>-<mode>.json   one report per run (tracked; numbers and IDs only)
   run_evals.py                    the runner
@@ -47,6 +48,19 @@ Each case runs 3 times; a case counts a rule as found, or its verdict as matched
 | Recall on planted majors | ≥ 80% |
 | False-fail rate on clean cases | ≤ 20% |
 | Verdict matches the key | ≥ 85% |
+| Invalid-output rate | reported, no threshold |
+| False findings (wrong place, or a rule the key does not name) | reported, no threshold |
+
+A key with `locations` (`{rule: [words]}`) binds scoring to the defect: a finding counts for its rule only when its location or issue names one of the words (a row ID, or words from the notes for something missed).
+
+**Agents that produce lists** (kind `agent`, T1.2) are scored against the key's expected items, not just the schema. `suite.json` adds `output_schema`, `items_field`, `quote_field` and `check_fields`; each key lists `expected` items with their accepted source sentences. A listed item matches an expected item when its quote appears in the inputs and is part of, or contains, an accepted sentence; an item matching nothing is invented, a second match is a duplicate.
+
+| Metric (list agents) | Threshold |
+|---|---|
+| Expected-item recall | ≥ 90% |
+| Field accuracy on matched items (`check_fields` exact) | ≥ 90% |
+| Cases with invented items (majority of runs) | 0 |
+| Cases with duplicate items (majority of runs) | 0 |
 | Invalid-output rate | reported, no threshold |
 
 **Minimum case counts** apply only to agents used by a route (`config/routes.json`): a reviewer needs at least 20 cases, 5 of them clean; another agent at least 5. The calibration critic is used by no route: its 7 cases prove the mechanics (runner, leak check, scoring, lock rule), not a factory agent.

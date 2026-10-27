@@ -1,0 +1,9 @@
+{
+  "id": "E020",
+  "kind": "planted",
+  "inputs": [
+    "notes.md",
+    "action-items.json"
+  ],
+  "artifact": "action-items.json"
+}

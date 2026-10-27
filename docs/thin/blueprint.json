@@ -1,0 +1,63 @@
+{
+  "schema_version": "0",
+  "slug": "thin-v0",
+  "charter_ref": "docs/thin/charter.json",
+  "purpose": "Turn one meeting's synthetic notes into a reviewed action-item list: a writer drafts it, a critic checks it against the rulebook, the approver decides at one gate.",
+  "agents": [
+    {
+      "name": "action-writer",
+      "role": "author",
+      "purpose": "Draft the action-item list from one meeting's notes.",
+      "instructions": [
+        "Read the meeting notes and list every commitment made in the meeting exactly once: something a person or the group agreed will be done.",
+        "Ideas, suggestions nobody took up, declined offers, open questions, decisions with nothing to do, items already done and repeats of a commitment already listed are not actions.",
+        "action starts with a verb. owner is the attendee who committed; if nobody did, 'unassigned'.",
+        "due is an ISO date (YYYY-MM-DD) stated in the notes; resolve a relative date ('by Friday') against the meeting date. If no date is stated, 'not stated'. Never guess either field.",
+        "source is the one sentence the action came from, copied exactly, at most 25 words.",
+        "When revising, fix every finding you are given and change nothing else."
+      ],
+      "tools": [],
+      "max_turns": 3,
+      "output_schema": "schemas/action-items.schema.json"
+    },
+    {
+      "name": "action-critic",
+      "role": "reviewer",
+      "purpose": "Check the action-item list against the notes and the rulebook.",
+      "instructions": [
+        "You receive the meeting notes, the action-item list and the rulebook. Check every row and every commitment in the notes against every rule.",
+        "A finding's location is the row ID (A1, A2, ...); for a missed commitment, quote the words from the notes it comes from.",
+        "Apply each rule's severity exactly as the rulebook gives it. The verdict is fail when there is any blocker or major finding."
+      ],
+      "tools": [],
+      "max_turns": 3,
+      "output_schema": "schemas/findings.schema.json"
+    }
+  ],
+  "route": {"name": "actions", "author": "action-writer", "reviewer": "action-critic", "gate": "G1"},
+  "gates": [
+    {"id": "G1", "decision": "Approve or reject the reviewed action-item list before it is final.", "mode": "human", "approver_role": "approver"}
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 2,
+    "gate_rejections": 2,
+    "agent_calls_per_job": 6,
+    "usage_ceiling": {"tokens": 300000, "agent_minutes": 30}
+  },
+  "rulebook": {
+    "name": "action-rules",
+    "rules": [
+      {"id": "TR01", "rule": "Every action is backed by a quoted sentence from the notes; nothing invented.", "severity": "major", "charter_rule": "Q01"},
+      {"id": "TR02", "rule": "Owner and due date come only from the notes; if missing, say 'unassigned' or 'not stated', never guess.", "severity": "major", "charter_rule": "Q02"},
+      {"id": "TR03", "rule": "No duplicates and nothing missed: every commitment in the notes appears exactly once.", "severity": "major", "charter_rule": "Q03"}
+    ]
+  },
+  "final_output": {"from": "action-writer", "rendered_as": "markdown-table", "columns": ["id", "action", "owner", "due", "source"]},
+  "evals": [
+    {"suite": "action-critic", "agent": "action-critic", "kind": "reviewer", "path": "docs/thin/evals/action-critic"},
+    {"suite": "action-writer", "agent": "action-writer", "kind": "agent", "path": "docs/thin/evals/action-writer"}
+  ],
+  "external_writes": false,
+  "connectors": []
+}

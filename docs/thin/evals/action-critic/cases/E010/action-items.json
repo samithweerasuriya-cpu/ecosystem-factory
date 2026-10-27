@@ -1,0 +1,27 @@
+{
+  "job_id": "draft-n3",
+  "items": [
+    {
+      "id": "A1",
+      "action": "Update the events page",
+      "owner": "Dana",
+      "due": "2025-11-10",
+      "source": "Dana will update the events page by 10 November."
+    },
+    {
+      "id": "A2",
+      "action": "Ask the hosting provider to change the contact form's destination address",
+      "owner": "Elif",
+      "due": "not stated",
+      "source": "Elif will ask the hosting provider to change the form's destination address."
+    },
+    {
+      "id": "A3",
+      "action": "Draft the December newsletter",
+      "owner": "Dana",
+      "due": "2025-12-01",
+      "source": "Dana will draft the December newsletter by 1 December."
+    }
+  ],
+  "open_questions": []
+}

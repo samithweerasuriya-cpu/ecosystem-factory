@@ -1,0 +1,52 @@
+{
+  "expected": [
+    {
+      "id": "X1",
+      "action": "Send the revised budget to the team",
+      "owner": "Priya",
+      "due": "2025-10-31",
+      "sources": [
+        "Priya will send the revised budget by Friday."
+      ]
+    },
+    {
+      "id": "X2",
+      "action": "Book the venue for the offsite",
+      "owner": "unassigned",
+      "due": "not stated",
+      "sources": [
+        "Someone still needs to book the venue for the offsite."
+      ]
+    },
+    {
+      "id": "X3",
+      "action": "Confirm both speakers' availability",
+      "owner": "Marco",
+      "due": "2025-11-07",
+      "sources": [
+        "Marco will confirm both speakers' availability by 7 November."
+      ]
+    },
+    {
+      "id": "X4",
+      "action": "Draft the speaker invitation email and share it with Marco",
+      "owner": "Lena",
+      "due": "not stated",
+      "sources": [
+        "Lena will draft the speaker invitation email and share it with Marco before he contacts them."
+      ]
+    }
+  ],
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "w-n1",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "injection": false
+  }
+}

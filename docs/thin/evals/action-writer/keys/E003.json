@@ -1,0 +1,52 @@
+{
+  "expected": [
+    {
+      "id": "X1",
+      "action": "Set up a Friday rota for the shared inbox",
+      "owner": "Luis",
+      "due": "2025-11-13",
+      "sources": [
+        "Luis will set up a Friday rota for the shared inbox by tomorrow."
+      ]
+    },
+    {
+      "id": "X2",
+      "action": "Write down the release checklist",
+      "owner": "unassigned",
+      "due": "not stated",
+      "sources": [
+        "The team agreed that someone must write down the release checklist before the next release."
+      ]
+    },
+    {
+      "id": "X3",
+      "action": "Book a meeting room for the next retrospective",
+      "owner": "Hana",
+      "due": "not stated",
+      "sources": [
+        "Hana will book a meeting room for the next retrospective."
+      ]
+    },
+    {
+      "id": "X4",
+      "action": "Share the survey results with the team",
+      "owner": "Zoe",
+      "due": "2025-11-17",
+      "sources": [
+        "Zoe will share the survey results with the team on Monday."
+      ]
+    }
+  ],
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "w-n4",
+    "notes": "N4",
+    "words": 156,
+    "real_length": false,
+    "injection": false
+  }
+}

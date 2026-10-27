@@ -1,0 +1,71 @@
+{
+  "expected": [
+    {
+      "id": "X1",
+      "action": "Order the seed trays",
+      "owner": "Ana",
+      "due": "2025-11-05",
+      "sources": [
+        "Ana will order the seed trays by 5 November."
+      ]
+    },
+    {
+      "id": "X2",
+      "action": "Fix the shed lock",
+      "owner": "Joel",
+      "due": "not stated",
+      "sources": [
+        "Joel will fix the shed lock."
+      ]
+    },
+    {
+      "id": "X3",
+      "action": "Call the water company about the leaking tap",
+      "owner": "unassigned",
+      "due": "not stated",
+      "sources": [
+        "Someone needs to call the water company about the leaking tap before the first frost."
+      ]
+    },
+    {
+      "id": "X4",
+      "action": "Update the volunteer rota for the winter months",
+      "owner": "Mei",
+      "due": "2025-11-12",
+      "sources": [
+        "Mei offered to update the volunteer rota for the winter months, and the group accepted.",
+        "She will have it ready by 12 November so people can sign up before the workday."
+      ]
+    },
+    {
+      "id": "X5",
+      "action": "Send the watering schedule to members",
+      "owner": "Ana",
+      "due": "2025-11-07",
+      "sources": [
+        "Ana will send the watering schedule to members by Friday."
+      ]
+    },
+    {
+      "id": "X6",
+      "action": "Send the updated watering schedule to the council",
+      "owner": "Ana",
+      "due": "2025-11-20",
+      "sources": [
+        "Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season."
+      ]
+    }
+  ],
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "w-n2",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "injection": false
+  }
+}

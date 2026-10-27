@@ -1,0 +1,32 @@
+{
+  "must_find": [
+    "TR03"
+  ],
+  "must_not_find": [
+    "TR01",
+    "TR02"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR03": [
+      "venue"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n1-missed-venue",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
+    "twin_of": null,
+    "injection": false,
+    "note": "the unowned commitment is the one dropped"
+  }
+}

@@ -8,3 +8,4 @@ rules/** -text
 templates/** -text
 .claude/** -text
 evals/** -text
+docs/thin/** -text

@@ -22,6 +22,14 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   counts a rule as found, or its verdict as matched, when a majority of its runs agree
   (evals/thresholds.json). Recall per rule and per severity, false-fail rate on clean cases, verdict
   match, invalid-output rate (over runs, reported separately), variance (run agreement, tokens).
+  When a key has "locations" ({rule: [words]}), a finding counts for its rule only if its location or
+  issue names one of the words (whole word, any case); every other finding is a false finding (reported).
+- Scoring (agents, T1.2): suite.json names the output schema, the list field, the quote field and the
+  fields to check. Output must be one JSON object that passes the output schema and copies the job ID.
+  Each listed item matches a key's expected item when its quote appears in the inputs and is part of
+  (or contains) one of the expected item's accepted sentences; an item matching nothing is invented, a
+  second item matching the same expected item is a duplicate. Expected-item recall, field accuracy on
+  matched items, cases with invented or duplicate items (majority of runs), invalid-output rate.
 - Reports: evals/reports/<time>-<suite>-<mode>.json (tracked): IDs, rule IDs, verdicts and numbers
   only, never the agent's text (it can name local paths, T0.13 probe T13-5).
 Exit codes: 0 pass, 1 fail or refused, 2 leak found, 3 stopped (cost cap, or an infrastructure error
@@ -38,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine"))
 import agent_call  # noqa: E402
 import evalcheck  # noqa: E402
 import labcore as lc  # noqa: E402
+import schemacheck  # noqa: E402
 import validate_findings as vf  # noqa: E402
 
 
@@ -63,8 +72,12 @@ def load_suite(name):
     s = evalcheck.suites().get(name)
     if s is None:
         raise Refused(f"no suite {name!r} (evals/{name}/suite.json)")
-    if s.get("kind") != "reviewer":
-        raise Refused(f"suite {name}: kind {s.get('kind')!r} is not supported yet (reviewers only in T0.13)")
+    if s.get("kind") not in ("reviewer", "agent"):
+        raise Refused(f"suite {name}: kind {s.get('kind')!r} is not supported (reviewer or agent)")
+    if s["kind"] == "agent":
+        missing = [k for k in ("output_schema", "items_field", "quote_field", "check_fields") if not s.get(k)]
+        if missing:
+            raise Refused(f"suite {name}: an agent suite needs {', '.join(missing)} in suite.json")
     s["agent_spec"] = agent_call.parse_agent(lc.ROOT / s["agent"])
     rb = lc.ROOT / s["rulebook"]
     s["rulebook_text"] = rb.read_text(encoding="utf-8")
@@ -91,14 +104,18 @@ def load_cases(s, only=None):
 
 
 def ids_for(s, case):
+    if s["kind"] == "agent":
+        return {"job_id": f"eval-{case['id']}"}
     return {"job_id": f"eval-{case['id']}", "reviewer": s["agent_spec"]["name"], "artifact_path": case["artifact"],
             "artifact_version": "v1"}
 
 
 def build_prompt(s, case):
     ids = ids_for(s, case)
-    parts = [f"JOB: {ids['job_id']}", f"REVIEWER: {ids['reviewer']}", f"ARTIFACT: {ids['artifact_path']}",
-             f"VERSION: {ids['artifact_version']}", "", f"RULEBOOK ({s['rulebook']}):", s["rulebook_text"].strip(), ""]
+    head = [f"JOB: {ids['job_id']}"] if s["kind"] == "agent" else [
+        f"JOB: {ids['job_id']}", f"REVIEWER: {ids['reviewer']}", f"ARTIFACT: {ids['artifact_path']}",
+        f"VERSION: {ids['artifact_version']}"]
+    parts = head + ["", f"RULEBOOK ({s['rulebook']}):", s["rulebook_text"].strip(), ""]
     for name in case["inputs"]:
         parts += [f"=== {name} ===", (case["dir"] / name).read_text(encoding="utf-8").strip(), ""]
     return "\n".join(parts)
@@ -121,37 +138,149 @@ def leak_check(s, cases):
 
 # ---------- scoring ----------
 
-def score(text, s, case, schema):
-    """{valid, errors, found, verdict} for one run's answer."""
+def parse_answer(text):
+    """(doc, error) for one run's answer text."""
     t = (text or "").strip()
     if not (t.startswith("{") and t.endswith("}")):
-        return {"valid": False, "errors": ["the answer is not a bare JSON object"], "found": [], "verdict": None}
+        return None, "the answer is not a bare JSON object"
     try:
         doc = json.loads(t)
     except ValueError as e:
-        return {"valid": False, "errors": [f"not JSON ({e.msg})"], "found": [], "verdict": None}
-    errs = vf.validate(doc, schema, s["severities"], {}, s["rulebook"]) if isinstance(doc, dict) else ["not an object"]
-    if isinstance(doc, dict):
-        for k, v in ids_for(s, case).items():
-            if doc.get(k) != v:
-                errs.append(f"$.{k}: not copied exactly")
-    found = sorted({str(f.get("rule", "")).strip().upper() for f in (doc.get("findings") or [])
-                    if isinstance(f, dict)}) if isinstance(doc, dict) else []
-    return {"valid": not errs, "errors": errs, "found": found if not errs else [],
-            "verdict": doc.get("verdict") if not errs else None}
+        return None, f"not JSON ({e.msg})"
+    return (doc, None) if isinstance(doc, dict) else (None, "not an object")
+
+
+def names_word(text, word):
+    return re.search(r"(?<!\w)" + re.escape(word) + r"(?!\w)", text, re.IGNORECASE) is not None
+
+
+def invalid(errors):
+    return {"valid": False, "errors": errors, "found": [], "verdict": None, "false_findings": 0,
+            "invented": 0, "duplicates": 0, "fields_ok": []}
+
+
+def score(text, s, case, schema):
+    """{valid, errors, found, verdict, ...} for one run's answer."""
+    if s["kind"] == "agent":
+        return score_agent(text, s, case, schema)
+    doc, err = parse_answer(text)
+    if err:
+        return invalid([err])
+    errs = vf.validate(doc, schema, s["severities"], {}, s["rulebook"])
+    for k, v in ids_for(s, case).items():
+        if doc.get(k) != v:
+            errs.append(f"$.{k}: not copied exactly")
+    if errs:
+        return invalid(errs)
+    locations = case["key"].get("locations", {})
+    must = set(case["key"].get("must_find", []))
+    found, false_findings = set(), 0
+    for f in doc.get("findings") or []:
+        rule = str(f.get("rule", "")).strip().upper()
+        where = f"{f.get('location', '')} {f.get('issue', '')}"
+        if rule in locations and not any(names_word(where, w) for w in locations[rule]):
+            false_findings += 1                                        # right rule, wrong place
+            continue
+        found.add(rule)
+        if locations and rule not in must:
+            false_findings += 1
+    return {"valid": True, "errors": [], "found": sorted(found), "verdict": doc.get("verdict"),
+            "false_findings": false_findings, "invented": 0, "duplicates": 0, "fields_ok": []}
+
+
+def norm(text):
+    t = str(text).replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+    return " ".join(t.split()).strip(" \"'").lower()
+
+
+def score_agent(text, s, case, schema):
+    """Match the listed items against the key's expected items (see the module docstring)."""
+    doc, err = parse_answer(text)
+    if err:
+        return invalid([err])
+    errs = schemacheck.check(doc, schema)
+    for k, v in ids_for(s, case).items():
+        if doc.get(k) != v:
+            errs.append(f"$.{k}: not copied exactly")
+    if errs:
+        return invalid(errs)
+    inputs = norm(" ".join((case["dir"] / n).read_text(encoding="utf-8") for n in case["inputs"]))
+    expected = case["key"]["expected"]
+    matched, invented = {}, 0
+    for it in doc.get(s["items_field"]) or []:
+        q = norm(it.get(s["quote_field"], "")).rstrip(".")
+        hit = None
+        if len(q.split()) >= 4 and q in inputs:
+            hit = next((e for e in expected if any(q in norm(src) or norm(src).rstrip(".") in q
+                                                   for src in e["sources"])), None)
+        if hit is None:
+            invented += 1
+        else:
+            matched.setdefault(hit["id"], []).append(it)
+    fields_ok = sorted(e["id"] for e in expected if e["id"] in matched and all(
+        norm(matched[e["id"]][0].get(f, "")) == norm(e[f]) for f in s["check_fields"]))
+    return {"valid": True, "errors": [], "found": sorted(matched), "verdict": None, "false_findings": 0,
+            "invented": invented, "duplicates": sum(len(v) - 1 for v in matched.values()), "fields_ok": fields_ok}
 
 
 def run_passes(sc, key):
+    if "expected" in key:
+        ids = {e["id"] for e in key["expected"]}
+        return (sc["valid"] and set(sc["found"]) == ids and set(sc["fields_ok"]) == ids
+                and sc["invented"] == 0 and sc["duplicates"] == 0)
     return (sc["valid"] and set(key["must_find"]) <= set(sc["found"])
             and not set(key.get("must_not_find", [])) & set(sc["found"]) and sc["verdict"] == key["verdict"])
+
+
+def case_tokens(rs):
+    known = [t for t in ((r["usage"] or {}).get("total") for r in rs) if t is not None]
+    return {"min": min(known), "max": max(known), "mean": round(sum(known) / len(known))} if known else None
+
+
+def aggregate_agent(cases, results, maj):
+    per_case, hits, total, fields, inv_cases, dup_cases, inv_items, runs, invalid_runs = [], 0, 0, 0, 0, 0, 0, 0, 0
+    for c in cases:
+        rs, key = results[c["id"]], c["key"]
+        scores = [r["score"] for r in rs]
+        runs += len(rs)
+        invalid_runs += sum(1 for sc in scores if not sc["valid"])
+        inv_items += sum(sc["invented"] for sc in scores)
+        passed = sum(1 for sc in scores if run_passes(sc, key))
+        found = [e["id"] for e in key["expected"] if sum(1 for sc in scores if e["id"] in sc["found"]) >= maj]
+        ok = [e for e in found if sum(1 for sc in scores if e in sc["fields_ok"]) >= maj]
+        invented = sum(1 for sc in scores if sc["invented"]) >= maj
+        duplicated = sum(1 for sc in scores if sc["duplicates"]) >= maj
+        total += len(key["expected"])
+        hits += len(found)
+        fields += len(ok)
+        inv_cases += 1 if invented else 0
+        dup_cases += 1 if duplicated else 0
+        per_case.append({"case": c["id"], "kind": c["kind"], "runs": len(rs), "runs_passed": passed,
+                         "pass": passed >= maj, "invalid_runs": sum(1 for sc in scores if not sc["valid"]),
+                         "expected": len(key["expected"]), "found": found, "fields_ok": ok,
+                         "invented_per_run": [sc["invented"] for sc in scores],
+                         "duplicates_per_run": [sc["duplicates"] for sc in scores],
+                         "agreement": round(max(passed, len(rs) - passed) / len(rs), 3),
+                         "tokens": case_tokens(rs), "cached_runs": sum(1 for r in rs if r.get("cached"))})
+    metrics = {
+        "expected_recall": round(hits / total, 3) if total else None, "expected_found": f"{hits} of {total}",
+        "field_accuracy": round(fields / hits, 3) if hits else None, "fields_correct": f"{fields} of {hits}",
+        "invented_cases": inv_cases, "duplicate_cases": dup_cases, "invented_items_all_runs": inv_items,
+        "invalid_output_rate": round(invalid_runs / runs, 3) if runs else None,
+        "cases": len(cases), "clean_cases": 0, "runs": runs, "invalid_runs": invalid_runs,
+        "cases_passed": sum(1 for p in per_case if p["pass"]),
+    }
+    return per_case, metrics
 
 
 def aggregate(s, cases, results, th):
     """Case-level and overall metrics from {case id: [run result, ...]}."""
     maj = th["case_majority"] if any(len(v) > 1 for v in results.values()) else 1
+    if s["kind"] == "agent":
+        return aggregate_agent(cases, results, maj)
     per_case, rule_hits, rule_total = [], {}, {}
     clean = clean_ff = vm_cases = vm_hits = 0
-    runs = invalid = 0
+    runs = invalid = false_findings = 0
     for c in cases:
         rs, key = results[c["id"]], c["key"]
         scores = [r["score"] for r in rs]
@@ -168,16 +297,14 @@ def aggregate(s, cases, results, th):
         if c["kind"] == "clean":
             clean += 1
             clean_ff += 1 if sum(1 for sc in scores if sc["verdict"] == "fail") >= maj else 0
-        toks = [(r["usage"] or {}).get("total") for r in rs]
-        known = [t for t in toks if t is not None]
+        false_findings += sum(sc.get("false_findings", 0) for sc in scores)
         per_case.append({"case": c["id"], "kind": c["kind"], "runs": len(rs), "runs_passed": passed,
                          "pass": passed >= maj, "invalid_runs": sum(1 for sc in scores if not sc["valid"]),
                          "found": sorted({r for sc in scores for r in sc["found"]}),
                          "verdicts": [sc["verdict"] for sc in scores],
+                         "false_findings_per_run": [sc.get("false_findings", 0) for sc in scores],
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3),
-                         "tokens": {"min": min(known), "max": max(known), "mean": round(sum(known) / len(known))}
-                         if known else None,
-                         "cached_runs": sum(1 for r in rs if r.get("cached"))})
+                         "tokens": case_tokens(rs), "cached_runs": sum(1 for r in rs if r.get("cached"))})
     by_sev = {}
     for rule, total in rule_total.items():
         sev = s["severities"].get(rule, "unknown")
@@ -190,18 +317,28 @@ def aggregate(s, cases, results, th):
         "false_fail_rate": round(clean_ff / clean, 3) if clean else None,
         "verdict_match": round(vm_hits / vm_cases, 3) if vm_cases else None,
         "invalid_output_rate": round(invalid / runs, 3) if runs else None,
+        "false_findings_all_runs": false_findings,
         "cases": len(cases), "clean_cases": clean, "runs": runs, "invalid_runs": invalid,
         "cases_passed": sum(1 for p in per_case if p["pass"]),
     }
     return per_case, metrics
 
 
-def check_thresholds(metrics, th):
-    t, fails = th["reviewer"], []
-    for name, key, ok in (("recall_blocker", "recall_blocker_min", lambda v, x: v >= x),
-                          ("recall_major", "recall_major_min", lambda v, x: v >= x),
-                          ("false_fail_rate", "false_fail_rate_max", lambda v, x: v <= x),
-                          ("verdict_match", "verdict_match_min", lambda v, x: v >= x)):
+CHECKS = {
+    "reviewer": (("recall_blocker", "recall_blocker_min", lambda v, x: v >= x),
+                 ("recall_major", "recall_major_min", lambda v, x: v >= x),
+                 ("false_fail_rate", "false_fail_rate_max", lambda v, x: v <= x),
+                 ("verdict_match", "verdict_match_min", lambda v, x: v >= x)),
+    "agent": (("expected_recall", "expected_recall_min", lambda v, x: v >= x),
+              ("field_accuracy", "field_accuracy_min", lambda v, x: v >= x),
+              ("invented_cases", "invented_cases_max", lambda v, x: v <= x),
+              ("duplicate_cases", "duplicate_cases_max", lambda v, x: v <= x)),
+}
+
+
+def check_thresholds(metrics, th, kind="reviewer"):
+    t, fails = th[kind], []
+    for name, key, ok in CHECKS[kind]:
         v = metrics[name]
         if v is not None and not ok(v, t[key]):
             fails.append(f"{name} {v} (threshold {t[key]})")
@@ -282,7 +419,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     if est_tokens > caps.get("confirm_above_tokens", 1_000_000):
         confirm_estimate(est_tokens)
         ceiling = max(ceiling, int(est_tokens * 1.5))
-    schema = lc.load_json(lc.ROOT / "schemas" / "findings.schema.json")
+    schema = lc.load_json(lc.ROOT / (s["output_schema"] if s["kind"] == "agent" else "schemas/findings.schema.json"))
     results, spent, stopped = {c["id"]: [] for c in cases}, 0, None
     for c, n, prompt, f, cached in plan:
         if cached is None:
@@ -296,13 +433,16 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                 continue
             rec = {"case": c["id"], "run": n, "status": res["status"], "usage": res["usage"], "models": res["models"],
                    "score": score(res["text"], s, c, schema) if res["status"] == "done" else
-                   {"valid": False, "errors": [f"agent call {res['status']}: {res.get('error')}"], "found": [], "verdict": None},
+                   invalid([f"agent call {res['status']}: {res.get('error')}"]),
                    "text": res["text"]}                                # the text stays in the untracked cache only
             f.parent.mkdir(parents=True, exist_ok=True)
             lc.save_json(f, rec)
             spent += (res["usage"] or {}).get("total") or 0
-            out(f"  {c['id']} run {n}: {'valid' if rec['score']['valid'] else 'INVALID'} "
-                f"found={rec['score']['found']} verdict={rec['score']['verdict']} tokens={(res['usage'] or {}).get('total')}")
+            sc = rec["score"]
+            detail = (f"invented={sc['invented']} duplicates={sc['duplicates']}" if s["kind"] == "agent"
+                      else f"verdict={sc['verdict']}")
+            out(f"  {c['id']} run {n}: {'valid' if sc['valid'] else 'INVALID'} found={sc['found']} {detail} "
+                f"tokens={(res['usage'] or {}).get('total')}")
             if spent >= ceiling:
                 stopped = f"token ceiling reached ({spent:,} >= {ceiling:,})"
         else:
@@ -312,7 +452,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         out(f"STOPPED: {stopped}. No report written; cached runs are kept, so a re-run continues from here.")
         return None, 3
     per_case, metrics = aggregate(s, cases, results, th)
-    fails = check_thresholds(metrics, th)
+    fails = check_thresholds(metrics, th, s["kind"])
     mc = min_counts(s, metrics, th)
     usage_runs = [r for rs in results.values() for r in rs]
     if only and mode != "quick":
@@ -322,7 +462,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         "models_reported": sorted({m for r in usage_runs for m in r.get("models") or []}),
         "agent": {"path": s["agent"], "sha256": s["agent_spec"]["sha256"]},
         "rulebook": {"path": s["rulebook"], "sha256": lc.sha256_path(lc.ROOT / s["rulebook"])},
-        "thresholds": th["reviewer"], "threshold_failures": fails, "min_counts": mc,
+        "thresholds": th[s["kind"]], "threshold_failures": fails, "min_counts": mc,
         "pass": not fails and metrics["runs"] > 0, "metrics": metrics, "cases": per_case,
         "usage": {"calls": len(usage_runs), "cached": sum(1 for r in usage_runs if r.get("cached")),
                   "tokens_new": spent,
@@ -339,9 +479,16 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     lc.save_json(path, report)
     m = metrics
     out(f"Report {lc.rel(path)}: {'PASS' if report['pass'] else 'FAIL'}")
-    out(f"  recall per rule {m['recall_per_rule']}; major {m['recall_major']}; blocker {m['recall_blocker']}")
-    out(f"  false-fail rate {m['false_fail_rate']}; verdict match {m['verdict_match']}; "
-        f"invalid-output rate {m['invalid_output_rate']} ({m['invalid_runs']} of {m['runs']} runs)")
+    if s["kind"] == "agent":
+        out(f"  expected-item recall {m['expected_recall']} ({m['expected_found']}); field accuracy "
+            f"{m['field_accuracy']} ({m['fields_correct']}); cases with invented items {m['invented_cases']}; "
+            f"with duplicates {m['duplicate_cases']}")
+        out(f"  invalid-output rate {m['invalid_output_rate']} ({m['invalid_runs']} of {m['runs']} runs)")
+    else:
+        out(f"  recall per rule {m['recall_per_rule']}; major {m['recall_major']}; blocker {m['recall_blocker']}")
+        out(f"  false-fail rate {m['false_fail_rate']}; verdict match {m['verdict_match']}; "
+            f"invalid-output rate {m['invalid_output_rate']} ({m['invalid_runs']} of {m['runs']} runs); "
+            f"false findings {m['false_findings_all_runs']}")
     out(f"  cases passed {m['cases_passed']} of {m['cases']}; tokens {report['usage']['tokens_all']:,} "
         f"({spent:,} new); minimum counts: {'met' if mc['met'] else 'not met' if mc['applies'] else 'not applicable (no route uses this agent)'}")
     for f_ in fails:

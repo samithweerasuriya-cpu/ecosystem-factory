@@ -1,0 +1,48 @@
+{
+  "schema_version": "0",
+  "slug": "thin-v0",
+  "title": "Meeting notes to action-item list",
+  "source": "docs/thin/answers.md",
+  "outcome": "Turn a set of meeting notes into a clean list of action items, so nobody has to re-read the notes to know who does what by when.",
+  "scope": {
+    "in": ["One meeting's notes as plain text in, one action-item list out."],
+    "out": ["Calendars", "Emails", "Task tools", "Multiple meetings", "Any real names or company data"]
+  },
+  "input": {
+    "description": "A file of synthetic meeting notes.",
+    "format": "plain text",
+    "constraints": ["150-400 words", "A date", "Attendees by first name", "Discussion paragraphs", "All inputs are synthetic"]
+  },
+  "output": {
+    "description": "One row per action.",
+    "format": "Markdown table, rendered by a script from the validated list",
+    "fields": [
+      {"name": "id", "description": "A1, A2, ..."},
+      {"name": "action", "description": "Starts with a verb."},
+      {"name": "owner", "description": "An attendee's name, or 'unassigned'."},
+      {"name": "due", "description": "From the notes, or 'not stated'."},
+      {"name": "source", "description": "The sentence the action came from, quoted, at most 25 words."}
+    ]
+  },
+  "quality_rules": [
+    {"id": "Q01", "text": "Every action is backed by a quoted sentence from the notes; nothing invented.", "severity": "major"},
+    {"id": "Q02", "text": "Owner and due date come only from the notes; if missing, say 'unassigned' or 'not stated', never guess.", "severity": "major"},
+    {"id": "Q03", "text": "No duplicates and nothing missed: every commitment in the notes appears exactly once.", "severity": "major"}
+  ],
+  "examples": {
+    "good": [
+      {"text": "A1 | Send the revised budget to the team | Priya | Friday 31 Oct | 'Priya will send the revised budget by Friday.'"}
+    ],
+    "bad": [
+      {"text": "A2 | Book the venue | Tom | next week | (no source)",
+       "why": "The owner and date are guessed, and there's no quoted sentence.",
+       "breaks": ["Q01", "Q02"]}
+    ]
+  },
+  "gates": [
+    {"id": "G1", "decision": "Approve or reject the reviewed list before it is final.", "approver_role": "approver"}
+  ],
+  "data_classification": "synthetic",
+  "external_writes": false,
+  "open_questions": []
+}

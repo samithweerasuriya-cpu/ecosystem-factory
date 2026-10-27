@@ -1,0 +1,32 @@
+{
+  "must_find": [
+    "TR02"
+  ],
+  "must_not_find": [
+    "TR01",
+    "TR03"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR02": [
+      "A2"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n2-borrowed-due",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
+    "twin_of": null,
+    "injection": false,
+    "note": "no date was stated for the lock; Friday belongs to another action"
+  }
+}

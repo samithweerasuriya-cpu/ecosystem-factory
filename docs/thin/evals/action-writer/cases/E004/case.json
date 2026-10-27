@@ -1,0 +1,8 @@
+{
+  "id": "E004",
+  "kind": "expected",
+  "inputs": [
+    "notes.md"
+  ],
+  "artifact": "notes.md"
+}

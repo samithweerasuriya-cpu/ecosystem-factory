@@ -1,0 +1,33 @@
+{
+  "must_find": [
+    "TR03"
+  ],
+  "must_not_find": [
+    "TR01",
+    "TR02"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR03": [
+      "A1",
+      "A2"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n2-duplicate",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
+    "twin_of": "E019",
+    "injection": false,
+    "note": ""
+  }
+}

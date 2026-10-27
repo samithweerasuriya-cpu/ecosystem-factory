@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "charter.v0",
+  "title": "Problem charter v0 (thin)",
+  "description": "Minimal problem charter for the thin end-to-end version (T1.2). Prose: schemas/charter.v0.md. Hand checks: engine/designcheck.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "slug", "title", "source", "outcome", "scope", "input", "output", "quality_rules",
+               "examples", "gates", "data_classification", "external_writes", "open_questions"],
+  "properties": {
+    "schema_version": {"const": "0"},
+    "slug": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"},
+    "title": {"type": "string", "minLength": 3},
+    "source": {"type": "string", "minLength": 1, "description": "where the problem owner's answers are recorded"},
+    "outcome": {"type": "string", "minLength": 10},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in", "out"],
+      "properties": {
+        "in": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 3}},
+        "out": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 3}}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "format", "constraints"],
+      "properties": {
+        "description": {"type": "string", "minLength": 3},
+        "format": {"type": "string", "minLength": 3},
+        "constraints": {"type": "array", "items": {"type": "string", "minLength": 3}}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "format", "fields"],
+      "properties": {
+        "description": {"type": "string", "minLength": 3},
+        "format": {"type": "string", "minLength": 3},
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z_]*$"},
+              "description": {"type": "string", "minLength": 3}
+            }
+          }
+        }
+      }
+    },
+    "quality_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "severity"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^Q[0-9]{2}$"},
+          "text": {"type": "string", "minLength": 10},
+          "severity": {"enum": ["blocker", "major", "minor"]}
+        }
+      }
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["good", "bad"],
+      "properties": {
+        "good": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text"],
+            "properties": {"text": {"type": "string", "minLength": 3}}
+          }
+        },
+        "bad": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "why", "breaks"],
+            "properties": {
+              "text": {"type": "string", "minLength": 3},
+              "why": {"type": "string", "minLength": 3},
+              "breaks": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^Q[0-9]{2}$"}}
+            }
+          }
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "decision", "approver_role"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^G[0-9]+$"},
+          "decision": {"type": "string", "minLength": 3},
+          "approver_role": {"const": "approver"}
+        }
+      }
+    },
+    "data_classification": {"enum": ["synthetic", "public"]},
+    "external_writes": {"const": false},
+    "open_questions": {"type": "array", "items": {"type": "string", "minLength": 3}}
+  }
+}

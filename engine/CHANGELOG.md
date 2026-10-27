@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.11.0 (2026-10-27)
+
+Thin charter and blueprint (T1.2).
+
+- `schemas/charter.v0` and `schemas/blueprint.v0` (description + JSON Schema); `engine/designcheck.py charter|blueprint <file>`: schema plus hand checks (rulebook severities equal the charter's, caps no higher than the factory's, no connectors, suites meet minimum counts and the suite design rules).
+- `evals/run_evals.py`: list agents (kind `agent`) scored against expected items (recall, field accuracy, invented and duplicate items); reviewer findings bound to the planted location when a key has `locations`, other findings reported as false findings. New `agent` thresholds in `evals/thresholds.json`.
+
 ## 0.10.1 (2026-10-26)
 
 Phase 0 retrospective (T0.20).

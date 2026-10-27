@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "action-items",
+  "title": "Action-item list (thin ecosystem)",
+  "description": "What action-writer returns and action-critic reviews. A script renders it as the Markdown table (ID | Action | Owner | Due | Source). due is an ISO date or 'not stated'; a relative date ('by Friday') is resolved against the meeting date in the notes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job_id", "items", "open_questions"],
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "action", "owner", "due", "source"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^A[1-9][0-9]*$"},
+          "action": {"type": "string", "pattern": "^[A-Z][a-z]+ ", "description": "starts with a verb"},
+          "owner": {"type": "string", "minLength": 1, "description": "an attendee's first name, or 'unassigned'"},
+          "due": {"type": "string", "pattern": "^([0-9]{4}-[0-9]{2}-[0-9]{2}|not stated)$"},
+          "source": {"type": "string", "minLength": 1, "description": "one sentence from the notes, quoted exactly, at most 25 words"}
+        }
+      }
+    },
+    "open_questions": {"type": "array", "items": {"type": "string", "minLength": 3}}
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "blueprint.v0",
+  "title": "Ecosystem blueprint v0 (thin)",
+  "description": "Minimal ecosystem design for the thin end-to-end version (T1.2), read by the generator (T1.3). Prose: schemas/blueprint.v0.md. Hand checks: engine/designcheck.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "slug", "charter_ref", "purpose", "agents", "route", "gates", "caps", "rulebook",
+               "final_output", "evals", "external_writes", "connectors"],
+  "properties": {
+    "schema_version": {"const": "0"},
+    "slug": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"},
+    "charter_ref": {"type": "string", "minLength": 1, "description": "path of the charter, from the factory root"},
+    "purpose": {"type": "string", "minLength": 10},
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "role", "purpose", "instructions", "tools", "max_turns", "output_schema"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"},
+          "role": {"enum": ["author", "reviewer"]},
+          "purpose": {"type": "string", "minLength": 10},
+          "instructions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 5}},
+          "tools": {"type": "array", "items": {"enum": ["Read", "Grep", "Glob"]}},
+          "max_turns": {"type": "integer", "minimum": 1, "maximum": 20},
+          "output_schema": {"type": "string", "pattern": "^schemas/[a-z0-9.-]+\\.schema\\.json$"}
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "author", "reviewer", "gate"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "author": {"type": "string", "minLength": 1},
+        "reviewer": {"type": "string", "minLength": 1},
+        "gate": {"type": "string", "pattern": "^G[0-9]+$"}
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "decision", "mode", "approver_role"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^G[0-9]+$"},
+          "decision": {"type": "string", "minLength": 3},
+          "mode": {"const": "human"},
+          "approver_role": {"const": "approver"}
+        }
+      }
+    },
+    "caps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["critic_revisions", "total_revisions_before_gate", "gate_rejections", "agent_calls_per_job",
+                   "usage_ceiling"],
+      "properties": {
+        "critic_revisions": {"type": "integer", "minimum": 0, "maximum": 5},
+        "total_revisions_before_gate": {"type": "integer", "minimum": 0, "maximum": 5},
+        "gate_rejections": {"type": "integer", "minimum": 1, "maximum": 5},
+        "agent_calls_per_job": {"type": "integer", "minimum": 1, "maximum": 25},
+        "usage_ceiling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tokens", "agent_minutes"],
+          "properties": {
+            "tokens": {"type": "integer", "minimum": 1, "maximum": 2000000},
+            "agent_minutes": {"type": "integer", "minimum": 1, "maximum": 180}
+          }
+        }
+      }
+    },
+    "rulebook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "rules"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "rule", "severity", "charter_rule"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^[A-Z]{2}[0-9]{2}$"},
+              "rule": {"type": "string", "minLength": 10},
+              "severity": {"enum": ["blocker", "major", "minor"]},
+              "charter_rule": {"type": "string", "pattern": "^Q[0-9]{2}$"}
+            }
+          }
+        }
+      }
+    },
+    "final_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "rendered_as", "columns"],
+      "properties": {
+        "from": {"type": "string", "minLength": 1},
+        "rendered_as": {"const": "markdown-table"},
+        "columns": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z_]*$"}}
+      }
+    },
+    "evals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["suite", "agent", "kind", "path"],
+        "properties": {
+          "suite": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "agent": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["reviewer", "agent"]},
+          "path": {"type": "string", "minLength": 1, "description": "suite folder, from the factory root"}
+        }
+      }
+    },
+    "external_writes": {"const": false},
+    "connectors": {"type": "array", "items": {"type": "string"}, "description": "must be empty before G2"}
+  }
+}

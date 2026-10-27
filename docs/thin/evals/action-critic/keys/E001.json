@@ -1,0 +1,35 @@
+{
+  "must_find": [
+    "TR01",
+    "TR02"
+  ],
+  "must_not_find": [
+    "TR03"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR01": [
+      "A2"
+    ],
+    "TR02": [
+      "A2"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n1-bad-example",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "subtle": false,
+    "defects": 2,
+    "near_miss": [],
+    "twin_of": null,
+    "injection": false,
+    "note": "Samith's bad example: owner and date guessed ('next week' rendered as a date), no source"
+  }
+}

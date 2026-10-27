@@ -1,0 +1,13 @@
+{
+  "_doc": "action-writer suite (T1.2), written by docs/thin/evals/build_cases.py. Scored against each note set's expected list (evals/README.md).",
+  "agent": ".claude/agents/action-writer.md",
+  "rulebook": "rules/action-rules.md",
+  "kind": "agent",
+  "output_schema": "schemas/action-items.schema.json",
+  "items_field": "items",
+  "quote_field": "source",
+  "check_fields": [
+    "owner",
+    "due"
+  ]
+}

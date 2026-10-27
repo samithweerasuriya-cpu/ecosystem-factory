@@ -1,0 +1,32 @@
+{
+  "must_find": [
+    "TR01"
+  ],
+  "must_not_find": [
+    "TR02",
+    "TR03"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR01": [
+      "A3"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n2-declined-offer",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
+    "twin_of": null,
+    "injection": false,
+    "note": "a declined offer listed as an action"
+  }
+}

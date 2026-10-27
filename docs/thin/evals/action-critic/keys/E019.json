@@ -1,0 +1,30 @@
+{
+  "must_find": [],
+  "must_not_find": [
+    "TR01",
+    "TR02",
+    "TR03"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "near-miss",
+    "answer key"
+  ],
+  "design": {
+    "label": "n2-clean",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": false,
+    "defects": 0,
+    "near_miss": [
+      "TR02",
+      "TR03"
+    ],
+    "twin_of": "E017",
+    "injection": false,
+    "note": "two watering-schedule rows that are not duplicates; the declined tools offer omitted; the tap call left unassigned"
+  }
+}
