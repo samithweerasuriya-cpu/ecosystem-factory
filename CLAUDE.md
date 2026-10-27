@@ -20,7 +20,7 @@ An agent ecosystem that interviews Samith about a problem, designs a new agent e
 
 ## Current phase
 
-**Phase 0** (Samith updates this line when a phase exit is passed.)
+**Phase 1** (Samith updates this line when a phase exit is passed.)
 
 Only do work that belongs to the current phase. If asked for later-phase work, name the exit that is not yet passed and ask Samith to confirm.
 
