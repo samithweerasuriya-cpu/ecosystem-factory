@@ -21,6 +21,10 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
 - Cache: cache/evals/ (untracked), keyed by the agent file, the exact prompt (rulebook and inputs),
   the model, the CLI version and the run number. --no-cache forces new calls; smoke runs always
   make new calls (a framework change is covered only by real calls).
+- Run records (T1.7, lesson 15): every run in a report, new or cached, is also saved as its own file
+  cache/evals/<suite>/runs/<record id>.json (the ID is a digest of the record; never overwritten), and the
+  report lists the IDs in "run_records". engine/evalcheck.py refuses a report whose records are missing,
+  changed, miscounted or do not add up to its tokens.
 - Scoring (reviewers): output must be one JSON object (first character "{", last "}"), pass the
   findings schema and the severity lock, and copy the given IDs; otherwise the run is invalid. A case
   counts a rule as found, or its verdict as matched, when a majority of its runs agree
@@ -383,6 +387,18 @@ def cache_key(s, prompt, model, cli, n):
     return evalcheck.digest(s["agent_spec"]["sha256"], prompt, model, cli, n)
 
 
+def save_run_record(suite, rec):
+    """Keep this run's record as its own file named by its digest; returns the record ID. A cache file can be
+    overwritten by a later run with the same key, so a report points at these files, never at the cache."""
+    body = {k: v for k, v in rec.items() if k != "cached"}
+    rid = evalcheck.record_digest(body)
+    f = evalcheck.runs_dir(suite) / f"{rid}.json"
+    if not f.is_file():
+        f.parent.mkdir(parents=True, exist_ok=True)
+        lc.save_json(f, body)
+    return rid
+
+
 def confirm_estimate(tokens):
     import gate
     if not gate.interactive_terminal():
@@ -457,7 +473,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         confirm_estimate(est_tokens)
         ceiling = max(ceiling, int(est_tokens * 1.5))
     schema = lc.load_json(lc.ROOT / (s["output_schema"] if s["kind"] == "agent" else "schemas/findings.schema.json"))
-    results, spent, stopped = {c["id"]: [] for c in cases}, 0, None
+    results, spent, stopped, run_records = {c["id"]: [] for c in cases}, 0, None, []
     for c, n, prompt, f, cached in plan:
         if cached is None:
             if stopped:
@@ -484,6 +500,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                 stopped = f"token ceiling reached ({spent:,} >= {ceiling:,})"
         else:
             rec = {**cached, "cached": True}
+        run_records.append(save_run_record(name, rec))
         results[c["id"]].append(rec)
     if stopped:
         out(f"STOPPED: {stopped}. No report written; cached runs are kept, so a re-run continues from here.")
@@ -508,6 +525,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                   "cost_usd_estimate_all": round(sum((r.get("usage") or {}).get("cost_usd_estimate") or 0
                                                      for r in usage_runs), 4),
                   "estimate_tokens": est_tokens},
+        "run_records": run_records,
         "framework": framework,
     }
     if discrimination:
@@ -568,6 +586,8 @@ def main(argv=None):
             problems = evalcheck.lock_problems()
             for p in problems:
                 print(f"- {p}")
+            for rid, why in evalcheck.refused_reports():
+                print(f"  (never counts: report {rid} is invalid: {why})")
             print("lock would be refused" if problems else "lock allowed: the evaluations cover the current files")
             return 1 if problems else 0
         mode = ("quick" if args.quick else "smoke" if args.smoke else "discrimination" if args.discrimination

@@ -10,8 +10,13 @@ was added, changed or removed. The guard itself is tested against a fake repo
 (engine/tests/test_run_tests.py). Exit 0 = all tests passed and nothing changed.
 Keyboard input is closed first (T1.3 follow-up): the runner and every process a test starts read an empty
 input, so no test can wait on the keyboard in a real terminal (it behaves as with `$null |` piped in).
+After a full run (never a fast one) the counts are written to logs/tests-last.json for engine/report.py
+(T1.7): engine version, tier, tests, failures, skipped, guard result and the UTC time. It is written after
+the guard's second fingerprint, so it never fails the guard; it is untracked.
 """
+import datetime
 import hashlib
+import json
 import os
 import sys
 import unittest
@@ -64,6 +69,20 @@ def collect(fast=False):
     return unittest.TestSuite(tests), sorted(skipped)
 
 
+def write_last(result, changed, repo=REPO):
+    """Record a full run's counts in logs/tests-last.json (engine/report.py reads it)."""
+    rec = {"engine_version": (ENGINE / "VERSION").read_text(encoding="utf-8").strip(), "tier": "full",
+           "tests": result.testsRun, "failures": len(result.failures) + len(result.errors)
+           + len(result.unexpectedSuccesses), "skipped": len(result.skipped), "guard_ok": not changed,
+           "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+    d = Path(repo) / "logs"
+    d.mkdir(exist_ok=True)
+    tmp = d / "tests-last.json.tmp"
+    tmp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(d / "tests-last.json")
+    return rec
+
+
 def close_stdin():
     """Point standard input (file descriptor 0, inherited by child processes) at the null device."""
     fd = os.open(os.devnull, os.O_RDONLY)
@@ -91,6 +110,8 @@ def main(argv):
             print(f"  - {c}")
     else:
         print("Guard OK: no real log, job or mode file changed.")
+    if not fast:
+        write_last(result, changed)
     return 0 if result.wasSuccessful() and not changed else 1
 
 

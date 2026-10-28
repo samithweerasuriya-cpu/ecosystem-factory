@@ -15,13 +15,25 @@ without one is format 1). `gate.py lock` refuses unless:
   3. every framework file (.claude/agents/, rules/, schemas/, config/ except *.local.json) has the
      hash recorded in at least one counting report ("full" or "smoke"), so any change needs a run;
   4. at least one counting report exists (no evaluations, no lock).
+A report never counts, and the lock rule does not see it, when it is on config/invalid-reports.json or when it
+lists run records (T1.7) that fail the check: each run's record file exists in cache/evals/<suite>/runs/,
+still has its digest, and the records' tokens add up to the report's (lesson 15: a result counts only with a
+real run behind it). Reports made before T1.7 list no records and are "legacy".
 """
 import hashlib
+import json
+import re
+from pathlib import Path
 
 import labcore as lc
 
 FRAMEWORK_DIRS = (".claude/agents", "rules", "schemas", "config")
 LOCK_MODES = ("full", "smoke")
+INVALID_LIST = "config/invalid-reports.json"
+REPORT_ID_RE = re.compile(r"^\d{8}T\d{6}Z-[a-z0-9][a-z0-9-]*$")
+TREE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+RECORD_ID_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def evals_dir():
@@ -71,13 +83,97 @@ def route_agents():
     return {n for n in names if n}
 
 
+def invalid_list(root=None):
+    """{report_id: entry} from config/invalid-reports.json. A missing file or a malformed entry is an error."""
+    f = Path(root or lc.ROOT) / INVALID_LIST
+    if not f.is_file():
+        raise lc.LabError(f"{INVALID_LIST} is missing (an empty list is {{\"reports\": []}})")
+    try:
+        entries = lc.load_json(f)["reports"]
+    except (ValueError, KeyError, TypeError) as e:
+        raise lc.LabError(f"{INVALID_LIST}: unreadable ({type(e).__name__})") from None
+    out = {}
+    for i, e in enumerate(entries if isinstance(entries, list) else [None]):
+        ok = (isinstance(e, dict) and set(e) == {"tree", "report_id", "date", "reason"}
+              and all(isinstance(e[k], str) for k in e) and TREE_RE.match(e["tree"])
+              and REPORT_ID_RE.match(e["report_id"]) and DATE_RE.match(e["date"]) and e["reason"].strip())
+        if not ok:
+            raise lc.LabError(f"{INVALID_LIST}: entry {i} needs exactly tree, report_id, date (YYYY-MM-DD) and reason")
+        out[e["report_id"]] = e
+    return out
+
+
+def record_digest(rec):
+    """The ID of one evaluation run's record: a digest of its content (the cache flag and the ID left out)."""
+    body = {k: v for k, v in rec.items() if k not in ("cached", "record_id")}
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def runs_dir(suite, root=None):
+    return Path(root or lc.ROOT) / "cache" / "evals" / suite / "runs"
+
+
+def record_problem(report, root=None):
+    """Why a report's run records do not back it (a short code), or None. Only for reports that list records."""
+    ids = report.get("run_records")
+    usage, cases = report.get("usage") or {}, report.get("cases") or []
+    if not isinstance(ids, list) or not ids or len(set(ids)) != len(ids):
+        return "records_count"
+    if len(ids) != usage.get("calls") or len(ids) != (report.get("metrics") or {}).get("runs"):
+        return "records_count"
+    per_case, seen, tokens = {c.get("case"): 0 for c in cases}, set(), 0
+    for rid in ids:
+        f = runs_dir(str(report.get("suite")), root) / f"{rid}.json" if isinstance(rid, str) and RECORD_ID_RE.match(rid) else None
+        if f is None or not f.is_file():
+            return "records_missing"
+        try:
+            rec = lc.load_json(f)
+        except ValueError:
+            return "records_changed"
+        if not isinstance(rec, dict) or record_digest(rec) != rid:
+            return "records_changed"
+        if rec.get("case") not in per_case or (rec.get("case"), rec.get("run")) in seen:
+            return "records_count"
+        seen.add((rec["case"], rec.get("run")))
+        per_case[rec["case"]] += 1
+        tokens += (rec.get("usage") or {}).get("total") or 0
+    if any(per_case[c.get("case")] != c.get("runs") for c in cases):
+        return "records_count"
+    if tokens != usage.get("tokens_all"):
+        return "tokens_mismatch"
+    return None
+
+
+def backing(report_id, report, invalid, root=None):
+    """(backing, reason code): ("invalid", "listed"), ("invalid", <record problem>), ("records", None) or
+    ("legacy", None) for a report made before run records existed."""
+    if report_id in invalid:
+        return "invalid", "listed"
+    if "run_records" not in report:
+        return "legacy", None
+    why = record_problem(report, root)
+    return ("invalid", why) if why else ("records", None)
+
+
+def load_reports(root=None):
+    """[(report_id, report)] for every file in evals/reports/, discrimination runs and invalid ones included."""
+    d = Path(root or lc.ROOT) / "evals" / "reports"
+    return [(f.stem, lc.load_json(f)) for f in sorted(d.glob("*.json"))] if d.is_dir() else []
+
+
 def reports(suite=None):
-    """Every report except discrimination runs (T1.4): those never count for lock and never make another
-    report stale or current, so the lock rule does not see them at all."""
-    d = evals_dir() / "reports"
-    out = [lc.load_json(f) for f in sorted(d.glob("*.json"))] if d.is_dir() else []
+    """Every report the lock rule may see: not a discrimination run (T1.4: those never count for lock and
+    never make another report stale or current) and not invalid (T1.7: listed, or its run records fail)."""
+    invalid = invalid_list()
+    out = [r for rid, r in load_reports() if backing(rid, r, invalid)[0] != "invalid"]
     return sorted((r for r in out if (suite is None or r.get("suite") == suite) and not str(r.get("mode") or "").startswith("discrimination")),
                   key=lambda r: r.get("ts", ""))
+
+
+def refused_reports():
+    """[(report_id, reason code)] for every report the lock rule refuses as invalid."""
+    invalid = invalid_list()
+    return [(rid, why) for rid, r in load_reports() for b, why in [backing(rid, r, invalid)] if b == "invalid"]
 
 
 def fingerprint(cli=None):

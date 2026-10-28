@@ -44,7 +44,8 @@ EXCLUDED = ["engine/check_coverage.py", "engine/designcheck.py"]
 COPY_FILES = ["evals/run_evals.py", "evals/README.md", "evals/thresholds.json",
               "schemas/findings.schema.json", "schemas/job.schema.json", "schemas/route.schema.json",
               "rules/check-refs.md", "rules/check-evidence.md", "rules/default-agent-rules.md",
-              "config/doctor.json", "config/models.json", "config/evidence.json", ".gitattributes"]
+              "config/doctor.json", "config/models.json", "config/evidence.json", "config/invalid-reports.json",
+              "schemas/report-export.schema.json", ".gitattributes"]
 TEMPLATE_FILES = {"settings.json": ".claude/settings.json", "gitignore": ".gitignore",
                   "commands/new-job.md": ".claude/commands/new-job.md",
                   "commands/run-job.md": ".claude/commands/run-job.md",

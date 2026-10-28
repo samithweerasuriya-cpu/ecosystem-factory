@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.16.0 (2026-10-28)
+
+Reporting (T1.7): one status export for the progress dashboard, and evaluation results that count only with real runs behind them.
+
+- `engine/report.py --json [--root DIR ...] [--out FILE]` writes `private/reports/export-<UTC time>.json`, matching `schemas/report-export.schema.json`: meta (engine version, test counts, roots, invalid list), jobs, events (timeline), usage per call and per job and agent, evaluation runs and cases (k of n). IDs, counts and numbers only: an allowlist of fields, every text value checked against an ID pattern, actors as roles, internal jobs only counted; a path or user name in the result stops it. Every timestamp is UTC with a trailing Z.
+- Fails closed: a missing root, or a missing or unreadable state, log, report, VERSION, invalid list or test-result file is an error naming the file, and nothing is written. A call counts only when its call record and `logs/usage.jsonl` agree; otherwise it is counted as unbacked and left out of the totals.
+- Run records: `evals/run_evals.py` saves every run's record as its own never-overwritten file `cache/evals/<suite>/runs/<digest>.json` and lists the IDs in the report (`run_records`). A report with records is backed only when they exist, are unchanged, match the run count and add up to its tokens; reports made before this are "legacy".
+- `config/invalid-reports.json` (tree, report_id, date, reason; starts empty, with the lesson 15 note): a listed report, or one whose records fail, is "invalid": the lock rule never sees it (`run_evals.py stale` names it) and the export lists it without its cases.
+- `engine/run_tests.py` writes `logs/tests-last.json` (untracked) after every full run; the export refuses one from another engine version.
+- The generator copies `config/invalid-reports.json` and the export schema into ecosystems; their `.gitignore` ignores `logs/tests-last.json`.
+
 ## 0.15.0 (2026-10-28)
 
 The factory job loop (T1.5): questions from agents, one handoff builder, isolation from CLAUDE.md, factory routes.

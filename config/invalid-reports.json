@@ -1,0 +1,4 @@
+{
+  "_doc": "Evaluation reports that must never count (T1.7, lesson 15). Read by engine/evalcheck.py (the lock rule refuses a listed report) and engine/report.py (shown with backing \"invalid\", never counted or charted). A report matches by report_id (its file name without .json) in any tree; tree records the folder it was found in. Each entry: tree, report_id, date (YYYY-MM-DD), reason. Entries are added by hand in build mode only (config/ is write-locked in operate mode); never remove one. A malformed entry stops both scripts. Lesson 15: the simulated writer Haiku (discrimination) report from T1.4 is not listed because no file remains: it was most likely overwritten by the real run (reports could overwrite each other within the same second, fixed in T1.4); every surviving T1.4 report has real call records behind it.",
+  "reports": []
+}

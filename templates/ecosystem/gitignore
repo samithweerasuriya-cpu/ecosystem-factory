@@ -7,6 +7,7 @@ __pycache__/
 
 # Runtime state that stays local
 logs/blocked.jsonl
+logs/tests-last.json
 .lab/active_job
 cache/
 

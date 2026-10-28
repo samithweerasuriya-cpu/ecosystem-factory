@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Status export (engine/report.py --json, T1.7)",
+  "description": "One machine-readable status export for the progress dashboard. IDs, counts and numbers only: no answer text, notes, user names or paths; every text value matches an ID pattern. Every timestamp is UTC in ISO 8601 with a trailing Z (YYYY-MM-DDTHH:MM:SSZ, optionally with milliseconds). Datasets: meta, jobs, events (timeline), usage_calls, usage_by_job_agent, eval_runs (evaluation history), eval_cases (k of n per case). Rows of every dataset carry root, the label of the tree they come from (its folder name). Only backed calls are in usage_calls and usage_by_job_agent (jobs.unbacked_calls counts the rest). An evaluation report with backing \"invalid\" is in eval_runs but its cases are not in eval_cases: never count or chart it.",
+  "type": "object",
+  "required": ["meta", "jobs", "events", "usage_calls", "usage_by_job_agent", "eval_runs", "eval_cases"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["export_version", "generated_at", "engine_version", "tests", "roots", "invalid_list"],
+      "additionalProperties": false,
+      "properties": {
+        "export_version": {"const": 1},
+        "generated_at": {"$ref": "#/$defs/ts"},
+        "engine_version": {"$ref": "#/$defs/version"},
+        "tests": {
+          "type": "object",
+          "required": ["count", "failed", "skipped", "tier", "guard_ok", "at"],
+          "additionalProperties": false,
+          "properties": {
+            "count": {"$ref": "#/$defs/count"},
+            "failed": {"$ref": "#/$defs/count"},
+            "skipped": {"$ref": "#/$defs/count"},
+            "tier": {"const": "full"},
+            "guard_ok": {"type": "boolean"},
+            "at": {"$ref": "#/$defs/ts"}
+          }
+        },
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["label", "engine_version", "jobs", "internal_jobs_excluded", "orphan_usage_lines", "eval_reports"],
+            "additionalProperties": false,
+            "properties": {
+              "label": {"$ref": "#/$defs/label"},
+              "engine_version": {"$ref": "#/$defs/version"},
+              "jobs": {"$ref": "#/$defs/count"},
+              "internal_jobs_excluded": {"$ref": "#/$defs/count"},
+              "orphan_usage_lines": {"$ref": "#/$defs/count"},
+              "eval_reports": {"$ref": "#/$defs/count"}
+            }
+          }
+        },
+        "invalid_list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tree", "report_id", "date"],
+            "additionalProperties": false,
+            "properties": {
+              "tree": {"$ref": "#/$defs/label"},
+              "report_id": {"$ref": "#/$defs/report_id"},
+              "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+            }
+          }
+        }
+      }
+    },
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "job_id", "type", "state", "created_at", "updated_at", "calls", "calls_counted",
+                     "unbacked_calls", "tokens_total", "agent_minutes"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "job_id": {"$ref": "#/$defs/job_id"},
+          "type": {"$ref": "#/$defs/name"},
+          "state": {"$ref": "#/$defs/state"},
+          "created_at": {"$ref": "#/$defs/ts"},
+          "updated_at": {"$ref": "#/$defs/ts"},
+          "calls": {"$ref": "#/$defs/count"},
+          "calls_counted": {"$ref": "#/$defs/count"},
+          "unbacked_calls": {"$ref": "#/$defs/count"},
+          "tokens_total": {"type": ["integer", "null"], "minimum": 0},
+          "agent_minutes": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "job_id", "seq", "ts", "event", "state_from", "state_to", "call_id", "actor_role"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "job_id": {"$ref": "#/$defs/job_id"},
+          "seq": {"type": "integer", "minimum": 1},
+          "ts": {"$ref": "#/$defs/ts"},
+          "event": {"type": "string", "pattern": "^[a-z][a-z_]*$"},
+          "state_from": {"anyOf": [{"$ref": "#/$defs/state"}, {"type": "null"}]},
+          "state_to": {"anyOf": [{"$ref": "#/$defs/state"}, {"type": "null"}]},
+          "call_id": {"anyOf": [{"$ref": "#/$defs/call_id"}, {"type": "null"}]},
+          "actor_role": {"enum": ["human", "orchestrator", "script"]}
+        }
+      }
+    },
+    "usage_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "job_id", "call_id", "agent", "attempt", "status", "source", "started_at", "ended_at",
+                     "tokens_input", "tokens_output", "tokens_cache_read", "tokens_cache_write", "tokens_total",
+                     "duration_s", "model"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "job_id": {"$ref": "#/$defs/job_id"},
+          "call_id": {"$ref": "#/$defs/call_id"},
+          "agent": {"$ref": "#/$defs/name"},
+          "attempt": {"type": "integer", "minimum": 1},
+          "status": {"enum": ["done", "failed"]},
+          "source": {"type": "string", "pattern": "^[a-z][a-z_]*$"},
+          "started_at": {"$ref": "#/$defs/ts"},
+          "ended_at": {"$ref": "#/$defs/ts"},
+          "tokens_input": {"$ref": "#/$defs/tokens"},
+          "tokens_output": {"$ref": "#/$defs/tokens"},
+          "tokens_cache_read": {"$ref": "#/$defs/tokens"},
+          "tokens_cache_write": {"$ref": "#/$defs/tokens"},
+          "tokens_total": {"$ref": "#/$defs/tokens"},
+          "duration_s": {"type": ["number", "null"], "minimum": 0},
+          "model": {"anyOf": [{"$ref": "#/$defs/model"}, {"type": "null"}]}
+        }
+      }
+    },
+    "usage_by_job_agent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "job_id", "agent", "calls", "retries", "failed", "unknown_calls", "tokens_input",
+                     "tokens_output", "tokens_cache_read", "tokens_cache_write", "tokens_total", "minutes"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "job_id": {"$ref": "#/$defs/job_id"},
+          "agent": {"$ref": "#/$defs/name"},
+          "calls": {"$ref": "#/$defs/count"},
+          "retries": {"$ref": "#/$defs/count"},
+          "failed": {"$ref": "#/$defs/count"},
+          "unknown_calls": {"$ref": "#/$defs/count"},
+          "tokens_input": {"$ref": "#/$defs/count"},
+          "tokens_output": {"$ref": "#/$defs/count"},
+          "tokens_cache_read": {"$ref": "#/$defs/count"},
+          "tokens_cache_write": {"$ref": "#/$defs/count"},
+          "tokens_total": {"$ref": "#/$defs/count"},
+          "minutes": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "eval_runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "report_id", "suite", "agent", "mode", "discrimination", "ts", "pass", "model",
+                     "cli_version", "handoff_format", "cases", "cases_passed", "runs", "runs_passed", "invalid_runs",
+                     "tokens_all", "tokens_new", "backing", "backing_reason"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "report_id": {"$ref": "#/$defs/report_id"},
+          "suite": {"$ref": "#/$defs/name"},
+          "agent": {"$ref": "#/$defs/name"},
+          "mode": {"type": "string", "pattern": "^[a-z]+(-partial)?$"},
+          "discrimination": {"type": "boolean"},
+          "ts": {"$ref": "#/$defs/ts"},
+          "pass": {"type": "boolean"},
+          "model": {"$ref": "#/$defs/model"},
+          "cli_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+( \\(Claude Code\\))?$"},
+          "handoff_format": {"type": ["integer", "null"], "minimum": 1},
+          "cases": {"$ref": "#/$defs/count"},
+          "cases_passed": {"$ref": "#/$defs/count"},
+          "runs": {"$ref": "#/$defs/count"},
+          "runs_passed": {"$ref": "#/$defs/count"},
+          "invalid_runs": {"$ref": "#/$defs/count"},
+          "tokens_all": {"$ref": "#/$defs/count"},
+          "tokens_new": {"$ref": "#/$defs/count"},
+          "backing": {"enum": ["records", "legacy", "invalid"]},
+          "backing_reason": {"enum": ["listed", "records_missing", "records_changed", "records_count",
+                                      "tokens_mismatch", null]}
+        }
+      }
+    },
+    "eval_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["root", "report_id", "case_id", "kind", "runs", "runs_passed", "pass"],
+        "additionalProperties": false,
+        "properties": {
+          "root": {"$ref": "#/$defs/label"},
+          "report_id": {"$ref": "#/$defs/report_id"},
+          "case_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+          "kind": {"type": "string", "pattern": "^[a-z][a-z-]*$"},
+          "runs": {"$ref": "#/$defs/count"},
+          "runs_passed": {"$ref": "#/$defs/count"},
+          "pass": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ts": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$"},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "count": {"type": "integer", "minimum": 0},
+    "tokens": {"type": ["integer", "null"], "minimum": 0},
+    "label": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "job_id": {"type": "string", "pattern": "^\\d{8}-[a-z]+-[a-z0-9-]+$"},
+    "call_id": {"type": "string", "pattern": "^C\\d{3,}$"},
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"},
+    "state": {"type": "string", "pattern": "^[A-Z][A-Z_]*$"},
+    "model": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$"},
+    "report_id": {"type": "string", "pattern": "^\\d{8}T\\d{6}Z-[a-z0-9][a-z0-9-]*$"}
+  }
+}
