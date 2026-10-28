@@ -209,6 +209,11 @@ def usage_index(tree, public_ids, need):
     return idx, orphans
 
 
+def models(tree, value, rel):
+    """The model IDs a call reported: the engine stores them joined by ", " (the CLI can report more than one)."""
+    return [] if value is None else [tree.ident("model", m.strip(), rel) for m in str(value).split(",")]
+
+
 def backed(call, lines):
     """True when exactly one usage line agrees with the call record on agent, status and tokens."""
     if call.get("status") not in ("done", "failed") or len(lines) != 1:
@@ -251,7 +256,7 @@ def jobs_and_usage(tree, out):
                    "started_at": tree.utc(c.get("ts"), rel), "ended_at": tree.utc(c.get("ended"), rel),
                    **{f"tokens_{k}": tree.number(u.get(k), rel, f"usage {k}", allow_none=True) for k in TOKEN_KEYS},
                    "duration_s": tree.number(u.get("duration_s"), rel, "duration", allow_none=True),
-                   "model": tree.opt("model", u.get("model"), rel)}
+                   "models": models(tree, u.get("model"), rel)}
             if row["tokens_total"] is None:
                 for k in TOKEN_KEYS:
                     row[f"tokens_{k}"] = None

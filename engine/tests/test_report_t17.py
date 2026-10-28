@@ -45,11 +45,11 @@ class ReportBase:
         gates["approver"] = APPROVER
         self.dump("config/gates.json", gates)
 
-    def call(self, job, agent, tokens=(100, 50)):
+    def call(self, job, agent, tokens=(100, 50), model="claude-opus-5-5"):
         lc = self.lc
         st = self.raw_record_call(job, agent)
         cid = st["calls"][-1]["id"]
-        usage = lc.usage_from_tokens({"input_tokens": tokens[0], "output_tokens": tokens[1]}, model="claude-opus-5-5")
+        usage = lc.usage_from_tokens({"input_tokens": tokens[0], "output_tokens": tokens[1]}, model=model)
         lc.record_result(job, cid, "done", usage=usage, source="headless", note=f"{MARKER} note",
                          output={"path": f"jobs/{job}/drafts/{MARKER}.json", "sha256": "0" * 64})
         return cid
@@ -60,7 +60,8 @@ class ReportBase:
         lc.apply(j, "dispatch", note=f"{MARKER} dispatch note")
         self.call(j, "researcher")
         lc.apply(j, "stage_done", note=MARKER)
-        self.call(j, "writer", tokens=(200, 80))
+        # T1.7 follow-up: the T1.4 archive's calls store the models the CLI reported joined by ", "
+        self.call(j, "writer", tokens=(200, 80), model="claude-haiku-5-5, claude-opus-5-5")
         lc.set_ceiling(j, tokens=900000, _human=True)           # a human-only event: actor is the approver
         return j
 
@@ -102,6 +103,8 @@ class ExportTests(ReportBase, LabTestBase):
         self.assertEqual([e["seq"] for e in ev], list(range(1, len(ev) + 1)))
         self.assertEqual({e["actor_role"] for e in ev}, {"orchestrator", "script", "human"})
         self.assertIn("C001", {e["call_id"] for e in ev})
+        self.assertEqual({r["call_id"]: r["models"] for r in ex["usage_calls"] if r["job_id"] == j},
+                         {"C001": ["claude-opus-5-5"], "C002": ["claude-haiku-5-5", "claude-opus-5-5"]})
 
     def test_every_timestamp_is_utc_with_a_z(self):
         self.job()

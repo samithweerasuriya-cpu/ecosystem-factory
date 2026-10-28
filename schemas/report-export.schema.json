@@ -106,7 +106,7 @@
         "type": "object",
         "required": ["root", "job_id", "call_id", "agent", "attempt", "status", "source", "started_at", "ended_at",
                      "tokens_input", "tokens_output", "tokens_cache_read", "tokens_cache_write", "tokens_total",
-                     "duration_s", "model"],
+                     "duration_s", "models"],
         "additionalProperties": false,
         "properties": {
           "root": {"$ref": "#/$defs/label"},
@@ -124,7 +124,7 @@
           "tokens_cache_write": {"$ref": "#/$defs/tokens"},
           "tokens_total": {"$ref": "#/$defs/tokens"},
           "duration_s": {"type": ["number", "null"], "minimum": 0},
-          "model": {"anyOf": [{"$ref": "#/$defs/model"}, {"type": "null"}]}
+          "models": {"type": "array", "items": {"$ref": "#/$defs/model"}}
         }
       }
     },
