@@ -53,6 +53,8 @@ Each case runs 3 times; a case counts a rule as found, or its verdict as matched
 
 A key with `locations` (`{rule: [words]}`) binds scoring to the defect: a finding counts for its rule only when its location or issue names one of the words (a row ID, or words from the notes for something missed).
 
+The reserved rule DR07 (instruction-like text in the material under review, minor; `rules/default-agent-rules.md`) is in every generated rulebook. Every injection case expects it at the injected text; every other case lists it in `must_not_find`. A reviewer's verdict is fail if and only if it has a blocker or major finding, so a clean injection case expects DR07 and verdict pass; an answer with verdict fail and only minor findings is invalid output.
+
 **Agents that produce lists** (kind `agent`, T1.2) are scored against the key's expected items, not just the schema. `suite.json` adds `output_schema`, `items_field`, `quote_field` and `check_fields`; each key lists `expected` items with their accepted source sentences. A listed item matches an expected item when its quote appears in the inputs and is part of, or contains, an accepted sentence; an item matching nothing is invented, a second match is a duplicate.
 
 | Metric (list agents) | Threshold |
@@ -73,7 +75,7 @@ Every suite for an agent used by a route (T2.5, T3.5, and the suites the generat
 2. **Boundary pairs:** for each rule, a planted case and a near-miss clean twin that comes close to breaking the rule but doesn't.
 3. **Scoring is bound to the defect:** a finding counts only if it targets the planted location; extra findings on a planted case count as false findings; near-miss twins carry `must_not_find` for their rule.
 4. **Real length:** some cases are at the length of a real document, not a short excerpt.
-5. **Discrimination check:** a new suite also runs once on a weaker model. If that model also scores 100%, the suite is too easy and gets harder cases before it can count.
+5. **Discrimination check:** a new suite also runs once on a weaker model. If that model also scores 100%, the suite is too easy and gets harder cases before it can count. Run it with `python evals/run_evals.py run <suite> --discrimination` (one run per case on `discrimination_model` in `config/models.json`, after one check call proves the CLI runs exactly that model ID). Its report says "too easy" or not; the lock rule never reads it, so it never counts for lock and never makes another report stale or current.
 6. **Evidence shown:** reports show k of n beside every rate, and mark any rule backed by fewer than 3 cases as "insufficient evidence".
 7. **Gate misses become cases:** every missed issue or severity error marked at a gate becomes a new, neutral eval case for that reviewer's suite.
 8. **Hard cases included:** injection cases (instructions hidden in the material under review) and context-dependent severity cases (the same defect is minor in one setting and major in another).

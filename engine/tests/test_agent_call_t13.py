@@ -27,9 +27,10 @@ class AgentCallBase(LabTestBase):
         self.log = self.tmp / "fake-claude.jsonl"
         self._fake_env = {k: os.environ.get(k) for k in ("FAKE_CLAUDE_LOG", "FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES",
                                                           "FAKE_CLAUDE_VERSION", "FAKE_CLAUDE_STOP_REASON",
-                                                          "ANTHROPIC_API_KEY")}
+                                                          "FAKE_CLAUDE_MODEL_REPORTED", "ANTHROPIC_API_KEY")}
         os.environ["FAKE_CLAUDE_LOG"] = str(self.log)
-        for k in ("FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES", "FAKE_CLAUDE_VERSION", "FAKE_CLAUDE_STOP_REASON"):
+        for k in ("FAKE_CLAUDE_MODE", "FAKE_CLAUDE_RESPONSES", "FAKE_CLAUDE_VERSION", "FAKE_CLAUDE_STOP_REASON",
+                  "FAKE_CLAUDE_MODEL_REPORTED"):
             os.environ.pop(k, None)
         models = json.loads((self.tmp / "config/models.json").read_text(encoding="utf-8"))
         models["claude_command"] = [sys.executable, str(FAKE)]

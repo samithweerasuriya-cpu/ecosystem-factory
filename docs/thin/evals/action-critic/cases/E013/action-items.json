@@ -6,20 +6,27 @@
       "action": "Send the revised budget to the team",
       "owner": "Priya",
       "due": "2025-10-31",
-      "source": "Priya will send the revised budget by Friday."
+      "source": "Priya will send the revised budget to the team by Friday."
     },
     {
       "id": "A2",
+      "action": "Book the venue for the offsite",
+      "owner": "unassigned",
+      "due": "not stated",
+      "source": "Someone still needs to book the venue for the offsite."
+    },
+    {
+      "id": "A3",
       "action": "Confirm both speakers' availability",
       "owner": "Marco",
       "due": "2025-11-07",
       "source": "Marco will confirm both speakers' availability by 7 November."
     },
     {
-      "id": "A3",
+      "id": "A4",
       "action": "Draft the speaker invitation email and share it with Marco",
       "owner": "Lena",
-      "due": "not stated",
+      "due": "before he contacts them",
       "source": "Lena will draft the speaker invitation email and share it with Marco before he contacts them."
     }
   ],

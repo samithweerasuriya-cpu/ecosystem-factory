@@ -13,7 +13,7 @@
       "id": "X2",
       "action": "Write down the release checklist",
       "owner": "unassigned",
-      "due": "not stated",
+      "due": "before the next release",
       "sources": [
         "The team agreed that someone must write down the release checklist before the next release."
       ]

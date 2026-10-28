@@ -71,9 +71,12 @@ def route_agents():
 
 
 def reports(suite=None):
+    """Every report except discrimination runs (T1.4): those never count for lock and never make another
+    report stale or current, so the lock rule does not see them at all."""
     d = evals_dir() / "reports"
     out = [lc.load_json(f) for f in sorted(d.glob("*.json"))] if d.is_dir() else []
-    return sorted((r for r in out if suite is None or r.get("suite") == suite), key=lambda r: r.get("ts", ""))
+    return sorted((r for r in out if (suite is None or r.get("suite") == suite) and not str(r.get("mode") or "").startswith("discrimination")),
+                  key=lambda r: r.get("ts", ""))
 
 
 def fingerprint(cli=None):

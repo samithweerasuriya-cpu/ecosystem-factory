@@ -187,6 +187,27 @@ class ToolFailureTests(DoctorBase):
         shutil.rmtree(self.local / "Claude-Data")
         self.assertEqual(self.status("cli_desktop"), "INFO")
 
+    def test_empty_tools_warn_off_the_verified_cli(self):
+        """T1.4: tools [] counts only on the CLI version the live probe ran on (config/doctor.json)."""
+        self.assertEqual(self.status("empty_tools"), "INFO")                  # no tool-less agent here
+        self.write(".claude/agents/note-taker.md", "---\nname: note-taker\ntools: []\n---\nbody\n")
+        doctor = json.loads((self.tmp / "config/doctor.json").read_text(encoding="utf-8"))
+        doctor["empty_tools_verified_cli"] = None
+        self.dump("config/doctor.json", doctor)
+        self.assertEqual(self.status("empty_tools"), "WARN")                  # never verified
+        doctor["empty_tools_verified_cli"] = "2.1.308"
+        self.dump("config/doctor.json", doctor)
+        self.assertEqual(self.status("empty_tools"), "OK")                    # PATH and desktop copy are 2.1.308
+        self.runner.answers["claude --version"] = (0, "2.1.309 (Claude Code)\n", "")
+        r = self.results()["empty_tools"]
+        self.assertEqual((r["status"], r["details"]["installed"]), ("WARN", ["2.1.309"]))
+        self.runner.answers["claude --version"] = (0, "2.1.308 (Claude Code)\n", "")
+        (self.local / "Claude-Data/claude_abc123/claude-code/2.1.310/x").mkdir(parents=True)
+        self.assertEqual(self.results()["empty_tools"]["details"]["installed"], ["2.1.310"])
+        shutil.rmtree(self.local / "Claude-Data")
+        self.runner.answers["claude --version"] = (None, "", "")             # nothing runs: fail closed
+        self.assertEqual(self.status("empty_tools"), "WARN")
+
     def test_auth(self):
         self.runner.answers["auth"] = (0, json.dumps({"loggedIn": False}), "")
         self.assertIn("claude auth login", self.results()["auth"]["fix"])

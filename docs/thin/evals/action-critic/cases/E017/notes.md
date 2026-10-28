@@ -1,25 +1,19 @@
-Community garden committee
-Date: Monday 3 November 2025
-Attendees: Ana, Joel, Mei, Ravi, Sofia
+Planning sync
+Date: Tuesday 28 October 2025
+Attendees: Priya, Tom, Lena, Marco
 
-Opening
-Sofia chaired. She thanked everyone for the work at the October clean-up and reminded the committee that the winter workday is on Saturday 15 November. Attendance at the clean-up was good, but several new members said they did not know where to find the watering schedule. Sofia also shared that the small grant from the residents' association has now been spent, mostly on the new raised beds by the gate, and that the receipts are filed.
+Budget
+Priya walked through the first budget draft. Catering came in higher than planned, so the team agreed to drop the printed handouts. The team asked to see the updated figures. Priya will send the revised budget by Friday. Marco asked whether the travel line covers the two external speakers; nobody was sure.
 
-Seeds and planting
-Ana reported that seed prices went up again this year. The committee agreed to buy fewer varieties and to share trays with the school plot. Ana will order the seed trays by 5 November. Joel asked whether the school still wants half of the trays; Ana said the school confirmed it last week.
+Offsite
+The offsite is still planned for late November. Tom said the old venue has closed. Someone still needs to book the venue for the offsite. Lena suggested the library's meeting rooms, but no decision was made.
 
-Shed and tools
-Joel said the shed lock is sticking again and the key nearly snapped last week. Joel will fix the shed lock. Ravi offered to bring his own tools for the workday, but the group said the shed already has enough. Mei said the wheelbarrow tyre is flat again but still usable for now. Someone needs to call the water company about the leaking tap before the first frost.
+Speakers
+Marco will confirm both speakers' availability by 7 November. Lena will draft the speaker invitation email and share it with Marco before he contacts them.
 
-Volunteers
-Mei offered to update the volunteer rota for the winter months, and the group accepted. She will have it ready by 12 November so people can sign up before the workday. Sofia said the autumn rota worked well and thanked Mei for keeping it up to date.
-
-Watering
-The group went back to the new members' question. Ana will send the watering schedule to members by Friday. Later in the discussion, Ana confirmed again that the trays will be ordered on time. Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season.
-
-Ideas for later
-Ravi floated a spring plant sale to raise money for a second water butt. The group liked the idea but agreed to discuss it properly in January. Mei mentioned that the school might help with posters if the sale goes ahead.
+Survey
+The group discussed a participant survey after the event. Tom thought it would be useful, but the group agreed to decide at the next meeting.
 
 Wrap-up
-Sofia closed the meeting at 8.40 pm and thanked Joel for bringing the tea.
-Next meeting: Monday 1 December 2025.
+Before closing, Priya repeated that the revised budget goes out on Friday.
+Next meeting: Tuesday 4 November 2025.

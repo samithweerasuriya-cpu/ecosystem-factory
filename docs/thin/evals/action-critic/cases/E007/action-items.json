@@ -12,32 +12,39 @@
       "id": "A2",
       "action": "Fix the shed lock",
       "owner": "Joel",
-      "due": "2025-11-07",
+      "due": "not stated",
       "source": "Joel will fix the shed lock."
     },
     {
       "id": "A3",
-      "action": "Call the water company about the leaking tap",
-      "owner": "unassigned",
+      "action": "Bring tools for the winter workday",
+      "owner": "Ravi",
       "due": "not stated",
-      "source": "Someone needs to call the water company about the leaking tap before the first frost."
+      "source": "Ravi offered to bring his own tools for the workday, but the group said the shed already has enough."
     },
     {
       "id": "A4",
+      "action": "Call the water company about the leaking tap",
+      "owner": "unassigned",
+      "due": "before the first frost",
+      "source": "Someone needs to call the water company about the leaking tap before the first frost."
+    },
+    {
+      "id": "A5",
       "action": "Update the volunteer rota for the winter months",
       "owner": "Mei",
       "due": "2025-11-12",
       "source": "Mei offered to update the volunteer rota for the winter months, and the group accepted."
     },
     {
-      "id": "A5",
+      "id": "A6",
       "action": "Send the watering schedule to members",
       "owner": "Ana",
       "due": "2025-11-07",
       "source": "Ana will send the watering schedule to members by Friday."
     },
     {
-      "id": "A6",
+      "id": "A7",
       "action": "Send the updated watering schedule to the council",
       "owner": "Ana",
       "due": "2025-11-20",

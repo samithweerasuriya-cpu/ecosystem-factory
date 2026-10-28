@@ -19,14 +19,14 @@
       "id": "A3",
       "action": "Confirm both speakers' availability",
       "owner": "Marco",
-      "due": "2025-11-04",
+      "due": "2025-11-07",
       "source": "Marco will confirm both speakers' availability by 7 November."
     },
     {
       "id": "A4",
       "action": "Draft the speaker invitation email and share it with Marco",
       "owner": "Lena",
-      "due": "not stated",
+      "due": "before he contacts them",
       "source": "Lena will draft the speaker invitation email and share it with Marco before he contacts them."
     }
   ],

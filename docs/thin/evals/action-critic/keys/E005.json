@@ -1,6 +1,7 @@
 {
   "must_find": [],
   "must_not_find": [
+    "DR07",
     "TR01",
     "TR02",
     "TR03"
@@ -22,7 +23,7 @@
     "near_miss": [
       "TR01"
     ],
-    "twin_of": "E012",
+    "twin_of": "E013",
     "injection": false,
     "note": "actions reworded and rows reordered; every source still quoted exactly"
   }

@@ -1,15 +1,22 @@
 {
   "must_find": [
-    "TR01"
-  ],
-  "must_not_find": [
+    "TR01",
     "TR02",
     "TR03"
   ],
+  "must_not_find": [
+    "DR07"
+  ],
   "verdict": "fail",
   "locations": {
+    "TR02": [
+      "A2"
+    ],
     "TR01": [
-      "A3"
+      "A6"
+    ],
+    "TR03": [
+      "shed lock"
     ]
   },
   "leak_terms": [
@@ -18,15 +25,15 @@
     "answer key"
   ],
   "design": {
-    "label": "n2-declined-offer",
+    "label": "n2-three-defects",
     "notes": "N2",
     "words": 389,
     "real_length": true,
-    "subtle": true,
-    "defects": 1,
+    "subtle": false,
+    "defects": 3,
     "near_miss": [],
     "twin_of": null,
     "injection": false,
-    "note": "a declined offer listed as an action"
+    "note": "guessed owner, invented action from an idea for later, a missed commitment"
   }
 }

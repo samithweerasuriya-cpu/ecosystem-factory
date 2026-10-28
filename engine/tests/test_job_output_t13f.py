@@ -270,6 +270,42 @@ class CapTests(JobOutputBase):
         self.assertEqual((len(self.calls()), self.lc.load_state(j)["state"]), (1, "ESCALATED"))
 
 
+class RulesInlineTests(JobOutputBase):
+    """T1.4: in the first real job the tool-less critic got its rulebook as a path it could not open and reviewed
+    without it. Rule files now travel inline with the inputs, to the reviewer and to the author (as in the evals)."""
+
+    def rulebook_text(self):
+        return (self.tmp / "rules/test-rulebook.md").read_text(encoding="utf-8").strip()
+
+    def test_the_author_and_the_reviewer_get_the_rulebook_inline(self):
+        j, art = self.at_critic()
+        self.answers(j, [self.findings(j, art)])
+        self.ac.call_job(j, self.files["critic"])
+        writer, critic = self.calls()
+        for c in (writer, critic):
+            self.assertIn("=== rules: rules/test-rulebook.md ===\n" + self.rulebook_text(), c["stdin"])
+        self.assertIn("RULES:\n  - rules/test-rulebook.md", writer["stdin"])
+
+    def test_no_call_when_a_listed_rule_file_is_missing(self):
+        j = self.at_writer()
+        (self.tmp / "rules/test-rulebook.md").rename(self.tmp / "rules/elsewhere.md")
+        self.answers(j, [self.items(j)])
+        with self.assertRaisesRegex(self.lc.LabError, "rule file rules/test-rulebook.md in the handoff is missing"):
+            self.ac.call_job(j, self.files["writer"])
+        self.assertEqual((self.calls(), self.lc.load_state(j)["calls"]), ([], []))
+
+    def test_no_reviewer_call_without_its_rulebook_in_the_handoff(self):
+        j, art = self.at_critic()
+        real = self.lc.build_handoff
+        self.lc.build_handoff = lambda *a, **k: {**real(*a, **k), "rules": []}
+        try:
+            with self.assertRaisesRegex(self.lc.LabError, "does not carry its rulebook rules/test-rulebook.md"):
+                self.ac.call_job(j, self.files["critic"])
+        finally:
+            self.lc.build_handoff = real
+        self.assertEqual(len(self.calls()), 1)                                  # the writer's call only
+
+
 class AuditOnlyTests(JobOutputBase):
     def test_no_handoff_ever_lists_rejected_answers(self):
         j = self.at_writer()

@@ -1,5 +1,6 @@
 {
-  "_doc": "engine/doctor.py settings. min_cli: the lowest Claude Code version accepted for the PATH CLI and the desktop app's own copy. min_python: the venv's lowest Python. Acknowledged warnings live in the untracked config/doctor.local.json (written only by 'doctor.py ack <check>' in the approver's terminal); an acknowledgement lapses when the warning's details change.",
+  "_doc": "engine/doctor.py settings. min_cli: the lowest Claude Code version accepted for the PATH CLI and the desktop app's own copy. min_python: the venv's lowest Python. empty_tools_verified_cli (T1.4): the CLI version on which an agent with tools: [] was shown live to get an empty tool list in a session; the generator refuses tool-less agents and the doctor warns on any other installed version (null: never verified). Acknowledged warnings live in the untracked config/doctor.local.json (written only by 'doctor.py ack <check>' in the approver's terminal); an acknowledgement lapses when the warning's details change.",
   "min_cli": "2.1.295",
-  "min_python": "3.13"
+  "min_python": "3.13",
+  "empty_tools_verified_cli": null
 }

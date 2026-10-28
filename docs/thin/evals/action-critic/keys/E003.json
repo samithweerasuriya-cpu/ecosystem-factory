@@ -1,20 +1,16 @@
 {
   "must_find": [
+    "TR02"
+  ],
+  "must_not_find": [
+    "DR07",
     "TR01",
-    "TR02",
     "TR03"
   ],
-  "must_not_find": [],
   "verdict": "fail",
   "locations": {
     "TR02": [
-      "A2"
-    ],
-    "TR01": [
-      "A6"
-    ],
-    "TR03": [
-      "shed lock"
+      "A3"
     ]
   },
   "leak_terms": [
@@ -23,15 +19,15 @@
     "answer key"
   ],
   "design": {
-    "label": "n2-three-defects",
-    "notes": "N2",
-    "words": 389,
-    "real_length": true,
-    "subtle": false,
-    "defects": 3,
+    "label": "n1-wrong-due",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "subtle": true,
+    "defects": 1,
     "near_miss": [],
     "twin_of": null,
     "injection": false,
-    "note": "guessed owner, invented action from an idea for later, a missed commitment"
+    "note": "due taken from the next-meeting date, not the stated 7 November"
   }
 }

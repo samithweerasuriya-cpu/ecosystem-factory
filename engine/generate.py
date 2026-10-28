@@ -15,7 +15,8 @@ Generation (T1.3, blueprint v0):
   (rules/default-agent-rules.md) go word for word into CLAUDE.md and into every agent file;
 - generation.json: sha256 of every file above (the manifest), the exclusions, the headless call line of every
   agent and the venv's package versions;
-- then the ecosystem's own .venv (uv; jsonschema at the factory's version) and `git init`.
+- then the ecosystem's own .venv (uv; jsonschema at the factory's version) and `git init` with the factory's
+  repo-local name and GitHub noreply email (T1.4; refused if the factory has none).
 The target must not exist or be empty. The blueprint must pass engine/designcheck.py first. --dry-run builds
 and lints everything in memory and writes nothing. A generated ecosystem is never edited by hand: verify
 reports any file that differs from its manifest entry, any file the manifest doesn't know and any copied
@@ -54,9 +55,36 @@ ALLOWED_TOOLS = {"Read", "Grep", "Glob"}
 NAME = re.compile(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
 # Folders a running ecosystem fills itself; verify ignores them.
 RUNTIME = (".git", ".venv", "jobs", "logs", ".lab", "cache", "evals/reports", "private")
-# T1.3: whether `tools: []` really gives an in-session subagent no tools is checked live in T1.4. Until then
-# lint refuses in-session use of such an agent: the settings must deny the Agent and Task tools.
-EMPTY_TOOLS_VERIFIED = False
+# T1.4: `tools: []` was checked live (an in-session subagent was sent an empty tool list) on one CLI version,
+# recorded in config/doctor.json (null: never verified). Once a version is recorded, lint refuses a tool-less
+# agent on any other installed CLI (re-run the probe first). Either way the settings must deny the Agent and
+# Task tools (agents run headless only).
+VERIFIED_KEY = "empty_tools_verified_cli"
+NOREPLY = "@users.noreply.github.com"
+
+
+def installed_cli():
+    """The installed CLI's version string, or None if it can't run (tests replace this)."""
+    return agent_call.cli_version()
+
+
+def cli_number(s):
+    m = re.search(r"\d+\.\d+\.\d+", s or "")
+    return m.group(0) if m else None
+
+
+def empty_tools_problem(verified, installed):
+    """Why `tools: []` may not be trusted on the installed CLI, or None. Never verified (null) is allowed: the
+    settings deny of the Agent and Task tools then keeps the agent headless-only (the doctor warns)."""
+    if verified is None:
+        return None
+    v, i = cli_number(verified), cli_number(installed)
+    if not v:
+        return f"config/doctor.json {VERIFIED_KEY} {verified!r} is not a CLI version"
+    if v != i:
+        return (f"tools [] was verified on CLI {v}; the installed CLI is {i or 'unknown'}: re-run the "
+                "empty-tools probe and record its version first")
+    return None
 HOOK_BLOCK = """hooks:
   PreToolUse:
     - matcher: "*"
@@ -113,8 +141,26 @@ def render_caps(bp):
             caps[k] = v
     u = caps["usage_ceiling"]
     u["per_call_warning_tokens"] = min(u.get("per_call_warning_tokens", u["tokens"]), u["tokens"])
-    u["_provisional"] = "PROVISIONAL: from the blueprint; recalibrate from real job figures (T1.4)."
+    u["_provisional"] = "PROVISIONAL: from the blueprint (T1.4: set from the first real job's figures); recalibrate as jobs are measured."
     return caps
+
+
+def reserved_rules(rules_text=None):
+    """[{id, rule, severity}] from the reserved-rule table in rules/default-agent-rules.md (T1.4: DR07)."""
+    text = (rules_text if rules_text is not None else factory_file(DEFAULT_RULES)).decode("utf-8")
+    out = []
+    for line in text.splitlines():
+        m = re.match(r"^\|\s*(DR\d{2})\s*\|\s*(.+?)\s*\|\s*(blocker|major|minor)\s*\|\s*$", line)
+        if m:
+            out.append({"id": m.group(1), "rule": m.group(2), "severity": m.group(3)})
+    if not out:
+        raise GenerateError(f"{DEFAULT_RULES} has no reserved rule rows (| DRnn | rule | severity |)")
+    return out
+
+
+def rulebook_rows(bp):
+    """The blueprint's rules followed by the reserved rules: every rule the reviewers apply."""
+    return [*bp["rulebook"]["rules"], *({**r, "charter_rule": "default rule 7"} for r in reserved_rules())]
 
 
 def render_rulebook(bp):
@@ -122,10 +168,19 @@ def render_rulebook(bp):
     lines = [f"# Rulebook: {rb['name']}", "",
              "Rendered from the blueprint. Rulebook format: one table row per rule, the first cell is the rule ID, and "
              "one cell holds its severity. Severity: **blocker** (cannot pass) · **major** (fail) · **minor** (note only). "
-             "Verdict fails on any blocker or major.", "",
+             "Verdict fails on any blocker or major, and only then. Rules starting DR are reserved rules from "
+             f"{DEFAULT_RULES}, added to every rulebook.", "",
              "| ID | Rule | Sev | Charter rule |", "|---|---|---|---|"]
-    lines += [f"| {r['id']} | {r['rule']} | {r['severity']} | {r['charter_rule']} |" for r in rb["rules"]]
+    lines += [f"| {r['id']} | {r['rule']} | {r['severity']} | {r['charter_rule']} |" for r in rulebook_rows(bp)]
+    if rb.get("definitions"):
+        lines += ["", "## Definitions", ""] + [f"- {d}" for d in rb["definitions"]]
     return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def severity_line(bp):
+    """One generic instruction for every reviewer: each rule's severity, read from the rulebook table."""
+    return ("Severity by rule (from the rulebook table; every finding on a rule takes exactly this severity): "
+            + ", ".join(f"{r['id']} {r['severity']}" for r in rulebook_rows(bp)) + ".")
 
 
 def schema_source(bp_path, relpath):
@@ -133,11 +188,13 @@ def schema_source(bp_path, relpath):
     return local if local.is_file() else lc.ROOT / relpath
 
 
-def render_agent(a, schema_text, rules_text):
+def render_agent(a, schema_text, rules_text, severities=None):
     tools = "[]" if not a["tools"] else ", ".join(a["tools"])
     front = ["---", f"name: {a['name']}", f"description: {a['purpose']}", f"tools: {tools}", "model: inherit",
              f"maxTurns: {a['max_turns']}", HOOK_BLOCK, "---"]
     body = ["", "# Role", a["purpose"], "", "# Instructions"] + [f"- {i}" for i in a["instructions"]]
+    if severities:                                                     # reviewers (T1.4)
+        body += [f"- {severities}"]
     if not a["tools"]:
         body += ["- You have no tools: everything you need is in the message."]
     body += ["", "# Output",
@@ -189,7 +246,8 @@ def build(bp_path):
             src = schema_source(bp_path, a["output_schema"])
             put(a["output_schema"], "copied", src.read_bytes(), lc.rel(src))
         put(f".claude/agents/{a['name']}.md", "rendered",
-            render_agent(a, files[a["output_schema"]]["data"].decode("utf-8"), rules_text))
+            render_agent(a, files[a["output_schema"]]["data"].decode("utf-8"), rules_text,
+                         severity_line(bp) if a["role"] == "reviewer" else None))
     route, gate = bp["route"], gate_id(bp)
     rulebook = f"rules/{bp['rulebook']['name']}.md"
     put(rulebook, "rendered", render_rulebook(bp))
@@ -273,7 +331,7 @@ def parse_tools(raw):
     return None if any(not t for t in tools) else tools
 
 
-def lint_agent(path_name, data, rules_bytes, settings):
+def lint_agent(path_name, data, rules_bytes, settings, empty_tools=None):
     """Problems with one agent file (bytes)."""
     probs, where = [], f"agent {path_name}"
     try:
@@ -303,11 +361,13 @@ def lint_agent(path_name, data, rules_bytes, settings):
                     probs.append(f"{where}: has the {t} tool (only the main session delegates)")
                 elif t not in ALLOWED_TOOLS:
                     probs.append(f"{where}: tool {t!r} is not allowed (allowed: {', '.join(sorted(ALLOWED_TOOLS))})")
-            if not tools and not EMPTY_TOOLS_VERIFIED:
+            if not tools:
                 deny = set((settings or {}).get("permissions", {}).get("deny", []))
                 if not {"Agent", "Task"} <= deny:
-                    probs.append(f"{where}: tools [] is not yet verified to mean no tools in a session (T1.4); "
-                                 "the settings must deny the Agent and Task tools so it runs headless only")
+                    probs.append(f"{where}: tools [] needs the settings to deny the Agent and Task tools "
+                                 "(it runs headless only)")
+                if empty_tools:
+                    probs.append(f"{where}: {empty_tools}")
     if "model" in v and v["model"] not in ("inherit",):
         probs.append(f"{where}: model {v['model']!r}: agents use the pinned model (model: inherit)")
     if "maxTurns" in v and not (re.fullmatch(r"\d+", v["maxTurns"]) and 1 <= int(v["maxTurns"]) <= 20):
@@ -334,8 +394,15 @@ def lint_files(files):
     agents = sorted(r for r in files if r.startswith(".claude/agents/"))
     if not agents:
         probs.append("no agent files in .claude/agents/")
+    empty_tools = None
+    if any(re.search(rb"(?m)^tools: \[\]\r?$", files[r]) for r in agents):
+        try:
+            verified = json.loads(files.get("config/doctor.json", b"{}")).get(VERIFIED_KEY)
+        except (ValueError, AttributeError):
+            verified = None
+        empty_tools = empty_tools_problem(verified, installed_cli())
     for r in agents:
-        probs += lint_agent(r.rsplit("/", 1)[-1], files[r], rules, settings)
+        probs += lint_agent(r.rsplit("/", 1)[-1], files[r], rules, settings, empty_tools)
     if rules not in files.get("CLAUDE.md", b""):
         probs.append(f"CLAUDE.md does not contain {DEFAULT_RULES} byte for byte")
     return probs
@@ -344,7 +411,7 @@ def lint_files(files):
 def lint(target):
     target = Path(target)
     files = {}
-    for r in [DEFAULT_RULES, ".claude/settings.json", "CLAUDE.md"]:
+    for r in [DEFAULT_RULES, ".claude/settings.json", "CLAUDE.md", "config/doctor.json"]:
         if (target / r).is_file():
             files[r] = (target / r).read_bytes()
     for f in sorted((target / ".claude" / "agents").glob("*")) if (target / ".claude" / "agents").is_dir() else []:
@@ -439,6 +506,20 @@ def make_venv(target):
     return {"python": py_v, "jsonschema": got}
 
 
+def factory_identity():
+    """{user.name, user.email} from the factory's own repo-local Git config. Refused unless both are set and the
+    email is a GitHub noreply address: every generated ecosystem commits with it."""
+    out = {}
+    for k in ("user.name", "user.email"):
+        p = subprocess.run(["git", "-C", str(lc.ROOT), "config", "--local", k], capture_output=True, text=True,
+                           timeout=60)
+        out[k] = p.stdout.strip() if p.returncode == 0 else ""
+    if not out["user.name"] or not out["user.email"].lower().endswith(NOREPLY):
+        raise GenerateError("the factory's repo-local Git identity is not set to a GitHub noreply address "
+                            f"(git config --local user.email <id>+<name>{NOREPLY}); every ecosystem commits with it")
+    return out
+
+
 def generate(bp_path, target, dry_run=False, venv=True, git=True):
     """Build, lint and (unless dry_run) write the ecosystem. Returns a summary dict."""
     import designcheck  # factory-only; never copied into an ecosystem
@@ -461,6 +542,7 @@ def generate(bp_path, target, dry_run=False, venv=True, git=True):
                "agents": [a["name"] for a in bp["agents"]], "headless_calls": call_lines(data), "dry_run": dry_run}
     if dry_run:
         return summary
+    identity = factory_identity() if git else None
     target.mkdir(parents=True, exist_ok=True)
     for r, e in files.items():
         f = target / r
@@ -483,6 +565,11 @@ def generate(bp_path, target, dry_run=False, venv=True, git=True):
         p = subprocess.run(["git", "init", "-q", str(target)], capture_output=True, text=True, timeout=60)
         if p.returncode != 0:
             raise GenerateError(f"git init failed: {p.stderr.strip()[:200]}")
+        for k, v in identity.items():                                  # commits never show a personal address
+            p = subprocess.run(["git", "-C", str(target), "config", "--local", k, v], capture_output=True, text=True,
+                               timeout=60)
+            if p.returncode != 0:
+                raise GenerateError(f"git config {k} failed: {p.stderr.strip()[:200]}")
     after = verify(target) + lint(target)
     if after:
         raise GenerateError("the written ecosystem does not verify:\n  " + "\n  ".join(after))

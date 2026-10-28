@@ -1,33 +1,33 @@
 {
-  "job_id": "draft-n1",
+  "job_id": "draft-n3",
   "items": [
     {
       "id": "A1",
-      "action": "Send the revised budget to the team",
-      "owner": "Priya",
-      "due": "2025-10-31",
-      "source": "Priya will send the revised budget to the team by Friday."
+      "action": "Update the events page",
+      "owner": "Kofi",
+      "due": "2025-11-10",
+      "source": "Dana will update the events page by 10 November."
     },
     {
       "id": "A2",
-      "action": "Book the venue for the offsite",
-      "owner": "unassigned",
+      "action": "Ask the hosting provider to change the contact form's destination address",
+      "owner": "Elif",
       "due": "not stated",
-      "source": "Someone still needs to book the venue for the offsite."
+      "source": "Elif will ask the hosting provider to change the form's destination address."
     },
     {
       "id": "A3",
-      "action": "Confirm both speakers' availability",
-      "owner": "Marco",
-      "due": "2025-11-07",
-      "source": "Marco will confirm both speakers' availability by 7 November."
+      "action": "Test the contact form after the change",
+      "owner": "Kofi",
+      "due": "not stated",
+      "source": "Kofi will test the form after the change."
     },
     {
       "id": "A4",
-      "action": "Draft the speaker invitation email and share it with Marco",
-      "owner": "Lena",
-      "due": "not stated",
-      "source": "Lena will draft the speaker invitation email and share it with Marco before he contacts them."
+      "action": "Draft the December newsletter",
+      "owner": "Dana",
+      "due": "2025-12-01",
+      "source": "Dana will draft the December newsletter by 1 December."
     }
   ],
   "open_questions": []

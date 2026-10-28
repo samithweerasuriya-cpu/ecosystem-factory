@@ -1,26 +1,47 @@
 {
-  "job_id": "draft-n1",
+  "job_id": "draft-n2",
   "items": [
     {
       "id": "A1",
-      "action": "Send the revised budget to the team",
-      "owner": "Priya",
-      "due": "2025-10-31",
-      "source": "Priya will send the revised budget by Friday."
+      "action": "Order the seed trays",
+      "owner": "Ana",
+      "due": "2025-11-05",
+      "source": "Ana will order the seed trays by 5 November."
     },
     {
       "id": "A2",
-      "action": "Book the venue for the offsite",
-      "owner": "unassigned",
-      "due": "not stated",
-      "source": "Someone still needs to book the venue for the offsite."
+      "action": "Fix the shed lock",
+      "owner": "Joel",
+      "due": "2025-11-07",
+      "source": "Joel will fix the shed lock."
     },
     {
       "id": "A3",
-      "action": "Confirm both speakers' availability",
-      "owner": "Marco",
+      "action": "Call the water company about the leaking tap",
+      "owner": "unassigned",
+      "due": "before the first frost",
+      "source": "Someone needs to call the water company about the leaking tap before the first frost."
+    },
+    {
+      "id": "A4",
+      "action": "Update the volunteer rota for the winter months",
+      "owner": "Mei",
+      "due": "2025-11-12",
+      "source": "Mei offered to update the volunteer rota for the winter months, and the group accepted."
+    },
+    {
+      "id": "A5",
+      "action": "Send the watering schedule to members",
+      "owner": "Ana",
       "due": "2025-11-07",
-      "source": "Marco will confirm both speakers' availability by 7 November."
+      "source": "Ana will send the watering schedule to members by Friday."
+    },
+    {
+      "id": "A6",
+      "action": "Send the updated watering schedule to the council",
+      "owner": "Ana",
+      "due": "2025-11-20",
+      "source": "Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season."
     }
   ],
   "open_questions": []

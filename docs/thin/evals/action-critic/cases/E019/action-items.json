@@ -1,47 +1,33 @@
 {
-  "job_id": "draft-n2",
+  "job_id": "draft-n3",
   "items": [
     {
       "id": "A1",
-      "action": "Order the seed trays",
-      "owner": "Ana",
-      "due": "2025-11-05",
-      "source": "Ana will order the seed trays by 5 November."
+      "action": "Update the events page",
+      "owner": "Dana",
+      "due": "2025-11-10",
+      "source": "Dana will update the events page by 10 November."
     },
     {
       "id": "A2",
-      "action": "Fix the shed lock",
-      "owner": "Joel",
+      "action": "Ask the hosting provider to change the contact form's destination address",
+      "owner": "Elif",
       "due": "not stated",
-      "source": "Joel will fix the shed lock."
+      "source": "Elif will ask the hosting provider to change the form's destination address."
     },
     {
       "id": "A3",
-      "action": "Call the water company about the leaking tap",
-      "owner": "unassigned",
+      "action": "Test the contact form after the change",
+      "owner": "Kofi",
       "due": "not stated",
-      "source": "Someone needs to call the water company about the leaking tap before the first frost."
+      "source": "Kofi will test the form after the change."
     },
     {
       "id": "A4",
-      "action": "Update the volunteer rota for the winter months",
-      "owner": "Mei",
-      "due": "2025-11-12",
-      "source": "Mei offered to update the volunteer rota for the winter months, and the group accepted."
-    },
-    {
-      "id": "A5",
-      "action": "Send the watering schedule to members",
-      "owner": "Ana",
-      "due": "2025-11-07",
-      "source": "Ana will send the watering schedule to members by Friday."
-    },
-    {
-      "id": "A6",
-      "action": "Send the updated watering schedule to the council",
-      "owner": "Ana",
-      "due": "2025-11-20",
-      "source": "Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season."
+      "action": "Draft the December newsletter",
+      "owner": "Dana",
+      "due": "2025-12-01",
+      "source": "Dana will draft the December newsletter by 1 December."
     }
   ],
   "open_questions": []

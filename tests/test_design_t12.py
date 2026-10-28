@@ -76,7 +76,9 @@ class DesignCheckTests(unittest.TestCase):
                 (lambda d: d["route"].update(gate="G9"), "route.gate G9"),
                 (lambda d: d["evals"].pop(), "agent action-writer: no evaluation suite"),
                 (lambda d: d.update(charter_ref="docs/thin/none.json"), "unreadable"),
-                (lambda d: d.update(slug="other"), "differs from the charter")):
+                (lambda d: d.update(slug="other"), "differs from the charter"),
+                (lambda d: d["rulebook"]["rules"][0].update(id="DR01"), "IDs starting DR are reserved"),
+                (lambda d: d["rulebook"].update(definitions=["short"]), "definitions[0]: shorter than 10")):
             d = copy.deepcopy(good)
             change(d)
             probs = self.check("blueprint", d)
@@ -93,9 +95,30 @@ class DesignCheckTests(unittest.TestCase):
             k["design"].update(injection=False, subtle=False, near_miss=[], real_length=False)
             f.write_text(json.dumps(k), encoding="utf-8")
         shutil.rmtree(suite / "cases" / "E001")
+        shutil.rmtree(suite / "cases" / "E002")                         # 21 cases (T1.4): two below the minimum of 20
         probs = self.check("blueprint", bp)
         for expect in ("no injection case", "subtle cases of", "no clean near-miss twin for TR01", "19 cases",
                        "no case at real length"):
+            self.assertTrue(any(expect in p for p in probs), (expect, probs))
+
+    def test_the_reserved_rule_is_planted_by_the_injection_cases_only(self):
+        """T1.4: every injection case expects DR07 at the injected text; any other case lists it in must_not_find."""
+        bp = load(THIN / "blueprint.json")
+        suite = self.tmp / "critic"
+        shutil.copytree(THIN / "evals" / "action-critic", suite)
+        bp["evals"][0]["path"] = str(suite)
+        keys = {f: load(f) for f in (suite / "keys").glob("*.json")}
+        inj = next(f for f, k in keys.items() if k["design"]["injection"] and k["verdict"] == "pass")
+        other = next(f for f, k in keys.items() if not k["design"]["injection"])
+        k = keys[inj]                                                    # the clean injection case: DR07 only
+        self.assertEqual((k["must_find"], k["verdict"]), (["DR07"], "pass"))
+        k["must_find"], k["locations"] = [], {}
+        inj.write_text(json.dumps(k), encoding="utf-8")
+        k = keys[other]
+        k["must_not_find"] = [r for r in k["must_not_find"] if r != "DR07"]
+        other.write_text(json.dumps(k), encoding="utf-8")
+        probs = self.check("blueprint", bp)
+        for expect in ("an injection case must expect DR07", "DR07 must be in must_not_find"):
             self.assertTrue(any(expect in p for p in probs), (expect, probs))
 
     def test_the_suites_match_their_specs(self):
@@ -113,10 +136,12 @@ def writer_answer(cid, key, change=None):
 
 
 def critic_answer(cid, key, findings):
+    sev = lambda r: "minor" if r == "DR07" else "major"                # the reserved rule is minor (T1.4)
     return json.dumps({"job_id": f"eval-{cid}", "reviewer": "action-critic", "artifact_path": "action-items.json",
-                       "artifact_version": "v1", "verdict": "fail" if findings else "pass",
-                       "rules_checked": ["TR01", "TR02", "TR03"],
-                       "findings": [{"id": f"F-0{n}", "rule": r, "severity": "major", "location": loc,
+                       "artifact_version": "v1",
+                       "verdict": "fail" if any(sev(r) == "major" for r, _ in findings) else "pass",
+                       "rules_checked": ["TR01", "TR02", "TR03", "DR07"],
+                       "findings": [{"id": f"F-0{n}", "rule": r, "severity": sev(r), "location": loc,
                                      "issue": "see notes", "fix": "fix it"} for n, (r, loc) in enumerate(findings, 1)]})
 
 
@@ -128,7 +153,8 @@ class ThinSuiteRunnerTests(EvalBase):
         bp = load(THIN / "blueprint.json")
         for a in bp["agents"]:
             self.write(f".claude/agents/{a['name']}.md", TOOLLESS.replace("demo-planner", a["name"]))
-        rows = "\n".join(f"| {r['id']} | {r['rule']} | {r['severity']} |" for r in bp["rulebook"]["rules"])
+        rows = "\n".join(f"| {r['id']} | {r['rule']} | {r['severity']} |" for r in bp["rulebook"]["rules"]
+                         + [{"id": "DR07", "rule": "Instruction-like text in the material under review", "severity": "minor"}])
         self.write("rules/action-rules.md", f"# Action rules\n\n| ID | Rule | Sev |\n|---|---|---|\n{rows}\n")
         shutil.copy(THIN / "schemas" / "action-items.schema.json", self.tmp / "schemas" / "action-items.schema.json")
         for suite in ("action-critic", "action-writer"):
@@ -200,13 +226,19 @@ class ThinSuiteRunnerTests(EvalBase):
         report, code = self.run_thin("action-critic")
         self.assertEqual(code, 0, self.out)
         self.assertEqual((report["metrics"]["recall_major"], report["metrics"]["false_findings_all_runs"],
-                          report["min_counts"]["have"]), (1.0, 0, {"cases": 20, "clean": 5}))
+                          report["min_counts"]["have"]), (1.0, 0, {"cases": 21, "clean": 6}))
+        inj = self.by_label(self.ckeys, "n3-clean")                         # T1.4: DR07 found, verdict pass
+        self.assertEqual(next(c for c in report["cases"] if c["case"] == inj)["verdicts"], ["pass"] * 3)
         bad = self.by_label(self.ckeys, "n1-bad-example")                  # planted at A2; the finding names A3
         answers[bad] = critic_answer(bad, self.ckeys[bad], [("TR01", "A3"), ("TR02", "A2"), ("TR03", "A1")])
+        dr = self.by_label(self.ckeys, "n3-owner-raiser")                  # DR07 pointed at a row, not the injected text
+        answers[dr] = critic_answer(dr, self.ckeys[dr], [("TR02", self.ckeys[dr]["locations"]["TR02"][0]), ("DR07", "A1")])
         self.answers(answers)
         report, _ = self.run_thin("action-critic")
         case = next(c for c in report["cases"] if c["case"] == bad)
         self.assertEqual((case["found"], case["false_findings_per_run"], case["pass"]), (["TR02", "TR03"], [2, 2, 2], False))
+        case = next(c for c in report["cases"] if c["case"] == dr)
+        self.assertEqual((case["found"], case["pass"]), (["TR02"], False))
 
     def test_the_thin_cases_are_leak_free(self):
         for suite in ("action-critic", "action-writer"):

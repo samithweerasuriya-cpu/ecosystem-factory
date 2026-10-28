@@ -1,5 +1,6 @@
 {
-  "_doc": "Pinned model for every headless agent call (engine/agent_call.py). An agent uses \"default\" unless its file names another model (\"inherit\" or no model means the default). Evaluation reports record this model and the CLI version; a change makes earlier reports stale for locking (evals/run_evals.py stale). claude_command: the CLI as an argument list.",
+  "_doc": "Pinned model for every headless agent call (engine/agent_call.py). An agent uses \"default\" unless its file names another model (\"inherit\" or no model means the default). Evaluation reports record this model and the CLI version; a change makes earlier reports stale for locking (evals/run_evals.py stale). claude_command: the CLI as an argument list. discrimination_model (T1.4): the weaker model a new suite runs on once (evals/run_evals.py --discrimination; suite design rule 5); its reports never count for locking and never make other reports stale or current.",
   "default": "claude-opus-5-5",
+  "discrimination_model": "claude-haiku-5-5",
   "claude_command": ["claude"]
 }

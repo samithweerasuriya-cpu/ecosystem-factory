@@ -207,7 +207,28 @@ def check_cli(ctx):
             out.append(result("cli_match", "tools", WARN, f"the desktop app runs Claude Code {label}, PATH claude is "
                               f"{'.'.join(map(str, path_v))}; evaluations and headless calls use PATH claude",
                               None, {"desktop": label, "path": ".".join(map(str, path_v))}))
+    out.append(check_empty_tools(ctx, [v for v in (path_v, desk[-1] if desk else None) if v]))
     return out
+
+
+def check_empty_tools(ctx, installed):
+    """T1.4: `tools: []` was verified live on one CLI version (config/doctor.json); warn on any other."""
+    agents = ctx.root / ".claude" / "agents"
+    toolless = [f.name for f in sorted(agents.glob("*.md")) if re.search(r"(?m)^tools: \[\]\s*$", f.read_text(
+        encoding="utf-8", errors="replace"))] if agents.is_dir() else []
+    if not toolless:
+        return result("empty_tools", "tools", INFO, "no tool-less agents")
+    verified = version_tuple(load(ctx.root / "config" / "doctor.json").get("empty_tools_verified_cli"))
+    label = lambda v: ".".join(map(str, v))
+    if verified is None:
+        return result("empty_tools", "tools", WARN, "tools [] has not been verified live on any CLI version",
+                      "run the empty-tools probe and record its CLI version", {"verified": None})
+    other = sorted({label(v) for v in installed if v != verified})
+    if other or not installed:
+        return result("empty_tools", "tools", WARN, f"tools [] was verified on CLI {label(verified)}; installed: "
+                      f"{', '.join(other) or 'unknown'} (the generator refuses tool-less agents until the probe is re-run)",
+                      "re-run the empty-tools probe on the installed CLI", {"verified": label(verified), "installed": other})
+    return result("empty_tools", "tools", OK, f"tools [] verified on the installed CLI {label(verified)}")
 
 
 def check_auth(ctx):

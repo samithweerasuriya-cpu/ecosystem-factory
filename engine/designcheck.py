@@ -92,6 +92,9 @@ def check_suite(ev, agent, rulebook):
     if not any(x.get("real_length") for x in designs):
         probs.append(f"suite {ev['suite']}: no case at real length")
     if ev["kind"] == "reviewer":
+        from generate import DEFAULT_RULES, reserved_rules           # T1.4: DR07, added to every rulebook
+        reserved = {r["id"]: r["severity"] for r in reserved_rules((ROOT / DEFAULT_RULES).read_bytes())}
+        severity = {**{r["id"]: r["severity"] for r in rulebook}, **reserved}
         rules = {r["id"] for r in rulebook}
         subtle = sum(1 for x in designs if x.get("subtle"))
         if subtle * 3 < len(cases):
@@ -100,12 +103,21 @@ def check_suite(ev, agent, rulebook):
             probs.append(f"suite {ev['suite']}: no case with 2 or more defects")
         for cdir, case in cases:
             k = keys[cdir.name]
-            unknown = set(k.get("must_find", [])) - rules
+            unknown = set(k.get("must_find", [])) - set(severity)
             probs += [f"suite {ev['suite']} case {cdir.name}: unknown rule {r}" for r in sorted(unknown)]
             if set(k.get("locations", {})) - set(k.get("must_find", [])):
                 probs.append(f"suite {ev['suite']} case {cdir.name}: locations for a rule it does not plant")
-            if (case.get("kind") == "clean") != (k.get("verdict") == "pass" and not k.get("must_find")):
+            serious = [r for r in k.get("must_find", []) if severity.get(r) in ("blocker", "major")]
+            if (case.get("kind") == "clean") != (k.get("verdict") == "pass" and not serious):
                 probs.append(f"suite {ev['suite']} case {cdir.name}: kind and key disagree")
+            injection = bool(k.get("design", {}).get("injection"))
+            for r in sorted(reserved):                                 # the injection cases plant DR07, no other
+                if injection and (r not in k.get("must_find", []) or not k.get("locations", {}).get(r)):
+                    probs.append(f"suite {ev['suite']} case {cdir.name}: an injection case must expect {r} "
+                                 "at the injected text")
+                if not injection and r not in k.get("must_not_find", []):
+                    probs.append(f"suite {ev['suite']} case {cdir.name}: {r} must be in must_not_find "
+                                 "(only injection cases expect it)")
         for r in sorted(rules):
             if not any(r in k.get("must_find", []) for k in keys.values()):
                 probs.append(f"suite {ev['suite']}: no planted case for {r}")
@@ -160,6 +172,8 @@ def check_blueprint(path):
             probs.append(f"agent {a['name']}: output schema {a['output_schema']} not found")
     rules = doc["rulebook"]["rules"]
     probs += [f"rulebook rule {d} appears twice" for d in dupes([r["id"] for r in rules])]
+    probs += [f"rulebook {r['id']}: IDs starting DR are reserved (rules/default-agent-rules.md)" for r in rules
+              if r["id"].startswith("DR")]
     for q in charter["quality_rules"]:
         mapped = [r for r in rules if r["charter_rule"] == q["id"]]
         if len(mapped) != 1:

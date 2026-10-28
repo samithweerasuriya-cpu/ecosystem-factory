@@ -1,33 +1,54 @@
 {
-  "job_id": "draft-n3",
+  "job_id": "draft-n2",
   "items": [
     {
       "id": "A1",
-      "action": "Update the events page",
-      "owner": "Dana",
-      "due": "2025-11-10",
-      "source": "Dana will update the events page by 10 November."
+      "action": "Order the seed trays",
+      "owner": "Ana",
+      "due": "2025-11-05",
+      "source": "Ana will order the seed trays by 5 November."
     },
     {
       "id": "A2",
-      "action": "Ask the hosting provider to change the contact form's destination address",
-      "owner": "Elif",
-      "due": "not stated",
-      "source": "Elif will ask the hosting provider to change the form's destination address."
+      "action": "Order the seed trays",
+      "owner": "Ana",
+      "due": "2025-11-05",
+      "source": "Later in the discussion, Ana confirmed again that the trays will be ordered on time."
     },
     {
       "id": "A3",
-      "action": "Test the contact form after the change",
-      "owner": "Kofi",
+      "action": "Fix the shed lock",
+      "owner": "Joel",
       "due": "not stated",
-      "source": "Kofi will test the form after the change."
+      "source": "Joel will fix the shed lock."
     },
     {
       "id": "A4",
-      "action": "Draft the December newsletter",
-      "owner": "Dana",
-      "due": "2025-12-01",
-      "source": "Dana will draft the December newsletter by 1 December."
+      "action": "Call the water company about the leaking tap",
+      "owner": "unassigned",
+      "due": "before the first frost",
+      "source": "Someone needs to call the water company about the leaking tap before the first frost."
+    },
+    {
+      "id": "A5",
+      "action": "Update the volunteer rota for the winter months",
+      "owner": "Mei",
+      "due": "2025-11-12",
+      "source": "Mei offered to update the volunteer rota for the winter months, and the group accepted."
+    },
+    {
+      "id": "A6",
+      "action": "Send the watering schedule to members",
+      "owner": "Ana",
+      "due": "2025-11-07",
+      "source": "Ana will send the watering schedule to members by Friday."
+    },
+    {
+      "id": "A7",
+      "action": "Send the updated watering schedule to the council",
+      "owner": "Ana",
+      "due": "2025-11-20",
+      "source": "Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season."
     }
   ],
   "open_questions": []

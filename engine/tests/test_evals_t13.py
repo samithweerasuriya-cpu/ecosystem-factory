@@ -134,12 +134,14 @@ class RunnerTests(EvalBase):
         self.assertEqual(rep["metrics"]["recall_per_rule"]["CC01"], 0.0)    # 1 of 3
 
     def test_clean_cases_measure_false_fails(self):
-        self.respond(E001=answer("E001", ["CC06"], "fail", severity="minor"))  # minor finding, yet verdict fail
+        # T1.4: a minor finding with verdict fail is invalid output (a minor never fails the verdict), not a false fail.
+        self.respond(E001=answer("E001", ["CC06"], "fail", severity="minor"))
         rep, _ = self.run_suite()
-        self.assertEqual(rep["metrics"]["invalid_runs"], 0)
-        self.assertEqual(rep["metrics"]["false_fail_rate"], 0.5)
-        self.respond(E001=answer("E001", ["CC03"], "fail"))                     # a must_not_find rule
+        self.assertEqual((rep["metrics"]["invalid_runs"], rep["metrics"]["false_fail_rate"]), (3, 0.0))
+        self.assertFalse(next(c for c in rep["cases"] if c["case"] == "E001")["pass"])
+        self.respond(E001=answer("E001", ["CC03"], "fail"))                     # a must_not_find rule: a false fail
         rep, _ = self.run_suite(use_cache=False)
+        self.assertEqual((rep["metrics"]["invalid_runs"], rep["metrics"]["false_fail_rate"]), (0, 0.5))
         self.assertFalse(next(c for c in rep["cases"] if c["case"] == "E001")["pass"])
 
 
@@ -289,6 +291,99 @@ class LockRuleTests(EvalBase):
         self.assertEqual(self.re.main(["stale"]), 1)
         self.run_suite()
         self.assertEqual(self.re.main(["stale"]), 0)
+
+
+class DiscriminationTests(EvalBase):
+    """T1.4 (suite design rule 5): one run per case on config/models.json discrimination_model, after a model check;
+    those reports never count for lock and never make another report stale or current."""
+    WEAK = "claude-haiku-5-5"
+
+    def problems(self):
+        return self.ec.lock_problems(cli=CLI)
+
+    def test_one_run_per_case_on_the_weaker_model_after_a_model_check(self):
+        rep, code = self.run_suite("discrimination")
+        calls = self.calls()
+        self.assertEqual(len(calls), 8)                                    # the model check, then 7 cases x 1 run
+        self.assertTrue(all(c["argv"][c["argv"].index("--model") + 1] == self.WEAK for c in calls))
+        self.assertEqual((code, rep["mode"], rep["model"], rep["counts_for_lock"], rep["too_easy"]),
+                         (0, "discrimination", self.WEAK, False, True))
+        self.assertIn("TOO EASY", "\n".join(self.out))
+
+    def test_a_weaker_model_that_fails_a_case_shows_the_suite_discriminates(self):
+        self.respond(E002=answer("E002", [], "pass"))
+        rep, code = self.run_suite("discrimination")
+        self.assertEqual((code, rep["too_easy"]), (0, False))
+        self.assertIn("failed 1 of 7 case(s)", "\n".join(self.out))
+
+    def test_the_model_check_refuses_a_model_the_cli_does_not_run_exactly(self):
+        os.environ["FAKE_CLAUDE_MODEL_REPORTED"] = self.WEAK + "-20261001"
+        with self.assertRaisesRegex(self.re.Refused, "the CLI reported"):
+            self.run_suite("discrimination")
+        os.environ.pop("FAKE_CLAUDE_MODEL_REPORTED")
+        os.environ["FAKE_CLAUDE_MODE"] = "error"
+        with self.assertRaisesRegex(self.re.Refused, "did not run model"):
+            self.run_suite("discrimination")
+        self.assertEqual((len(self.calls()), self.reports()), (2, []))  # no case ran, no report
+
+    def test_the_model_must_be_set_and_weaker_than_the_pinned_one(self):
+        models = json.loads((self.tmp / "config/models.json").read_text(encoding="utf-8"))
+        for value in (None, "", models["default"]):
+            models["discrimination_model"] = value
+            self.dump("config/models.json", models)
+            with self.assertRaises(self.lc.LabError):
+                self.run_suite("discrimination", estimate_only=True)
+
+    def test_never_counts_for_lock_and_never_changes_another_reports_standing(self):
+        self.run_suite("discrimination")
+        self.assertIn("no evaluation reports", self.problems()[0])         # alone, it is not a report at all
+        self.run_suite()
+        self.assertEqual(self.problems(), [])
+        self.run_suite("discrimination", use_cache=False)                  # newer, yet the full report stays current
+        self.run_suite("discrimination", use_cache=False, only={"E002"})   # a partial one is ignored too
+        self.assertEqual(self.problems(), [])
+        rb = self.tmp / "rules/calibration-critic.md"
+        rb.write_text(rb.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        before = self.problems()
+        self.assertTrue(before)
+        self.run_suite("discrimination", use_cache=False)                  # on the edited rulebook: still stale
+        self.assertEqual(self.problems(), before)
+        modes = {json.loads(f.read_text(encoding="utf-8"))["mode"] for f in self.reports()}
+        self.assertEqual(modes, {"discrimination", "discrimination-partial", "full"})
+
+
+class ReportAndVerdictTests(EvalBase):
+    def test_a_report_is_never_overwritten_within_the_same_second(self):
+        import datetime as real
+
+        class Frozen(real.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return real.datetime(2026, 10, 28, 6, 0, 0, tzinfo=tz)
+        self.re.datetime = type("dt", (), {"datetime": Frozen, "timezone": real.timezone})
+        self.run_suite("quick")
+        self.run_suite("quick", use_cache=False)
+        self.run_suite("quick", use_cache=False)
+        names = sorted(f.name for f in self.reports())
+        self.assertEqual(names, ["20261028T060000Z-calibration-critic-quick-2.json",
+                                 "20261028T060000Z-calibration-critic-quick-3.json",
+                                 "20261028T060000Z-calibration-critic-quick.json"])
+
+    def test_a_minor_finding_never_fails_the_verdict(self):
+        """T1.4: the reserved DR07 is minor; a clean list with a DR07 finding passes, and 'fail' needs a blocker or major."""
+        schema = json.loads((self.tmp / "schemas/findings.schema.json").read_text(encoding="utf-8"))
+        doc = json.loads(answer("E001", ["DR07"], "pass", severity="minor"))
+        rulebook = {"DR07": "minor", "CC01": "major"}
+        self.assertEqual(self.re.vf.validate(doc, schema, rulebook, {}), [])
+        doc["verdict"] = "fail"
+        self.assertTrue(any("minor findings never fail the verdict" in e
+                            for e in self.re.vf.validate(doc, schema, rulebook, {})))
+        doc["findings"][0]["severity"] = "major"                         # the lock holds DR07 at minor
+        self.assertTrue(any("must be 'minor'" in e for e in self.re.vf.validate(doc, schema, rulebook, {})))
+        key = {"must_find": ["DR07"], "must_not_find": ["CC01"], "verdict": "pass"}
+        ok = {"valid": True, "found": ["DR07"], "verdict": "pass"}
+        self.assertTrue(self.re.run_passes(ok, key))                      # the clean injection case passes
+        self.assertFalse(self.re.run_passes({**ok, "found": []}, key))    # missing DR07 is a miss
 
 
 class UsagePendingTests(UsageBase):

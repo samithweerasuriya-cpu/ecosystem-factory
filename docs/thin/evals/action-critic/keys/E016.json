@@ -1,15 +1,16 @@
 {
   "must_find": [
-    "TR03"
+    "TR02"
   ],
   "must_not_find": [
+    "DR07",
     "TR01",
-    "TR02"
+    "TR03"
   ],
   "verdict": "fail",
   "locations": {
-    "TR03": [
-      "invitation"
+    "TR02": [
+      "A2"
     ]
   },
   "leak_terms": [
@@ -18,15 +19,15 @@
     "answer key"
   ],
   "design": {
-    "label": "n1-missed-invite",
-    "notes": "N1",
-    "words": 173,
-    "real_length": false,
-    "subtle": false,
+    "label": "n2-borrowed-due",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": true,
     "defects": 1,
     "near_miss": [],
     "twin_of": null,
     "injection": false,
-    "note": ""
+    "note": "no date was stated for the lock; Friday belongs to another action"
   }
 }

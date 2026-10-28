@@ -18,7 +18,7 @@ Each line is **OK**, **WARN** (worth knowing; work can go on), **FAIL** (with a 
 
 | Group | Checks |
 |---|---|
-| Tools | venv Python and `jsonschema`; the `py -3` launcher the hooks run with; Git, a GitHub noreply commit address, no remote; the PATH `claude` and the desktop app's own Claude Code copy at or above `min_cli` (`config/doctor.json`); a claude.ai login; no `ANTHROPIC_API_KEY` or `apiKeyHelper` anywhere; automatic CLI updates (WARN while on) |
+| Tools | venv Python and `jsonschema`; the `py -3` launcher the hooks run with; Git, a GitHub noreply commit address, no remote; the PATH `claude` and the desktop app's own Claude Code copy at or above `min_cli` (`config/doctor.json`); a claude.ai login; no `ANTHROPIC_API_KEY` or `apiKeyHelper` anywhere; automatic CLI updates (WARN while on); tool-less agents (`tools: []`) checked live on the installed CLI (`empty_tools_verified_cli` in `config/doctor.json`; WARN when never verified or verified on another version, and the generator then refuses tool-less agents) |
 | Hooks | both launchers and both real hooks present, compiling and matching `engine/hooks/PINS.json`; registered in `.claude/settings.json` with `onFailure: "block"` |
 | User level | user-level agents, skills, commands, CLAUDE.md and settings (WARN, names and key names only); user skills that shadow project commands or skills; CLAUDE.md files above the run folders, the repo or the ecosystems folder |
 | Local config | `config/protected-paths.local.json` while `vendor/` exists (factory only); whether markitdown is configured |

@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.14.0 (2026-10-28)
+
+First real job (T1.4): evaluations to thresholds, a weaker-model check, then one job through the gate.
+
+- Job handoffs carry the rules inline: a tool-less agent got its rulebook only as a path it could not open, so the first real critic reviewed without it. `agent_call.inline_inputs` now pastes every RULES file; a missing one stops the call, and a reviewer call whose handoff lacks its rulebook is refused. The author's draft and revise steps get the route's reviewer rulebooks too, as in its evaluations (`labcore.author_rules`).
+- Reserved rule DR07 (instruction-like text in the material under review, minor) from `rules/default-agent-rules.md`, added to every generated rulebook; blueprint rule IDs starting `DR` are refused; every injection case expects DR07 and no other case may. A reviewer's verdict is fail if and only if it has a blocker or major finding (`validate_findings`).
+- The generator writes the blueprint's rulebook `definitions` under the rule table and a "Severity by rule" line into every reviewer; it sets each new ecosystem's Git identity from the factory's repo-local noreply address (refused without one).
+- `tools: []` counts only on the CLI version it was verified on (`config/doctor.json` `empty_tools_verified_cli`; still null: the T1.4 probe failed); the generator refuses tool-less agents on another version and the doctor warns.
+- `run_evals.py --discrimination`: one run per case on `config/models.json` `discrimination_model`, after a check call proves the CLI runs exactly that model; the lock rule never reads these reports. Reports are never overwritten.
+- Usage ceiling set from the job's measured figures (factory 350,000 tokens, 20 agent minutes, 20,000 per call).
+
 ## 0.13.0 (2026-10-27)
 
 Headless answers saved and checked by script (T1.3 follow-up; pulled forward from T1.5).

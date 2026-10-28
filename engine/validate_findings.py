@@ -2,7 +2,8 @@
 """Validate reviewer findings files against schemas/findings.schema.json (stdlib only).
 
 Derived from the author's earlier private lab. Schema checks via engine/schemacheck.py, plus
-explicit checks with clear messages: blocker/major => verdict fail, unique finding ids.
+explicit checks with clear messages: verdict fail if and only if there is a blocker/major finding
+(T1.4: a minor finding, such as the reserved DR07, never fails the verdict), unique finding ids.
 Severity lock: each reviewer's rulebook is named in config/reviewers.json. A finding's severity
 must equal the rulebook severity for its rule ID, unless the approver's gate feedback for that
 job (jobs/<job>/gates/human-feedback-*.md, written only by engine/gate.py; a feedback file in any other
@@ -100,6 +101,8 @@ def semantic(doc):
                if isinstance(f, dict) and f.get("severity") in ("blocker", "major")]
     if serious and doc.get("verdict") != "fail":
         errs.append(f"$.verdict: blocker/major findings {serious} require verdict 'fail'")
+    if not serious and doc.get("verdict") == "fail":                     # T1.4: minors (e.g. DR07) never fail
+        errs.append("$.verdict: 'fail' needs a blocker or major finding; minor findings never fail the verdict")
     ids = [f.get("id") for f in findings if isinstance(f, dict)]
     dupes = sorted({i for i in ids if i is not None and ids.count(i) > 1})
     if dupes:

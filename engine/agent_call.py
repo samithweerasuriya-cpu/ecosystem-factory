@@ -99,6 +99,16 @@ def pinned_model():
     return m.strip()
 
 
+def discrimination_model():
+    """The weaker model for suite discrimination checks (config/models.json); never the pinned model."""
+    m = models_config().get("discrimination_model")
+    if not (isinstance(m, str) and m.strip()):
+        raise lc.LabError("no discrimination model: set \"discrimination_model\" in config/models.json")
+    if m.strip() == pinned_model():
+        raise lc.LabError("discrimination_model is the pinned model; it must be a weaker one")
+    return m.strip()
+
+
 def agent_model(agent):
     m = agent.get("model")
     return pinned_model() if not m or m == "inherit" else m
@@ -176,13 +186,14 @@ def parse_output(stdout):
     return d if isinstance(d, dict) and d.get("type") == "result" else None
 
 
-def call(agent, prompt, workspace=None, timeout=DEFAULT_TIMEOUT, cmd=None):
-    """Run one agent once. `agent` is parse_agent()'s dict. Returns a result dict (see module doc)."""
+def call(agent, prompt, workspace=None, timeout=DEFAULT_TIMEOUT, cmd=None, model=None):
+    """Run one agent once. `agent` is parse_agent()'s dict; `model` overrides its model (discrimination runs only).
+    Returns a result dict (see module doc)."""
     if agent["tools"]:
         if workspace is None or not guarded_workspace(workspace):
             raise lc.LabError(f"agent {agent['name']} has tools {agent['tools']}: it runs only in a workspace "
                               "whose .claude/settings.json registers the guard hook")
-    model = agent_model(agent)
+    model = model or agent_model(agent)
     with tempfile.TemporaryDirectory(prefix="agentcall-") as tmp:
         tmp = Path(tmp)
         (tmp / "prompt").mkdir()
@@ -228,8 +239,15 @@ def usage_of(d):
 # ---------- job calls ----------
 
 def inline_inputs(h):
-    """The handoff's input files, appended for an agent without tools (it can't open paths)."""
+    """The handoff's rule files and input files, appended for an agent without tools (it can't open paths).
+    T1.4: the rules were listed by path only, so a tool-less critic reviewed without its rulebook; a listed
+    rule file that is missing now stops the call (an input may be missing, e.g. an empty folder)."""
     parts = []
+    for p in h.get("rules", []):
+        f = lc.ROOT / p
+        if not f.is_file():
+            raise lc.LabError(f"rule file {p} in the handoff is missing: no agent call without its rules")
+        parts.append(f"=== rules: {p} ===\n{f.read_text(encoding='utf-8', errors='replace')}")
     for i in h["inputs"]:
         p = lc.ROOT / i["path"]
         files = sorted(f for f in p.rglob("*") if f.is_file()) if p.is_dir() else ([p] if p.is_file() else [])
@@ -376,6 +394,9 @@ def call_job(job_id, agent_file, item=None, workspace=None, timeout=DEFAULT_TIME
         raise lc.LabError(f"{job_id} is waiting on {stage!r}, not {agent['name']!r}")
     spec = output_spec(agent["name"])
     h, text = lc.handoff(job_id, item, headless=True)
+    if spec["findings"] and lc.rel(spec["rulebook"]) not in h["rules"]:     # T1.4: never review without the rules
+        raise lc.LabError(f"the handoff for reviewer {agent['name']} does not carry its rulebook "
+                          f"{lc.rel(spec['rulebook'])}: no call")
     base = text if agent["tools"] else text + "\nINPUT FILE CONTENTS (you have no tools; everything is here):\n\n" + inline_inputs(h)
     prompt = base
     for attempt in (1, 2):

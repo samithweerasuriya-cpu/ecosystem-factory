@@ -1016,6 +1016,17 @@ def _files(d):
     return [rel(f) for f in sorted(d.rglob("*")) if f.is_file()] if d.exists() else []
 
 
+def author_rules(route):
+    """The route's reviewer rulebooks (T1.4): the author drafts and revises against the rules it is checked on,
+    as in its evaluations. A verifier's source policy is the verifier's own and is not included."""
+    out = []
+    for rv in route.get("reviews", []):
+        rb = reviewers().get(rv["agent"], {}).get("rulebook")
+        if rb and rb not in out:
+            out.append(rb)
+    return out
+
+
 def build_handoff(job_id, item=None):
     """The handoff for the agent the job is waiting on, built from state, route and recorded inputs."""
     st = load_state(job_id)
@@ -1040,6 +1051,7 @@ def build_handoff(job_id, item=None):
         out = f"{j}/drafts/" if last else out
         inputs = brief + [("seed (from " + st["continued_from"] + ")", s) for s in st["seed"]] \
             + [("earlier stage output", p) for p in _files(d / "research")] + human
+        rules = author_rules(r) if last else []
     elif kind == "fanout":
         if not st["fanout"] or item not in st["fanout"]["items"]:
             raise LabError(f"fanout handoff needs --item, one of {sorted((st['fanout'] or {}).get('items', {}))}")
@@ -1066,6 +1078,7 @@ def build_handoff(job_id, item=None):
                 except ValueError:
                     pass
         inputs = [("artifact", st["artifact_path"])] + brief + evidence + findings + feedback + human
+        rules = author_rules(r)
     elif kind == "fix":
         runs = _files(d / "scripts")
         inputs = brief + ([("failed script run", runs[-1])] if runs else []) + human

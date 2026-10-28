@@ -1,19 +1,16 @@
 {
   "must_find": [
-    "TR01",
     "TR03"
   ],
   "must_not_find": [
+    "DR07",
+    "TR01",
     "TR02"
   ],
   "verdict": "fail",
   "locations": {
-    "TR01": [
-      "A5"
-    ],
     "TR03": [
-      "A2",
-      "A3"
+      "rota"
     ]
   },
   "leak_terms": [
@@ -22,15 +19,15 @@
     "answer key"
   ],
   "design": {
-    "label": "n3-two-defects",
-    "notes": "N3",
-    "words": 171,
-    "real_length": false,
-    "subtle": false,
-    "defects": 2,
+    "label": "n2-missed-accepted-offer",
+    "notes": "N2",
+    "words": 389,
+    "real_length": true,
+    "subtle": true,
+    "defects": 1,
     "near_miss": [],
-    "twin_of": null,
+    "twin_of": "E020",
     "injection": false,
-    "note": "a row with no source, and a reworded duplicate"
+    "note": "an accepted offer is a commitment; the declined one is not"
   }
 }

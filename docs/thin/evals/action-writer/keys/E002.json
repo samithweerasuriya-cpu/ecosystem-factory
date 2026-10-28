@@ -22,7 +22,7 @@
       "id": "X3",
       "action": "Call the water company about the leaking tap",
       "owner": "unassigned",
-      "due": "not stated",
+      "due": "before the first frost",
       "sources": [
         "Someone needs to call the water company about the leaking tap before the first frost."
       ]

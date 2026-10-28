@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Evaluation runner (stdlib only, T0.13). Scores an agent on its suite's cases, headless.
 
-  python evals/run_evals.py run <suite> [--quick | --smoke] [--estimate-only] [--no-cache] [--cases E001,E002]
+  python evals/run_evals.py run <suite> [--quick | --smoke | --discrimination] [--estimate-only] [--no-cache]
+                                [--cases E001,E002]
   python evals/run_evals.py stale          # every reason gate.py lock would refuse now (exit 1 if any)
 
 A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/evalcheck.py.
@@ -13,7 +14,10 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   config/caps.json ("evals"), the approver confirms in their own terminal; the run stops at its
   token ceiling or its call cap.
 - Modes: full (3 runs per case; counts for lock), smoke (the first case, 3 runs; counts only for
-  framework coverage), quick (1 run per case, for drafting; never counts for lock).
+  framework coverage), quick (1 run per case, for drafting; never counts for lock), discrimination (T1.4:
+  1 run per case on config/models.json "discrimination_model", after one check call proves the CLI runs
+  exactly that model; "too easy" when every case passes, suite design rule 5; engine/evalcheck.py never
+  reads these reports, so they never count for lock and never make other reports stale or current).
 - Cache: cache/evals/ (untracked), keyed by the agent file, the exact prompt (rulebook and inputs),
   the model, the CLI version and the run number. --no-cache forces new calls; smoke runs always
   make new calls (a framework change is covered only by real calls).
@@ -30,7 +34,8 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   (or contains) one of the expected item's accepted sentences; an item matching nothing is invented, a
   second item matching the same expected item is a duplicate. Expected-item recall, field accuracy on
   matched items, cases with invented or duplicate items (majority of runs), invalid-output rate.
-- Reports: evals/reports/<time>-<suite>-<mode>.json (tracked): IDs, rule IDs, verdicts and numbers
+- Reports: evals/reports/<time>-<suite>-<mode>.json (tracked; "-2", "-3" ... when that name exists, so a
+  report is never overwritten): IDs, rule IDs, verdicts and numbers
   only, never the agent's text (it can name local paths, T0.13 probe T13-5).
 Exit codes: 0 pass, 1 fail or refused, 2 leak found, 3 stopped (cost cap, or an infrastructure error
 that persisted after one retry).
@@ -376,6 +381,19 @@ def confirm_estimate(tokens):
         raise Refused("not confirmed")
 
 
+def confirm_model(model, cmd=None):
+    """One tiny call on `model`; refused unless the CLI accepts it and reports running exactly it."""
+    probe = {"name": "model-check", "tools": [], "model": model, "sha256": "-",
+             "body": "Reply with exactly {} and nothing else."}
+    res = agent_call.call(probe, "Reply with exactly {}.", cmd=cmd, model=model)
+    if res["status"] != "done":
+        raise Refused(f"the CLI did not run model {model!r} ({res['status']}: {res.get('error')}); "
+                      "set the exact model ID in config/models.json discrimination_model")
+    if res["models"] != [model]:
+        raise Refused(f"asked for {model!r}, the CLI reported {res['models']}; set the exact model ID in "
+                      "config/models.json discrimination_model")
+
+
 def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=print, cmd=None, cli=None):
     """Run a suite. Returns (report or None, exit code)."""
     th = thresholds()
@@ -389,11 +407,12 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
             out(f"LEAK: case {cid}: {term!r} appears in the {where}")
         out("Stopped before any call: remove the leak (rewrite the case or the key's leak terms).")
         return None, 2
-    model = agent_call.agent_model(s["agent_spec"])
+    discrimination = mode == "discrimination"
+    model = agent_call.discrimination_model() if discrimination else agent_call.agent_model(s["agent_spec"])
     cli = cli or agent_call.cli_version(cmd)
     if not cli:
         raise Refused("the CLI did not report its version (claude --version)")
-    n_runs = 1 if mode == "quick" else th["runs_per_case"]
+    n_runs = 1 if mode in ("quick", "discrimination") else th["runs_per_case"]
     framework = evalcheck.framework_hashes()
     plan, est_tokens, est_seconds = [], 0, 0
     for c in cases:
@@ -413,6 +432,9 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         f"(model {model}, CLI {cli}).")
     if estimate_only:
         return None, 0
+    if discrimination and todo:
+        confirm_model(model, cmd)
+        out(f"Model check: the CLI ran exactly {model}.")
     if todo > caps.get("max_runs_per_invocation", 120):
         raise Refused(f"{todo} calls is above max_runs_per_invocation ({caps.get('max_runs_per_invocation')}); use --cases")
     ceiling = caps.get("tokens_per_invocation", 1_000_000)
@@ -425,9 +447,9 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         if cached is None:
             if stopped:
                 continue
-            res = agent_call.call(s["agent_spec"], prompt, cmd=cmd)
+            res = agent_call.call(s["agent_spec"], prompt, cmd=cmd, model=model)
             if res["status"] == "infra_error":                       # one retry: the failure was not the agent's
-                res = agent_call.call(s["agent_spec"], prompt, cmd=cmd)
+                res = agent_call.call(s["agent_spec"], prompt, cmd=cmd, model=model)
             if res["status"] == "infra_error":
                 stopped = f"infrastructure error on case {c['id']} run {n}: {res['error']}"
                 continue
@@ -472,10 +494,16 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                   "estimate_tokens": est_tokens},
         "framework": framework,
     }
+    if discrimination:
+        report["counts_for_lock"] = False
+        report["too_easy"] = metrics["cases"] > 0 and metrics["cases_passed"] == metrics["cases"]
     d = evalcheck.evals_dir() / "reports"
     d.mkdir(exist_ok=True)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    path = d / f"{stamp}-{name}-{mode}.json"
+    path, n = d / f"{stamp}-{name}-{mode}.json", 1
+    while path.exists():                                               # T1.4: a report is never overwritten
+        n += 1
+        path = d / f"{stamp}-{name}-{mode}-{n}.json"
     lc.save_json(path, report)
     m = metrics
     out(f"Report {lc.rel(path)}: {'PASS' if report['pass'] else 'FAIL'}")
@@ -495,6 +523,12 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         out(f"  below threshold: {f_}")
     if mode == "quick" or mode.endswith("-partial"):
         out(f"  {mode} mode: for drafting only; never counts for lock.")
+    if discrimination:
+        out(f"  discrimination only ({model}): never counts for lock. "
+            + ("TOO EASY: the weaker model passed every case; the suite needs harder cases before it counts "
+               "(suite design rule 5)." if report["too_easy"] else
+               f"The weaker model failed {m['cases'] - m['cases_passed']} of {m['cases']} case(s): the suite discriminates."))
+        return report, 0
     return report, 0 if report["pass"] else 1
 
 
@@ -507,6 +541,7 @@ def main(argv=None):
     g = r.add_mutually_exclusive_group()
     g.add_argument("--quick", action="store_true")
     g.add_argument("--smoke", action="store_true")
+    g.add_argument("--discrimination", action="store_true")
     r.add_argument("--estimate-only", action="store_true")
     r.add_argument("--no-cache", action="store_true")
     r.add_argument("--cases")
@@ -519,7 +554,8 @@ def main(argv=None):
                 print(f"- {p}")
             print("lock would be refused" if problems else "lock allowed: the evaluations cover the current files")
             return 1 if problems else 0
-        mode = "quick" if args.quick else "smoke" if args.smoke else "full"
+        mode = ("quick" if args.quick else "smoke" if args.smoke else "discrimination" if args.discrimination
+                else "full")
         _, code = run(args.suite, mode, args.estimate_only, not args.no_cache,
                       set(args.cases.split(",")) if args.cases else None)
         return code

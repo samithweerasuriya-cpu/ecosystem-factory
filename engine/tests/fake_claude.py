@@ -7,6 +7,7 @@ FAKE_CLAUDE_RESPONSES: a JSON file of [[substring, result text or list of texts]
 substring found in the prompt picks the answer (default "{}"); a list answers the first, second ...
 call with that substring in turn (the last entry repeats).
 FAKE_CLAUDE_STOP_REASON: the stop_reason the JSON reports (default end_turn), e.g. max_tokens.
+FAKE_CLAUDE_MODEL_REPORTED: the model the JSON reports instead of the requested one.
 """
 import json
 import os
@@ -45,6 +46,7 @@ if rf:
             text = answer[min(n, len(answer) - 1)] if isinstance(answer, list) else answer
             break
 model = argv[argv.index("--model") + 1] if "--model" in argv else "unknown"
+model = os.environ.get("FAKE_CLAUDE_MODEL_REPORTED", model)    # T1.4: a CLI that aliases the requested model
 print(json.dumps({"type": "result", "subtype": "error_during_execution" if mode == "error" else "success",
                   "is_error": mode == "error", "result": text, "num_turns": 1, "duration_ms": 4953,
                   "stop_reason": os.environ.get("FAKE_CLAUDE_STOP_REASON", "end_turn"),

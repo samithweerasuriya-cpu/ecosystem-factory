@@ -3,14 +3,14 @@
     "TR03"
   ],
   "must_not_find": [
+    "DR07",
     "TR01",
     "TR02"
   ],
   "verdict": "fail",
   "locations": {
     "TR03": [
-      "A1",
-      "A2"
+      "invitation"
     ]
   },
   "leak_terms": [
@@ -19,14 +19,14 @@
     "answer key"
   ],
   "design": {
-    "label": "n2-duplicate",
-    "notes": "N2",
-    "words": 389,
-    "real_length": true,
-    "subtle": true,
+    "label": "n1-missed-invite",
+    "notes": "N1",
+    "words": 173,
+    "real_length": false,
+    "subtle": false,
     "defects": 1,
     "near_miss": [],
-    "twin_of": "E019",
+    "twin_of": null,
     "injection": false,
     "note": ""
   }

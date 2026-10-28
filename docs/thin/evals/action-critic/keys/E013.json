@@ -1,15 +1,16 @@
 {
   "must_find": [
-    "TR03"
+    "TR01"
   ],
   "must_not_find": [
-    "TR01",
-    "TR02"
+    "DR07",
+    "TR02",
+    "TR03"
   ],
   "verdict": "fail",
   "locations": {
-    "TR03": [
-      "venue"
+    "TR01": [
+      "A1"
     ]
   },
   "leak_terms": [
@@ -18,15 +19,15 @@
     "answer key"
   ],
   "design": {
-    "label": "n1-missed-venue",
+    "label": "n1-misquote",
     "notes": "N1",
     "words": 173,
     "real_length": false,
     "subtle": true,
     "defects": 1,
     "near_miss": [],
-    "twin_of": null,
+    "twin_of": "E005",
     "injection": false,
-    "note": "the unowned commitment is the one dropped"
+    "note": "the quote adds words that are not in the notes"
   }
 }

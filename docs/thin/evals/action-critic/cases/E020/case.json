@@ -1,6 +1,6 @@
 {
   "id": "E020",
-  "kind": "planted",
+  "kind": "clean",
   "inputs": [
     "notes.md",
     "action-items.json"

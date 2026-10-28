@@ -19,7 +19,7 @@
       "id": "A3",
       "action": "Call the water company about the leaking tap",
       "owner": "unassigned",
-      "due": "not stated",
+      "due": "before the first frost",
       "source": "Someone needs to call the water company about the leaking tap before the first frost."
     },
     {
@@ -41,7 +41,7 @@
       "action": "Send the updated watering schedule to the council",
       "owner": "Ana",
       "due": "2025-11-20",
-      "source": "Ana will also send the updated watering schedule to the council on 20 November and to members by Friday."
+      "source": "Ana will also send the updated watering schedule to the council on 20 November, as the council asked for a copy each season."
     }
   ],
   "open_questions": []

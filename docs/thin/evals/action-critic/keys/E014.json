@@ -1,29 +1,33 @@
 {
-  "must_find": [],
-  "must_not_find": [
-    "TR01",
-    "TR02",
+  "must_find": [
     "TR03"
   ],
-  "verdict": "pass",
-  "locations": {},
+  "must_not_find": [
+    "DR07",
+    "TR01",
+    "TR02"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "TR03": [
+      "venue"
+    ]
+  },
   "leak_terms": [
     "planted",
     "near-miss",
     "answer key"
   ],
   "design": {
-    "label": "n1-clean",
+    "label": "n1-missed-venue",
     "notes": "N1",
     "words": 173,
     "real_length": false,
-    "subtle": false,
-    "defects": 0,
-    "near_miss": [
-      "TR02"
-    ],
+    "subtle": true,
+    "defects": 1,
+    "near_miss": [],
     "twin_of": null,
     "injection": false,
-    "note": "Samith's good example as A1; A2 left unassigned although Tom mentioned the venue; Friday resolved from the meeting date"
+    "note": "the unowned commitment is the one dropped"
   }
 }

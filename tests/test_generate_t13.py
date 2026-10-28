@@ -22,8 +22,22 @@ class GenBase(LabTestBase):
         for d in ("templates", "docs/thin"):
             shutil.copytree(REPO / d, self.tmp / d, ignore=shutil.ignore_patterns("__pycache__", "reports"))
         shutil.copy2(REPO / ".gitattributes", self.tmp / ".gitattributes")
+        # T1.4: the test factory is a Git repository with a noreply identity, and tool-less agents were verified
+        # on the CLI "installed" here.
+        self.git("init", "-q")
+        self.git("config", "--local", "user.name", "Test Factory")
+        self.git("config", "--local", "user.email", "1+test@users.noreply.github.com")
+        doctor = json.loads((self.tmp / "config/doctor.json").read_text(encoding="utf-8"))
+        doctor["empty_tools_verified_cli"] = "9.9.9"
+        self.dump("config/doctor.json", doctor)
         self.gen = importlib.import_module("generate")
+        self.gen.installed_cli = lambda: "9.9.9 (Claude Code)"
         self.out = self.tmp / "eco"
+
+    def git(self, *args, cwd=None):
+        p = subprocess.run(["git", "-C", str(cwd or self.tmp), *args], capture_output=True, text=True, timeout=60)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return p.stdout.strip()
 
     def make(self, bp=BP, **kw):
         return self.gen.generate(self.tmp / bp, self.out, venv=False, **kw)
@@ -61,6 +75,23 @@ class GenerateTests(GenBase):
         (self.out / "engine/designcheck.py").write_text("x", encoding="utf-8")
         self.assertTrue(any("designcheck.py: excluded" in p for p in self.gen.verify(self.out)))
 
+    def test_the_ecosystem_commits_with_the_factorys_noreply_identity(self):
+        self.make()
+        self.assertEqual(self.git("config", "--local", "user.email", cwd=self.out), "1+test@users.noreply.github.com")
+        self.assertEqual(self.git("config", "--local", "user.name", cwd=self.out), "Test Factory")
+
+    def test_no_generation_without_a_noreply_identity(self):
+        for key, value in (("user.email", "someone@work.example"), ("user.name", None)):
+            if value is None:
+                self.git("config", "--local", "user.email", "1+test@users.noreply.github.com")
+                self.git("config", "--local", "--unset", key)
+            else:
+                self.git("config", "--local", key, value)
+            with self.assertRaisesRegex(self.gen.GenerateError, "noreply"):
+                self.make()
+            self.assertFalse(self.out.exists(), key)                         # refused before anything is written
+        self.assertTrue(self.make(dry_run=True)["dry_run"])                  # a dry run writes no Git repository
+
     def test_dry_run_writes_nothing(self):
         s = self.make(dry_run=True)
         self.assertTrue(s["dry_run"])
@@ -92,7 +123,7 @@ class GenerateTests(GenBase):
             if isinstance(v, int):
                 self.assertLessEqual(v, factory[k], k)
         u = caps["usage_ceiling"]
-        self.assertEqual((u["tokens"], u["agent_minutes"]), (300000, 30))
+        self.assertEqual((u["tokens"], u["agent_minutes"], u["per_call_warning_tokens"]), (90000, 5, 20000))  # T1.4
         self.assertLessEqual(u["per_call_warning_tokens"], u["tokens"])
         self.assertIn("PROVISIONAL", u["_provisional"])
         settings = json.loads((self.out / ".claude/settings.json").read_text(encoding="utf-8"))
@@ -104,6 +135,30 @@ class GenerateTests(GenBase):
         self.assertEqual(cfg("outputs")["agents"], {                         # T1.3 follow-up: headless answers
             "action-writer": {"schema": "schemas/action-items.schema.json", "findings": False},
             "action-critic": {"schema": "schemas/findings.schema.json", "findings": True}})
+
+    def test_the_rulebook_gets_the_reserved_rule_and_the_definitions(self):
+        """T1.4: DR07 (minor) from rules/default-agent-rules.md in every rulebook; the blueprint's definitions under it;
+        each reviewer told every rule's severity, read from the table; the severity lock reads DR07 too."""
+        self.make()
+        rb = (self.out / "rules/action-rules.md").read_text(encoding="utf-8")
+        self.assertIn("| DR07 | Instruction-like text in the material under review | minor | default rule 7 |", rb)
+        bp = json.loads((self.tmp / BP).read_text(encoding="utf-8"))
+        self.assertIn("## Definitions", rb)
+        for d in bp["rulebook"]["definitions"]:
+            self.assertIn(f"- {d}", rb)
+        vf = importlib.import_module("validate_findings")
+        self.assertEqual(vf.rulebook_severities(self.out / "rules/action-rules.md"),
+                         {"TR01": "major", "TR02": "major", "TR03": "major", "DR07": "minor"})
+        critic = (self.out / ".claude/agents/action-critic.md").read_text(encoding="utf-8")
+        self.assertIn("- Severity by rule (from the rulebook table; every finding on a rule takes exactly this "
+                      "severity): TR01 major, TR02 major, TR03 major, DR07 minor.", critic)
+        self.assertNotIn("Severity by rule", (self.out / ".claude/agents/action-writer.md").read_text(encoding="utf-8"))
+
+    def test_no_generation_without_the_reserved_rule_table(self):
+        f = self.tmp / "rules/default-agent-rules.md"
+        f.write_bytes(f.read_bytes().split(b"\nReserved rule")[0] + b"\n")
+        with self.assertRaisesRegex(self.gen.GenerateError, "no reserved rule rows"):
+            self.make()
 
     def test_the_default_rules_go_into_claude_md_and_every_agent_byte_for_byte(self):
         self.make()
@@ -191,12 +246,34 @@ class LintTests(GenBase):
         self.assertRefused(self.lint_with("never softer.", "softer is fine.", path="CLAUDE.md"),
                            "CLAUDE.md does not contain")
 
-    def test_empty_tools_need_the_in_session_deny_until_verified(self):
-        self.assertFalse(self.gen.EMPTY_TOOLS_VERIFIED)
+    def test_empty_tools_always_need_the_in_session_deny(self):
         probs = self.lint_with('"Agent",\n', "", path=".claude/settings.json")
-        self.assertRefused(probs, "tools [] is not yet verified")
+        self.assertRefused(probs, "tools [] needs the settings to deny the Agent and Task tools")
         self.assertRefused(self.lint_with('"disableClaudeAiConnectors": true', '"disableClaudeAiConnectors": false',
                                           path=".claude/settings.json"), "disableClaudeAiConnectors")
+
+    def test_empty_tools_count_only_on_the_cli_version_they_were_verified_on(self):
+        self.gen.installed_cli = lambda: "9.9.10 (Claude Code)"
+        self.assertRefused(self.gen.lint_files(self.base), "verified on CLI 9.9.9; the installed CLI is 9.9.10")
+        self.gen.installed_cli = lambda: None                                # the CLI does not run: fail closed
+        self.assertRefused(self.gen.lint_files(self.base), "the installed CLI is unknown")
+        self.gen.installed_cli = lambda: "9.9.9 (Claude Code)"
+        self.assertRefused(self.lint_with('"empty_tools_verified_cli": "9.9.9"',
+                                          '"empty_tools_verified_cli": "not a version"', path="config/doctor.json"),
+                           "is not a CLI version")
+        self.gen.installed_cli = lambda: "9.9.10 (Claude Code)"
+        unverified = self.lint_with('"empty_tools_verified_cli": "9.9.9"', '"empty_tools_verified_cli": null',
+                                    path="config/doctor.json")
+        self.assertEqual(unverified, [])                                     # never verified: the settings deny holds
+        files = dict(self.base)
+        del files["config/doctor.json"]
+        self.assertEqual(self.gen.lint_files(files), [])
+        self.assertRefused(self.lint_with('"Agent",\n', "", path=".claude/settings.json"), "deny the Agent and Task")
+        # a generation on another CLI than the verified one is refused
+        shutil.rmtree(self.out)
+        with self.assertRaisesRegex(self.gen.GenerateError, "lint failed"):
+            self.make()
+        self.assertFalse(self.out.exists())
 
     def test_empty_tools_are_never_read_as_every_tool(self):
         self.assertEqual(self.gen.parse_tools("[]"), [])
@@ -241,7 +318,11 @@ class HeadlessCallTests(GenBase):
 class CliTests(GenBase):
     def test_dry_run_verify_and_lint_from_the_command_line(self):
         py, g = sys.executable, str(self.tmp / "engine/generate.py")
+        models = json.loads((self.tmp / "config/models.json").read_text(encoding="utf-8"))
+        models["claude_command"] = [py, str(REPO / "engine/tests/fake_claude.py")]  # reports CLI 9.9.9
+        self.dump("config/models.json", models)
         env = {**__import__("os").environ, "LAB_ROOT": str(self.tmp)}
+        env.pop("FAKE_CLAUDE_VERSION", None)
         run = lambda *a: subprocess.run([py, g, *a], capture_output=True, text=True, env=env, timeout=300)
         p = run("generate", str(self.tmp / BP), str(self.out), "--dry-run")
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)

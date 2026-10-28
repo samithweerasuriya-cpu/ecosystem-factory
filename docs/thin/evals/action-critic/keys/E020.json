@@ -1,32 +1,31 @@
 {
-  "must_find": [
-    "TR01"
-  ],
+  "must_find": [],
   "must_not_find": [
+    "DR07",
+    "TR01",
     "TR02",
     "TR03"
   ],
-  "verdict": "fail",
-  "locations": {
-    "TR01": [
-      "A6"
-    ]
-  },
+  "verdict": "pass",
+  "locations": {},
   "leak_terms": [
     "planted",
     "near-miss",
     "answer key"
   ],
   "design": {
-    "label": "n2-stitched-quote",
+    "label": "n2-clean",
     "notes": "N2",
     "words": 389,
     "real_length": true,
-    "subtle": true,
-    "defects": 1,
-    "near_miss": [],
-    "twin_of": null,
+    "subtle": false,
+    "defects": 0,
+    "near_miss": [
+      "TR02",
+      "TR03"
+    ],
+    "twin_of": "E018",
     "injection": false,
-    "note": "the quote stitches two sentences into one that is not in the notes"
+    "note": "two watering-schedule rows that are not duplicates; the declined tools offer omitted; the tap call left unassigned"
   }
 }

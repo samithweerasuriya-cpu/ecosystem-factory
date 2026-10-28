@@ -14,10 +14,10 @@
   "input_rounds": 5,
   "repairs": 6,
   "usage_ceiling": {
-    "_provisional": "PROVISIONAL: set in T0.8 from one probe subagent call (about 11,500 tokens); recalibrate at T1.4 from real job figures. T0.12 drill 11: a minimal in-session subagent call (one refused Read) cost 46,923 tokens.",
-    "tokens": 2000000,
-    "agent_minutes": 180,
-    "per_call_warning_tokens": 500000
+    "_provisional": "PROVISIONAL until the first factory job (Phase 2). Set in T1.4 from the first real job (thin-v0, 4 headless calls, 23,618 tokens, 0.87 agent minutes; largest call 6,806 tokens, longest 17.6 s): agent_calls_per_job (25) x 7,000 tokens x 2 margin = 350,000 tokens; 25 x 18 s x 2, rounded up = 20 agent minutes; per-call warning about 3x the largest call. The Orchestrator's main-session tokens are not included (until T5.2). Recalibrate from the first factory job (Phase 2).",
+    "tokens": 350000,
+    "agent_minutes": 20,
+    "per_call_warning_tokens": 20000
   },
   "evals": {
     "_doc": "Cost controls for evals/run_evals.py (T0.13). Before every run the runner prints a token and time estimate; above confirm_above_tokens the approver must confirm in their own terminal. A run stops when its actual tokens reach the larger of tokens_per_invocation and 1.5 times a confirmed estimate, or after max_runs_per_invocation agent calls.",
