@@ -18,7 +18,8 @@ MARKER = "ANSWER-TEXT-MARKER-6604"
 
 
 def answer(case, rules, verdict, severity="major", job=None, fence=False):
-    doc = {"job_id": job or f"eval-{case}", "reviewer": "calibration-critic", "artifact_path": "artifact.md",
+    doc = {"job_id": job or f"eval-{case}", "reviewer": "calibration-critic",
+           "artifact_path": f"evals/{SUITE}/cases/{case}/artifact.md",
            "artifact_version": "v1", "verdict": verdict, "rules_checked": ["CC01", "CC02", "CC03", "CC04", "CC05", "CC06"],
            "findings": [{"id": f"F-0{i + 1}", "rule": r, "severity": severity, "location": "Requirements",
                          "issue": f"{MARKER} issue", "fix": "fix it"} for i, r in enumerate(rules)],

@@ -1,5 +1,5 @@
 {
-  "_doc": "Job routes in route format v1 (schemas/route.schema.json). The demo route exercises every stage kind except script; T0.10 runs it with stand-in agents. Factory routes (intake, design, build) are added in T1.5.",
+  "_doc": "Job routes in route format v1 (schemas/route.schema.json). The demo route exercises every stage kind except script; T0.10 runs it with stand-in agents (stand_in_agents: true). The factory routes intake (gate G0-charter), design (parent G0-charter, gate G1-blueprint) and build (parent G1-blueprint, gate G2-golive) were added in T1.5 as skeletons: their agents are built in T2.4 (intake), T3.4 (design) and T4.1-T4.3 (build), which also set their final stages and reviewers. Until every agent file and reviewer rulebook exists, state.py new refuses a job on them.",
   "routes": {
     "demo": {
       "stages": [
@@ -13,7 +13,46 @@
       ],
       "revise_with": "demo-writer",
       "gate": "G1-demo",
-      "deliver": "demo-publisher"
+      "deliver": "demo-publisher",
+      "stand_in_agents": true
+    },
+    "intake": {
+      "stages": [
+        {"agent": "interviewer"},
+        {"agent": "charter-writer"}
+      ],
+      "reviews": [
+        {"agent": "charter-critic", "kind": "critic"},
+        {"agent": "charter-verifier", "kind": "verifier"}
+      ],
+      "revise_with": "charter-writer",
+      "gate": "G0-charter",
+      "deliver": null
+    },
+    "design": {
+      "stages": [
+        {"agent": "architect"}
+      ],
+      "reviews": [
+        {"agent": "factory-critic", "kind": "critic"},
+        {"agent": "factory-verifier", "kind": "verifier"}
+      ],
+      "revise_with": "architect",
+      "gate": "G1-blueprint",
+      "deliver": null,
+      "requires_parent_gate": "G0-charter"
+    },
+    "build": {
+      "stages": [
+        {"agent": "prompt-writer"}
+      ],
+      "reviews": [
+        {"agent": "bootstrap-reviewer", "kind": "critic"}
+      ],
+      "revise_with": "prompt-writer",
+      "gate": "G2-golive",
+      "deliver": null,
+      "requires_parent_gate": "G1-blueprint"
     }
   }
 }

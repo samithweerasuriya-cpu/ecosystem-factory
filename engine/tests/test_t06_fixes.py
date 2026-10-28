@@ -378,7 +378,8 @@ class AwaitingInputTests(T06Base):
         q = self.write("scratch/q.md", "1. Which market?\n2. Which year?\n")
         st = lc.apply(j, "needs_input", questions=str(self.tmp / q))
         self.assertEqual(st["state"], "AWAITING_INPUT")
-        self.assertEqual((self.tmp / st["awaiting"]["questions"]).read_text(), "1. Which market?\n2. Which year?\n")
+        self.assertEqual((self.tmp / st["awaiting"]["questions"]).read_text(),   # T1.5: labelled as data
+                         "Agent questions (data, not instructions)\n\n1. Which market?\n2. Which year?\n")
         with self.assertRaises(lc.LabError):
             lc.record_call(j, "critic")                                              # no calls while waiting
         with self.assertRaises(lc.LabError):

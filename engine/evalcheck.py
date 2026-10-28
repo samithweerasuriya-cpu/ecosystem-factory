@@ -6,8 +6,9 @@ evals/<suite>/ with suite.json {"agent": <agent file>, "rulebook": <rulebook or 
 "reviewer" | "agent"}, cases/<case>/ and keys/<case>.json. Reports are evals/reports/*.json.
 
 A report counts for locking when it passed, ran 3 times per case ("full" or "smoke" mode, never
-"quick"), and its model and CLI version equal the pinned model (config/models.json) and the CLI now
-installed. `gate.py lock` refuses unless:
+"quick"), its model and CLI version equal the pinned model (config/models.json) and the CLI now
+installed, and it was made with the current handoff format (labcore.HANDOFF_FORMAT, T1.5; a report
+without one is format 1). `gate.py lock` refuses unless:
   1. every agent file in .claude/agents/ has a suite;
   2. every suite has a counting "full" report made with the current agent and rulebook files, and,
      for an agent used by a route, that report met the minimum case counts (evals/thresholds.json);
@@ -87,7 +88,8 @@ def fingerprint(cli=None):
 
 def counts(report, fp):
     return (report.get("pass") is True and report.get("mode") in LOCK_MODES
-            and report.get("model") == fp["model"] and report.get("cli_version") == fp["cli_version"])
+            and report.get("model") == fp["model"] and report.get("cli_version") == fp["cli_version"]
+            and report.get("handoff_format") == lc.HANDOFF_FORMAT)
 
 
 def suite_problem(s, fp, routed):
@@ -101,6 +103,10 @@ def suite_problem(s, fp, routed):
         return (f"suite {s['name']}: {s['agent']} or its rulebook changed since its last passing full report; "
                 f"re-run: python evals/run_evals.py run {s['name']}")
     ok = [r for r in cur if counts(r, fp)]
+    if not ok and not any(r.get("handoff_format") == lc.HANDOFF_FORMAT for r in cur):
+        return (f"suite {s['name']}: its passing report was made with handoff format "
+                f"{cur[-1].get('handoff_format', 1)}; now {lc.HANDOFF_FORMAT} (the prompt the agent gets changed): "
+                f"re-run: python evals/run_evals.py run {s['name']}")
     if not ok:
         last = cur[-1]
         return (f"suite {s['name']}: its passing report was made with model {last.get('model')} and CLI "

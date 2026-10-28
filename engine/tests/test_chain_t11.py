@@ -27,7 +27,7 @@ class ChainBase(LabTestBase):
     def setUp(self):
         super().setUp()
         routes = json.loads((self.tmp / "config/routes.json").read_text())
-        routes["routes"].update(CHAIN_ROUTES)
+        routes["routes"].update({k: dict(v, stand_in_agents=True) for k, v in CHAIN_ROUTES.items()})
         self.dump("config/routes.json", routes)
 
     def approved(self, jtype, slug, text, parent=None, approve=True):

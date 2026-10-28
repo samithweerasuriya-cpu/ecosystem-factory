@@ -308,7 +308,8 @@ class CapTests(DeliveryBase):
         routes = json.loads((self.tmp / "config/routes.json").read_text())
         routes["routes"]["demobuild"] = {"stages": [{"agent": "demo-planner"}, {"script": "demo-check"}, {"agent": "demo-writer"}],
                                          "reviews": [{"agent": "demo-critic", "kind": "critic"}],
-                                         "revise_with": "demo-writer", "fix_with": "demo-planner", "gate": None}
+                                         "revise_with": "demo-writer", "fix_with": "demo-planner", "gate": None,
+                                         "stand_in_agents": True}
         self.dump("config/routes.json", routes)
         self.dump("config/scripts.json", {"scripts": {"demo-check": {"argv": ["{python}", "-c", "import sys; sys.exit(1)"], "timeout": 30}}})
         d = self.d

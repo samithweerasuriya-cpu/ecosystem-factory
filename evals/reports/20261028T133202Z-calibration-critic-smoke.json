@@ -1,0 +1,117 @@
+{
+  "suite": "calibration-critic",
+  "mode": "smoke",
+  "ts": "2026-10-28T13:32:02+00:00",
+  "model": "claude-opus-5-5",
+  "cli_version": "2.1.308 (Claude Code)",
+  "handoff_format": 2,
+  "models_reported": [
+    "claude-opus-5-5"
+  ],
+  "agent": {
+    "path": "evals/agents/calibration-critic.md",
+    "sha256": "a00ae56faca01c5a687d74ea223236c33b60a754d854cf51122b0eedc1cdc579"
+  },
+  "rulebook": {
+    "path": "rules/calibration-critic.md",
+    "sha256": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c"
+  },
+  "thresholds": {
+    "recall_blocker_min": 1.0,
+    "recall_major_min": 0.8,
+    "false_fail_rate_max": 0.2,
+    "verdict_match_min": 0.85
+  },
+  "threshold_failures": [],
+  "min_counts": {
+    "applies": false,
+    "need": {
+      "cases": 20,
+      "clean": 5
+    },
+    "have": {
+      "cases": 1,
+      "clean": 1
+    },
+    "met": null
+  },
+  "pass": true,
+  "metrics": {
+    "recall_per_rule": {},
+    "recall_blocker": null,
+    "recall_major": null,
+    "false_fail_rate": 0.0,
+    "verdict_match": 1.0,
+    "invalid_output_rate": 0.0,
+    "false_findings_all_runs": 0,
+    "cases": 1,
+    "clean_cases": 1,
+    "runs": 3,
+    "invalid_runs": 0,
+    "cases_passed": 1
+  },
+  "cases": [
+    {
+      "case": "E001",
+      "kind": "clean",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3452,
+        "max": 3548,
+        "mean": 3488
+      },
+      "cached_runs": 0
+    }
+  ],
+  "usage": {
+    "calls": 3,
+    "cached": 0,
+    "tokens_new": 10465,
+    "tokens_all": 10465,
+    "cost_usd_estimate_all": 0.0631,
+    "estimate_tokens": 16221
+  },
+  "framework": {
+    "rules/calibration-critic.md": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c",
+    "rules/check-evidence.md": "9e2ba12286c9cdfbb550ecc46724caea087c1fbc42a0b75c3b0b53346e4b962a",
+    "rules/check-refs.md": "7d9daaca1ba33af0df482528697fcc01aab53268c47af0e36a035c5e5766d105",
+    "rules/default-agent-rules.md": "3a690815306576b03d1312942275249cc7515674647781614cc2fc22fea63d8b",
+    "rules/demo-rulebook.md": "b7f2d0569807687c7874cd19ee778282fed2636a2e0a77f56cd11b854da6efa3",
+    "rules/gate-rules.md": "0221af685075221b7f98e03714aea25f3383e397d32a06e1321c9529ef68cbbe",
+    "rules/verifier-default.md": "2e97217afd1a14778893890495d190fc4a3d763cc75e0ac9c946815ad5e2b76f",
+    "schemas/blueprint.v0.md": "833eb31dfcebb51cd283c6c21a872b29b237218844325d0e39546c85cfb4971e",
+    "schemas/blueprint.v0.schema.json": "e7d7ba95ec3f538b9735a2a03ca984b1f70eb2b81247579df2db5d53a7e09fdb",
+    "schemas/charter.v0.md": "293f00460d0b614c47e9d9d851d55eb37990b1357fa8234a363255f71e38b336",
+    "schemas/charter.v0.schema.json": "0b5d428db9f33a371584e794b5356969cd1aed1c2b28b9c1df41517fd19e74d7",
+    "schemas/findings.schema.json": "13f4421ce6edd3b0087d5267f781d5b752ab8cd6df846c5484fd3b83a762e120",
+    "schemas/job.schema.json": "d20ddc257cb770b78d9c746ddaecadb99642c0d3af5b6630ca5e3918032d729f",
+    "schemas/route.schema.json": "0a0540c88a380497fe14da421003685484b5d39390e963f2d4ebdde1b17a755a",
+    "config/caps.json": "24ebd6c4dd76796af3476eaf745c5535d43f8fd34d33d3e1ac01e3e2bde2b9ae",
+    "config/doctor.json": "76d36855f5a0eb98cc9d527decb9d64073c86e97e1372b6ab3afe1b8a9ef6a42",
+    "config/evidence.json": "b94375391900ab9e67b328dfec2fc22750ab03b5c5745b9ef801fcf719d34755",
+    "config/gated-actions.json": "c26f4906c14bf8be5858b2c89937c4a475ba59d673fedd6e819e9bcf9ddd9cb0",
+    "config/gates.json": "07697eea11f2819cea0be5f7bf2cc66d116e13dadc192d9125f770daf546506d",
+    "config/models.json": "a26bd7990ccf457e5c5dd04cf090fc0ab4c6dcc5be45e4b1390c852149a045dc",
+    "config/outputs.json": "2b50bc7ebe669c09acdafd86065751dfe50e49116c55ecf2222cdea2292656f8",
+    "config/protected-paths.json": "ff30b7eb7e22b351fed45132884bf6ddc44ea172950b153d7d0c0e14fb4891ec",
+    "config/publish.json": "5c304412e9a3f2b124cc970614c2f93d3dd4ba73903d959cf82ee0274635c3c1",
+    "config/reviewers.json": "3160f6dab3acf8458fcbe23f2c9e334b2781267ffbe028109a2fd57024c0cf59",
+    "config/routes.json": "37a891a87fad3e508216b3272f72f2dc4de370b1e62be28db1bc5c71ff712354",
+    "config/scripts.json": "2340111d9aedfc7108c285d1fa674afc4978086ce24a82efc45d55b5577de79a"
+  }
+}

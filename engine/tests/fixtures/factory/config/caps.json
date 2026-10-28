@@ -12,6 +12,7 @@
   "lifetime_revisions": 10,
   "lifetime_resumes": 3,
   "input_rounds": 5,
+  "input_rounds_per_cycle": 3,
   "repairs": 6,
   "usage_ceiling": {
     "_provisional": "PROVISIONAL: set in T0.8 from one probe subagent call (about 11,500 tokens); recalibrate at T1.4 from real job figures. T0.12 drill 11: a minimal in-session subagent call (one refused Read) cost 46,923 tokens.",

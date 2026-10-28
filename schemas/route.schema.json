@@ -58,6 +58,7 @@
         "gate": {"anyOf": [{"$ref": "#/$defs/gate"}, {"type": "null"}]},
         "deliver": {"anyOf": [{"$ref": "#/$defs/name"}, {"type": "null"}]},
         "requires_parent_gate": {"$ref": "#/$defs/gate"},
+        "stand_in_agents": {"type": "boolean", "description": "T1.5: true only for demo and test routes whose agents are stand-ins. Otherwise a new job is refused until every agent the route names has its file in .claude/agents/ and every reviewer its rulebook (config/reviewers.json)."},
         "template": {"type": "string"},
         "template_variants": {"type": "object", "additionalProperties": {"type": "string"}}
       }

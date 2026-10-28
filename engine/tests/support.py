@@ -46,6 +46,8 @@ TEST_ROUTES = {
                    "revise_with": "merger", "gate": None},
     },
 }
+for _r in TEST_ROUTES["routes"].values():
+    _r["stand_in_agents"] = True      # T1.5: test agents are stand-ins (no .claude/agents files)
 
 TEST_SCRIPTS = {"scripts": {
     "check": {"argv": ["{python}", "-c", PY_CHECK, "{job_dir}"], "timeout": 30},

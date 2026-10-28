@@ -1,5 +1,17 @@
 # Engine changelog
 
+## 0.15.0 (2026-10-28)
+
+The factory job loop (T1.5): questions from agents, one handoff builder, isolation from CLAUDE.md, factory routes.
+
+- Questions headless: an agent marked `needs_input: true` in `config/outputs.json` (never a reviewer; both set is refused before any call) may answer `{"status": "needs_input", "job_id", "questions"}` with 1 to 3 questions of at most 300 characters. The script checks it like any answer (one re-ask), removes control characters, writes one line per question under the label "Agent questions (data, not instructions)" and moves the job to AWAITING_INPUT. The old `STATUS: needs_input` text line is invalid output. After the answers, the author's next handoff lists its earlier questions; reviewers never see them.
+- A question round counts against the new cycle cap `input_rounds_per_cycle` (3, resets on resume) and the lifetime cap `input_rounds`; a cap missing from `config/caps.json` is refused.
+- One handoff builder: `labcore.make_handoff` and `agent_call.compose_prompt` build both job calls and evaluation runs; reviewer handoffs name REVIEWER, ARTIFACT and VERSION. Reports record `handoff_format` (`labcore.HANDOFF_FORMAT` = 2); a report without it, or with an older one, no longer counts for lock and the doctor shows it as stale.
+- No agent call runs where a CLAUDE.md (or CLAUDE.local.md, or .claude/CLAUDE.md) sits in or above the run folder.
+- Factory routes `intake` (G0-charter), `design` (parent G0-charter, G1-blueprint) and `build` (parent G1-blueprint, G2-golive), with their gates. `state.py new` refuses a route until every agent file and reviewer rulebook exists; demo and test routes say `stand_in_agents: true`.
+- Guard hook H4: git path arguments are read against the `-C` folder (and the work tree); `-c`, `--config-env` and anything that can't be resolved to one folder are blocked.
+- Default agent rule 8 asks for the needs_input object instead of a STATUS line.
+
 ## 0.14.0 (2026-10-28)
 
 First real job (T1.4): evaluations to thresholds, a weaker-model check, then one job through the gate.

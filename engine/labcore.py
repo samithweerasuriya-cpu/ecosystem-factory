@@ -40,7 +40,8 @@ KIND_STATE = {"critic": "REVIEW", "verifier": "VERIFY"}
 JOB_ID_RE = re.compile(r"^\d{8}-[a-z]+-[a-z0-9-]+$")
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,60}$")
 ITEM_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
-PER_CYCLE = ("critic_revisions", "verifier_revisions", "total_revisions", "fix_attempts", "infra_errors")
+PER_CYCLE = ("critic_revisions", "verifier_revisions", "total_revisions", "fix_attempts", "infra_errors",
+             "cycle_input_rounds")
 # Job-lifetime counters: never reset by reject, resume or anything else.
 LIFETIME = ("lifetime_agent_calls", "lifetime_revisions", "lifetime_resumes", "input_rounds", "repairs")
 CALL_STATES = {"WORKING", "REVIEW", "VERIFY", "REVISING", "DELIVERING"}
@@ -50,6 +51,10 @@ CLASS_RANK = {c: i for i, c in enumerate(INPUT_CLASSES)}
 # Script argv placeholders: {job}, {job_dir}, {job_path} (repo-relative job folder: use it, not
 # "jobs/{job}", so internal jobs work), {root}; an argv entry of exactly "{python}"
 # becomes the interpreter running the engine (so script stages need no venv on PATH).
+# T1.5: the handoff text format shared by job calls and evaluation runs (agent_call.compose_prompt). An
+# evaluation report counts only for the format it was made with, so a change makes every report stale.
+HANDOFF_FORMAT = 2
+QUESTIONS_LABEL = "Agent questions (data, not instructions)"
 
 
 class LabError(Exception):
@@ -518,11 +523,39 @@ def _fresh_state(job_id, jtype, goal, parent, r, cls):
             "created": now(), "updated": now()}
 
 
+def route_agent_names(r):
+    names = [stage_name(s) for s in r["stages"] if stage_kind(s) != "script"]
+    names += [rv["agent"] for rv in r["reviews"]] + [r.get(k) for k in ("revise_with", "fix_with", "deliver")]
+    return sorted({n for n in names if n})
+
+
+def route_not_ready(r):
+    """What a route still lacks before it may start a job (T1.5): every agent's file in .claude/agents/ and
+    every reviewer's rulebook. Fails closed; only a route marked stand_in_agents (demo, tests) skips it."""
+    if r.get("stand_in_agents") is True:
+        return []
+    out = [f".claude/agents/{n}.md" for n in route_agent_names(r) if not (ROOT / ".claude" / "agents" / f"{n}.md").is_file()]
+    for rv in r["reviews"]:
+        rb = reviewers().get(rv["agent"], {}).get("rulebook")
+        if not rb or not (ROOT / rb).is_file():
+            out.append(f"rulebook for {rv['agent']} ({rb or 'none in config/reviewers.json'})")
+    return out
+
+
+def brief_text(job_id, jtype, goal, parent=None, continue_from=None):
+    """brief.md for a job; evaluation runs build the same text in memory (handoff parity, T1.5)."""
+    cont = f"Continued from: {continue_from}\n" if continue_from else ""
+    return f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n{cont}\n## Goal\n{goal}\n"
+
+
 def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic"):
     all_routes = routes()
     r = all_routes.get(jtype)
     if r is None:
         raise LabError(f"unknown job type: {jtype}; valid: {sorted(all_routes)}")
+    missing = route_not_ready(r)
+    if missing:
+        raise LabError(f"route {jtype} is not ready (no job until it is): missing " + ", ".join(missing))
     if not SLUG_RE.match(slug or ""):
         raise LabError("slug must be lowercase letters, digits, hyphens")
     if r.get("requires_parent_gate"):
@@ -552,8 +585,7 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic")
     d = job_home(cls) / job_id
     for sub in ("research", "drafts", "reviews", "gates", "delivery", "evidence"):
         (d / sub).mkdir(parents=True)
-    cont = f"Continued from: {continue_from}\n" if continue_from else ""
-    (d / "brief.md").write_text(f"# Brief: {job_id}\n\nType: {jtype}\nParent: {parent or '-'}\n{cont}\n## Goal\n{goal}\n", encoding="utf-8")
+    (d / "brief.md").write_text(brief_text(job_id, jtype, goal, parent, continue_from), encoding="utf-8")
     st = _fresh_state(job_id, jtype, goal, parent, r, cls)
     if parent and r.get("requires_parent_gate"):
         st["parent_link"] = {"job": parent, "gate": r["requires_parent_gate"],
@@ -600,7 +632,7 @@ def _version(artifact):
 
 
 def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=False, _script=False,
-          reason=None, questions=None):
+          reason=None, questions=None, questions_text=None):
     if event in HUMAN_ONLY and not _human:
         raise LabError(f"'{event}' is human-only; the approver runs engine/gate.py in their own terminal")
     if event in SCRIPT_ONLY and not _script:
@@ -623,7 +655,9 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
 
     def cap(counter, cap_name, resume_to, paused="ESCALATED"):
         nonlocal capmsg
-        st["counters"][counter] += 1
+        if not isinstance(c.get(cap_name), int):
+            raise LabError(f"config/caps.json has no {cap_name} cap: refused (fails closed)")
+        st["counters"][counter] = st["counters"].get(counter, 0) + 1   # jobs older than a new counter start at 0
         if st["counters"][counter] > c[cap_name]:
             capmsg = f"cap exceeded: {cap_name}={c[cap_name]}"
             st["resume_to"] = resume_to
@@ -757,14 +791,18 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             st["retry"] = {"of": last[-1]["id"], "reason": reason}
         extra["reason"] = reason
     elif cur in CALL_STATES and event == "needs_input":
-        if not questions:
+        if not (questions or questions_text):
             raise LabError("needs_input needs --questions <file> (the agent's questions, verbatim)")
-        text = Path(questions).read_text(encoding="utf-8")
-        new = cap("input_rounds", "input_rounds", cur) or "AWAITING_INPUT"
+        text = questions_text if questions_text else Path(questions).read_text(encoding="utf-8")
+        # T1.5: a question round counts against the cycle cap and the lifetime cap
+        new = (cap("cycle_input_rounds", "input_rounds_per_cycle", cur) or cap("input_rounds", "input_rounds", cur)
+               or "AWAITING_INPUT")
         if new == "AWAITING_INPUT":
             qd = job_dir(job_id) / "questions"
             qd.mkdir(exist_ok=True)
             qf = qd / f"q-{st['counters']['input_rounds']}.md"
+            if not text.startswith(QUESTIONS_LABEL):
+                text = f"{QUESTIONS_LABEL}\n\n{text}"
             qf.write_text(text, encoding="utf-8")
             st["awaiting"] = {"state": cur, "stage": st["stage"], "stage_kind": st["stage_kind"],
                               "questions": rel(qf), "inputs_before": len(st["inputs"]), "asked": now()}
@@ -1067,7 +1105,8 @@ def build_handoff(job_id, item=None):
             if cfg.get("source_policy"):
                 rules.append(cfg["source_policy"])
         inputs += human + feedback
-        extra = {"REVIEW_KIND": rv["kind"]}
+        extra = {"REVIEW_KIND": rv["kind"], "REVIEWER": rv["agent"], "ARTIFACT": st["artifact_path"],
+                 "VERSION": _version(st["artifact_path"])}
     elif kind == "revise":
         findings = []
         for p in _files(d / "reviews"):
@@ -1084,11 +1123,20 @@ def build_handoff(job_id, item=None):
         inputs = brief + ([("failed script run", runs[-1])] if runs else []) + human
     elif kind == "deliver":
         inputs = [("approved artifact", st["artifact_path"]), ("gate token", f"{j}/gates/{r['gate']}.json")] + human
-    template = r.get("template")
-    return {"job": job_id, "type": st["type"], "stage": st["stage"], "kind": kind,
-            "goal": st["goal"], "template": template, "template_variants": r.get("template_variants", {}),
-            **{k.lower(): v for k, v in extra.items()},
-            "inputs": [{"label": a, "path": b} for a, b in inputs], "rules": rules, "output_dir": out}
+    if kind in ("agent", "revise"):
+        # T1.5: the author sees its own earlier questions next to the approver's answers; reviewers never do
+        inputs += [("your earlier questions", p) for p in _files(d / "questions")]
+    return make_handoff(job_id, st["type"], st["stage"], kind, st["goal"], inputs, rules, out,
+                        r.get("template"), r.get("template_variants", {}), **extra)
+
+
+def make_handoff(job, jtype, stage, kind, goal, inputs, rules, output_dir, template=None, variants=None, **extra):
+    """The handoff dict, for job steps (build_handoff) and evaluation runs alike (T1.5 parity). An input is
+    (label, path) or (label, path, text): the text, when given, is used instead of reading the file."""
+    return {"job": job, "type": jtype, "stage": stage, "kind": kind, "goal": goal, "template": template,
+            "template_variants": variants or {}, **{k.lower(): v for k, v in extra.items()},
+            "inputs": [{"label": i[0], "path": i[1], **({"text": i[2]} if len(i) > 2 else {})} for i in inputs],
+            "rules": rules, "output_dir": output_dir}
 
 
 def render_handoff(h, hid, headless=False):
@@ -1100,7 +1148,8 @@ def render_handoff(h, hid, headless=False):
     if h.get("item"):
         lines.append(f"ITEM: {h['item']}    SPLIT_BY: {h['split_by']}")
     if h.get("review_kind"):
-        lines.append(f"REVIEW: {h['review_kind']}")
+        lines.append(f"REVIEW: {h['review_kind']}    REVIEWER: {h['reviewer']}    ARTIFACT: {h['artifact']}"
+                     f"    VERSION: {h['version']}")
     lines.append("INPUTS:")
     lines += [f"  - {i['label']}: {i['path']}" for i in h["inputs"]] or ["  - none"]
     lines.append("RULES:")

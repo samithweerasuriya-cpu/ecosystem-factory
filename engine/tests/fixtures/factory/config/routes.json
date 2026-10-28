@@ -13,7 +13,8 @@
       ],
       "revise_with": "demo-writer",
       "gate": "G1-demo",
-      "deliver": "demo-publisher"
+      "deliver": "demo-publisher",
+      "stand_in_agents": true
     }
   }
 }

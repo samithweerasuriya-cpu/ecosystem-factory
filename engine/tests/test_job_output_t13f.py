@@ -228,14 +228,15 @@ class InvalidTests(JobOutputBase):
         for q in quoted:
             self.assertLessEqual(len(json.loads(q[:-1])), 40 + len(" [cut]"))
 
-    def test_needs_input_is_infra_error_without_a_re_ask(self):
+    def test_a_status_needs_input_line_is_invalid_output(self):
+        # T1.5: questions come as the needs_input JSON object (test_job_loop_t15); the old text line is invalid
         j = self.at_writer()
         self.answers(j, ["STATUS: needs_input\nQ1: Which meeting?"])
         r = self.ac.call_job(j, self.files["writer"])
-        self.assertEqual((r["status"], r["error"]), ("infra_error", "needs_input not supported headless until T1.5"))
-        self.assertEqual(len(self.calls()), 1)
+        self.assertEqual((r["status"], r["error"]), ("infra_error", "invalid output after one re-ask"))
+        self.assertEqual(len(self.calls()), 2)
         st = self.lc.load_state(j)
-        self.assertEqual((st["counters"]["infra_errors"], st["counters"]["repairs"]), (1, 0))
+        self.assertEqual((st["counters"]["infra_errors"], st["counters"]["repairs"]), (1, 1))
         self.assertTrue((self.tmp / st["calls"][0]["rejected"]).is_file())
 
 

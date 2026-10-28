@@ -3,6 +3,9 @@
   "approver": "Samith",
   "default_mode": "human",
   "gates": {
-    "G1-demo": {"mode": "human"}
+    "G1-demo": {"mode": "human"},
+    "G0-charter": {"mode": "human"},
+    "G1-blueprint": {"mode": "human"},
+    "G2-golive": {"mode": "human"}
   }
 }

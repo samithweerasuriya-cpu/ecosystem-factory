@@ -137,7 +137,8 @@ def writer_answer(cid, key, change=None):
 
 def critic_answer(cid, key, findings):
     sev = lambda r: "minor" if r == "DR07" else "major"                # the reserved rule is minor (T1.4)
-    return json.dumps({"job_id": f"eval-{cid}", "reviewer": "action-critic", "artifact_path": "action-items.json",
+    return json.dumps({"job_id": f"eval-{cid}", "reviewer": "action-critic",
+                       "artifact_path": f"evals/action-critic/cases/{cid}/action-items.json",
                        "artifact_version": "v1",
                        "verdict": "fail" if any(sev(r) == "major" for r, _ in findings) else "pass",
                        "rules_checked": ["TR01", "TR02", "TR03", "DR07"],

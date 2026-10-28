@@ -416,7 +416,10 @@ def shell_paths(cmd, ctx):
             target = words[1]
             cwd = None if re.search(r"[$%]", target) else resolve(target, cwd, ctx)
             continue
-        known = bool(words) and (base(words[0]) in READ_ONLY or base(words[0]) == "git")
+        if words and base(words[0]) == "git":
+            out += git_paths(words, reds, cwd, ctx)
+            continue
+        known = bool(words) and base(words[0]) in READ_ONLY
         for w in words + reds:
             # Arguments of read-only commands are taken whole (a grep pattern is not a path);
             # anything else (inline code, heredoc bodies, unknown commands) is scanned chunk by chunk.
@@ -429,6 +432,63 @@ def shell_paths(cmd, ctx):
                     p = resolve(c, cwd, ctx)  # cwd None (e.g. cd "$VAR"): resolved against the repo root
                     if p:
                         out.append(p)
+    return out
+
+
+GIT_PATH_OPTIONS = ("-C", "--git-dir", "--work-tree")
+GIT_VALUE_OPTIONS = ("--namespace", "--exec-path", "--list-cmds", "--super-prefix")
+
+
+def git_paths(words, reds, cwd, ctx):
+    """H4 (T1.5): a git command's paths, resolved as git resolves them. Each -C changes the folder the
+    following -C, --git-dir, --work-tree and path arguments are read from (a relative -C after another is
+    relative to it); with --work-tree, every argument is also read against the work tree (both readings
+    are classified). Redirections stay relative to the shell's folder. Fails closed: -c and --config-env
+    (they can run any program), a path option without a plain value (variables, wildcards, substitution,
+    a missing value, a glued -Cpath) and a relative -C from an unknown folder are blocked."""
+    here, trees, out, i = cwd, [], [], 1
+    while i < len(words):
+        w = words[i]
+        if w in GIT_GLOBAL_UNSAFE or w.startswith("--config-env") or re.match(r"^-c.", w):
+            raise Blocked("git -c / --config-env can set options that run any program: not allowed.")
+        opt = next((o for o in GIT_PATH_OPTIONS if w == o or (o != "-C" and w.startswith(o + "="))), None)
+        if opt is None and w.startswith("-C"):
+            raise Blocked(f"git option {w!r} could not be parsed (failing closed); write -C <folder>.")
+        if opt:
+            if "=" in w:
+                val = w.split("=", 1)[1]
+            elif i + 1 < len(words):
+                val, i = words[i + 1], i + 1
+            else:
+                raise Blocked(f"git {opt} has no value (failing closed).")
+            t = val.replace("\\", "/")
+            absolute = re.match(r"^[a-zA-Z]:/", t) or t.startswith(("/", "~"))
+            if not val or re.search(r"[$%`*?\[\]{}]", val) or (here is None and not absolute):
+                raise Blocked(f"git {opt} {val!r} could not be resolved to one folder (failing closed).")
+            p = resolve(val, here, ctx)
+            if p is None:
+                raise Blocked(f"git {opt} {val!r} could not be resolved to one folder (failing closed).")
+            out.append(p)
+            if opt == "-C":
+                here = p
+            elif opt == "--work-tree":
+                trees.append(p)
+        elif w in GIT_VALUE_OPTIONS:
+            i += 1
+        elif not w.startswith("-"):
+            break                                # the subcommand
+        i += 1
+    for w in words[i:]:
+        bare = w[2:] if re.match(r"^-[A-Za-z].", w) else ""
+        for c in {w, bare} - {""}:
+            for d in [here] + trees:
+                p = resolve(c, d, ctx)
+                if p:
+                    out.append(p)
+    for w in reds:
+        p = resolve(w, cwd, ctx)
+        if p:
+            out.append(p)
     return out
 
 
@@ -508,6 +568,8 @@ def check_shell(ctx):
             raise Blocked("engine/gate.py is human-only (command could not be parsed; failing closed).")
         if re.search(r"\bgit\b.*\bpush\b", cmd):
             raise Blocked("git push is disabled (command could not be parsed; failing closed).")
+        if re.search(r"\bgit\b", cmd) and re.search(r"(^|\s)(-C|-c|--git-dir|--work-tree|--config-env)(\s|=|$)", cmd):
+            raise Blocked("a git command with -C, -c, --git-dir or --work-tree could not be parsed (H4, failing closed).")
     code = inline_code(segs, cmd, ps)
     if code and DELETE_CALL.search(code):
         raise Blocked("inline interpreter code that deletes files is not allowed, whatever path it names.")

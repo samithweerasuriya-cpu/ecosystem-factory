@@ -111,19 +111,34 @@ def load_cases(s, only=None):
 def ids_for(s, case):
     if s["kind"] == "agent":
         return {"job_id": f"eval-{case['id']}"}
-    return {"job_id": f"eval-{case['id']}", "reviewer": s["agent_spec"]["name"], "artifact_path": case["artifact"],
-            "artifact_version": "v1"}
+    return {"job_id": f"eval-{case['id']}", "reviewer": s["agent_spec"]["name"],
+            "artifact_path": lc.rel(case["dir"] / case["artifact"]), "artifact_version": "v1"}
+
+
+EVAL_HANDOFF = "H001"
+EVAL_TYPE = "eval"
+EVAL_OUTPUT_DIR = "(kept by the evaluation runner)"
+
+
+def eval_handoff(s, case):
+    """The handoff an evaluation case gets, built like a job step's (T1.5 parity, labcore.make_handoff): a
+    reviewer gets the artifact and the other case files as approver inputs; an author gets the brief and the
+    case files as approver inputs. The rulebook goes in as the job's rules do."""
+    ids = ids_for(s, case)
+    jid, name = ids["job_id"], s["agent_spec"]["name"]
+    goal = case.get("goal") or f"Evaluation case {case['id']}"
+    others = [n for n in case["inputs"] if s["kind"] == "agent" or n != case["artifact"]]
+    human = [(f"input A{i:02d} (synthetic)", lc.rel(case["dir"] / n)) for i, n in enumerate(others, 1)]
+    if s["kind"] == "agent":
+        brief = ("brief", f"jobs/{jid}/brief.md", lc.brief_text(jid, EVAL_TYPE, goal))
+        return lc.make_handoff(jid, EVAL_TYPE, name, "agent", goal, [brief] + human, [s["rulebook"]], EVAL_OUTPUT_DIR)
+    return lc.make_handoff(jid, EVAL_TYPE, name, "review", goal, [("artifact", ids["artifact_path"])] + human,
+                           [s["rulebook"]], EVAL_OUTPUT_DIR, REVIEW_KIND="critic", REVIEWER=name,
+                           ARTIFACT=ids["artifact_path"], VERSION=ids["artifact_version"])
 
 
 def build_prompt(s, case):
-    ids = ids_for(s, case)
-    head = [f"JOB: {ids['job_id']}"] if s["kind"] == "agent" else [
-        f"JOB: {ids['job_id']}", f"REVIEWER: {ids['reviewer']}", f"ARTIFACT: {ids['artifact_path']}",
-        f"VERSION: {ids['artifact_version']}"]
-    parts = head + ["", f"RULEBOOK ({s['rulebook']}):", s["rulebook_text"].strip(), ""]
-    for name in case["inputs"]:
-        parts += [f"=== {name} ===", (case["dir"] / name).read_text(encoding="utf-8").strip(), ""]
-    return "\n".join(parts)
+    return agent_call.compose_prompt(s["agent_spec"], eval_handoff(s, case), EVAL_HANDOFF)
 
 
 def leak_check(s, cases):
@@ -481,6 +496,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         mode = f"{mode}-partial"                                       # a subset of cases never counts for lock
     report = {
         "suite": name, "mode": mode, "ts": lc.now(), "model": model, "cli_version": cli,
+        "handoff_format": lc.HANDOFF_FORMAT,
         "models_reported": sorted({m for r in usage_runs for m in r.get("models") or []}),
         "agent": {"path": s["agent"], "sha256": s["agent_spec"]["sha256"]},
         "rulebook": {"path": s["rulebook"], "sha256": lc.sha256_path(lc.ROOT / s["rulebook"])},
