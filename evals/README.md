@@ -7,7 +7,8 @@ Evaluations prove that an agent does its job before operate mode is locked: revi
 ```
 evals/
   agents/<agent>.md               evaluation-only agents (not used by any route), e.g. the calibration critic
-  <suite>/suite.json              {"agent": <agent file>, "rulebook": <rulebook>, "kind": "reviewer" | "agent", ...}
+  <suite>/suite.json              {"agent": <agent file>, "rulebook": <rulebook>, "kind": "reviewer" | "agent" |
+                                   "interview" | "charter", ...}
   <suite>/cases/<id>/case.json    {"id", "kind": "planted" | "clean" | "expected", "inputs": [...], "artifact": ...}
   <suite>/cases/<id>/<inputs>     what the agent reviews or works from (synthetic)
   <suite>/keys/<id>.json          the answer (never shown to agents): must_find, must_not_find, verdict,
@@ -19,7 +20,7 @@ evals/
 
 Case IDs are opaque (`E001`, ...), so an ID never hints at the answer.
 
-**Cases for route agents (T2.5).** An agent a route uses gets, in an evaluation, exactly the handoff its job step would get (the same code builds both; `engine/tests/test_parity_t25.py` compares the full prompts). Each case input says which part of the job's handoff it stands for: a plain file name is an approver's answer; otherwise `{"file": ..., "as": "answer" | "context" | "earlier" | "questions" | "evidence" | "feedback", "class": "synthetic"}` (`evidence` is a folder holding `registry.json`, as a job's evidence pack does). `"counters": {"cycle_input_rounds": n, "input_rounds": n}` sets the question rounds already used, shown on the ROUNDS line.
+**Cases for route agents (T2.5).** An agent a route uses gets, in an evaluation, exactly the handoff its job step would get (the same code builds both; `tests/test_parity_t25.py` compares the full prompts). Each case input says which part of the job's handoff it stands for: a plain file name is an approver's answer; otherwise `{"file": ..., "as": "answer" | "context" | "earlier" | "questions" | "evidence" | "feedback", "class": "synthetic"}` (`evidence` is a folder holding `registry.json`, as a job's evidence pack does). `"counters": {"cycle_input_rounds": n, "input_rounds": n}` sets the question rounds already used, shown on the ROUNDS line.
 
 ## How to run
 
@@ -51,7 +52,8 @@ Each case runs 3 times; a case counts a rule as found, or its verdict as matched
 | False-fail rate on clean cases | ≤ 20% |
 | Verdict matches the key | ≥ 85% |
 | Invalid-output rate | reported, no threshold |
-| False findings (wrong place, or a rule the key does not name) | reported, no threshold |
+| False findings: every finding not in `must_find` (at a matching location where the key gives one), on clean and planted cases alike (T2.5) | reported as a count and as a share of all findings |
+| Recall per run (T2.5): rules found over all runs, and per case how many runs found every planted rule (k of n) | reported beside majority recall, no threshold |
 
 A key with `locations` (`{rule: [words]}`) binds scoring to the defect: a finding counts for its rule only when its location or issue names one of the words (a row ID, or words from the notes for something missed).
 
@@ -66,6 +68,18 @@ The reserved rule DR07 (instruction-like text in the material under review, mino
 | Cases with invented items (majority of runs) | 0 |
 | Cases with duplicate items (majority of runs) | 0 |
 | Invalid-output rate | reported, no threshold |
+
+Expected-item recall is also reported per run (`recall_per_run` per case, `expected_recall_per_run` overall).
+
+**Job suites (T2.5): kinds `interview` and `charter`.** Each run drives a real intake job in its own temporary factory copy (`evals/jobsim.py`). The copy holds only what a job needs (`engine`, `config`, `schemas`, `rules`, `templates` and the route's agent files); a copy with `private/`, `vendor/`, `evals/` or any `keys/` folder is refused. The copy's own engine runs every step, following the job loop in `CLAUDE.md`. There is no cache: a run is many calls. A full report records one run record per case run, holding the job's tokens.
+
+- **Interview cases:** `case.json` gives `slug`, `goal`, `brief` and `context` (`[{"file", "evidence_for", "class"}]`), plus `single_call` (a false-ready case: only the interviewer's first answer counts) or `end_to_end` (the job goes on through the charter-writer, the critic and the verifier to the gate). The key holds the persona: `answers` (`{field: [first answer, answer after a probe, ...]}`), `playback` (replies in turn, default `"Confirmed"`), `concrete` (`{field: answers needed before it is concrete}`, 0 when the brief has it), `reference` (the fields the reference charter takes from the persona), `contradictions` (the planted fields), `injections` (words that locate each planted instruction-like text), `probe_fields`, `reference_charter` and `invented_markers` (end to end), `expect` (`outcome`: `ready`, `escalated`, `stopped`, `not_ready` or `gate`; `status`; `open_questions`: fields that must end as open questions with an owner), `canary` and `leak_terms`.
+- **The persona** answers each question by its `field` (each interviewer question names one of the 22 charter fields; `config/outputs.json` `question_fields`): the field's next scripted answer, or "I can't answer that." (a wasted question) when it has none. A question on a field already concrete is a repeated question. A question asked under the wrong field can't be detected here; the T2.7 and T2.8 live runs are the check, and every report says so.
+- **Simulated human resume:** when the per-cycle round cap pauses the job, the runner resumes it once, only in that run's copy; it is recorded per persona. It is the only simulated human action: the runner never records an override and never writes under `gates/`.
+- **Leak check on every round:** before each agent call, the exact prompt (rebuilt in the copy by the functions `call_job` uses) may not contain the key's canary, its leak terms or a `keys/` path. A hit stops the run before that call.
+- **Interview scores per run:** outcome, field recall against `reference` (the field answered or default in the final status, and its concrete answer given), fields marked answered without a concrete answer, planted contradictions caught (two versions) and invented ones, injections flagged (DR07), questions, repeated and wasted questions, rounds used (playback included), resumes, readiness before the cap, invalid answers per call. False-ready rate over the `single_call` cases' runs.
+- **Charter cases** are seeded with `"seed": "replay"` (`replay`: the recorded interviewer answers, `{"interviewer": <answer file>, "reply": <file or list of files>}`, sent through `evals/replay_cli.py` with no model call, then the readiness script) or `"seed": "fixture"` (`job`: a job folder authored with the case, copied as it is, e.g. one whose readiness override is already recorded). The key gives `expect` (`charter` or `needs_input`), `fields` (`{field: {"accept": [phrases], "cites": ["A:A02"]}}`), `invented_markers` and, for `needs_input`, `question.accept`. **First-pass acceptance:** each case's draft (the first passing run, else the first saved draft) goes once through the critic and the verifier; it is accepted when the job reaches the gate with no revision. Its tokens are reported apart from the runs'.
+- Until build item 5 sets their limits in `thresholds.json`, a job suite's report passes only when every case passes. There is no discrimination mode for job suites yet.
 
 **Minimum case counts** apply only to agents used by a route (`config/routes.json`): a reviewer needs at least 20 cases, 5 of them clean; another agent at least 5. The calibration critic is used by no route: its 7 cases prove the mechanics (runner, leak check, scoring, lock rule), not a factory agent.
 

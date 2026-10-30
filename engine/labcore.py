@@ -641,7 +641,7 @@ def _version(artifact):
 
 
 def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=False, _script=False,
-          reason=None, questions=None, questions_text=None, kind=None):
+          reason=None, questions=None, questions_text=None, kind=None, fields=None):
     if event in HUMAN_ONLY and not _human:
         raise LabError(f"'{event}' is human-only; the approver runs engine/gate.py in their own terminal")
     if event in SCRIPT_ONLY and not _script:
@@ -816,6 +816,8 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             st["awaiting"] = {"state": cur, "stage": st["stage"], "stage_kind": st["stage_kind"],
                               "questions": rel(qf), "inputs_before": len(st["inputs"]), "asked": now(),
                               "kind": kind or "questions"}
+            if fields:                                    # T2.5: the charter field each question is about
+                st["awaiting"]["fields"] = list(fields)
             extra["questions"], extra["kind"] = rel(qf), kind or "questions"
     elif (cur, event) == ("AWAITING_INPUT", "answered"):
         aw = st["awaiting"]

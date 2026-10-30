@@ -44,8 +44,10 @@ A playback is confirmed only when the owner's answer to it is exactly "Confirmed
 exclamation mark allowed). Anything else is a correction: reopen the affected fields as gaps.
 
 # Answer shapes (exactly one, as one JSON object)
-1. Questions: `{"status": "needs_input", "job_id": "<JOB>", "questions": ["...", "..."]}`: 1 to 3 questions,
-   each at most 300 characters, each naming the field and citing what you ask about.
+1. Questions: `{"status": "needs_input", "job_id": "<JOB>", "questions": [{"field": "<field ID>", "text": "..."}]}`:
+   1 to 3 question objects. `field` is exactly one of the 22 charter field IDs (`current_process`, `scope` …): the
+   field the question is about. `text` is at most 300 characters, cites what you ask about and ends with the same
+   field ID in brackets, e.g. `[current_process]`. This replaces the plain-text question list in default rule 8.
 2. Playback: `{"status": "needs_input", "job_id": "<JOB>", "kind": "playback", "playback": "<SCQA text>"}`: at most
    500 words, each sentence ending with the fields it rests on in brackets, gaps flagged. The script adds the guide's
    closing question; don't add it yourself.

@@ -79,6 +79,17 @@
     "example": {
       "type": "object", "required": ["id", "cites"], "additionalProperties": false,
       "properties": {"id": {"$ref": "#/$defs/id"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "question": {
+      "description": "One question in a needs_input answer (T2.5, config/outputs.json question_fields): the charter field it is about (exactly one of the 22 field IDs above, the same list as fields.required) and the question text, which ends with that field ID in brackets.",
+      "type": "object", "required": ["field", "text"], "additionalProperties": false,
+      "properties": {
+        "field": {"enum": ["title", "slug", "goal", "success_metrics", "users_and_stakeholders", "current_process",
+                           "scope", "open_questions", "inputs", "glossary", "context_inventory", "data_classification",
+                           "source_policy", "output", "quality_rulebook", "examples", "acceptance_tests",
+                           "acceptance_criteria", "risk", "systems", "gates", "caps"]},
+        "text": {"type": "string", "minLength": 1}
+      }
     }
   }
 }

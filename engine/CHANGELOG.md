@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.21.0 (2026-10-30)
+
+T2.5 build work, items 3, 4, 9 and 11.
+
+- Interviewer questions name their field: with `question_fields: true` (`config/outputs.json`, set for the interviewer) each question in a needs_input answer is `{"field", "text"}`, checked against `$defs.question` in `schemas/interview-status.v1.schema.json` (the 22 charter field IDs); an unknown or missing field makes the answer invalid. The fields are kept with the round (`state.json` `awaiting.fields`). The interview guide asks for the field ID in brackets at the end of each question, so the approver sees it.
+- `evals/jobsim.py`: job-driven suites. Kind `interview`: script personas answer by field in a real intake job in a temporary factory copy (no `private/`, `vendor/`, `evals/` or `keys/`), with one simulated resume at the per-cycle round cap (copy only), a leak check on every round's prompt, and scores for field recall, contradictions, injections, repeated and wasted questions, rounds, resumes and false-ready. Kind `charter`: the charter-writer on a job seeded by replay (`evals/replay_cli.py`, no model call) or from an authored job fixture, scored per field and for invented content, with first-pass acceptance through the critic and the verifier. The runner never writes under `gates/`.
+- Reviewer scoring: false findings now count on every case, clean and planted (every finding not in `must_find`), with the share of all findings; recall is also reported per run (k of n per case).
+
 ## 0.20.2 (2026-10-30)
 
 T2.5 build work, items 1 and 2.

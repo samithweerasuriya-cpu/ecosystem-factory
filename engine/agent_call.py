@@ -331,7 +331,7 @@ def output_spec(agent_name):
     if spec.get("needs_input") and spec.get("findings"):
         raise lc.LabError(f"config/outputs.json: reviewer {agent_name} may not ask questions (needs_input); "
                           "a reviewer always returns findings")
-    for k in ("playback", "may_stop"):
+    for k in ("playback", "may_stop", "question_fields"):
         if spec.get(k) not in (None, True, False):
             raise lc.LabError(f"config/outputs.json: {k} for {agent_name} must be true or false")
         if spec.get(k) and (spec.get("findings") or not spec.get("needs_input")):
@@ -340,7 +340,11 @@ def output_spec(agent_name):
         raise lc.LabError(f"config/outputs.json: hand_checks for {agent_name} must be one of {list(HAND_CHECKS)}")
     out = {"schema_path": spec["schema"], "schema": schema, "findings": bool(spec.get("findings")), "rulebook": None,
            "needs_input": spec.get("needs_input") is True, "playback": spec.get("playback") is True,
-           "may_stop": spec.get("may_stop") is True, "hand_checks": spec.get("hand_checks")}
+           "may_stop": spec.get("may_stop") is True, "hand_checks": spec.get("hand_checks"),
+           "question_fields": spec.get("question_fields") is True}
+    if out["question_fields"] and not isinstance((schema.get("$defs") or {}).get("question"), dict):
+        raise lc.LabError(f"config/outputs.json: question_fields for {agent_name} needs $defs.question in "
+                          f"{spec['schema']} (fails closed)")
     if out["findings"]:
         rb = vf.reviewer_rulebook(agent_name, lc.ROOT)
         if rb is None or not rb.is_file():
@@ -434,6 +438,14 @@ def question_problems(doc, spec, job_id):
                          len(qs) if isinstance(qs, list) else qs))
         return problems
     for i, q in enumerate(qs):
+        if spec.get("question_fields"):
+            # T2.5: each question names its charter field; an unknown or missing field makes the answer invalid
+            qschema = {"$defs": spec["schema"]["$defs"], "$ref": "#/$defs/question"}
+            bad = [(p, rule, v) for p, rule, v, _ in schemacheck.details(q, qschema, f"$.questions[{i}]")]
+            if bad:
+                problems += bad
+                continue
+            q = q["text"]
         if not isinstance(q, str) or not plain_question(q):
             problems.append((f"$.questions[{i}]", "must be non-empty text", q))
         elif len(plain_question(q)) > QUESTION_CHARS:
@@ -492,6 +504,16 @@ def charter_checks(doc, st):
                                         context_ids=[c["id"] for c in st.get("context", [])])
 
 
+def question_text(q):
+    return q["text"] if isinstance(q, dict) else q
+
+
+def question_fields(doc):
+    """The charter field of each question (T2.5, question_fields agents), or None for plain text questions."""
+    qs = doc.get("questions") or []
+    return [q["field"] for q in qs] if qs and all(isinstance(q, dict) for q in qs) else None
+
+
 def questions_text(doc, agent_name, call_id):
     """The questions file the orchestrator relays: labelled as data, one plain line per question. A playback
     (T2.4) keeps its lines and ends with the guide's fixed question."""
@@ -501,7 +523,7 @@ def questions_text(doc, agent_name, call_id):
     if doc.get("kind") == "playback":
         lines += ["Kind: playback", ""] + [plain_question(ln) for ln in doc["playback"].splitlines()] + [""]
         return "\n".join(lines + [f"Q1: {PLAYBACK_QUESTION}"]) + "\n"
-    lines += [f"Q{i}: {plain_question(q)}" for i, q in enumerate(doc["questions"], 1)]
+    lines += [f"Q{i}: {plain_question(question_text(q))}" for i, q in enumerate(doc["questions"], 1)]
     return "\n".join(lines) + "\n"
 
 
@@ -585,7 +607,7 @@ def call_job(job_id, agent_file, item=None, workspace=None, timeout=DEFAULT_TIME
             if result["ceiling"]:
                 return result
             st = lc.apply(job_id, "needs_input", questions_text=questions_text(doc, agent["name"], cid), actor="script",
-                          kind=doc.get("kind"))
+                          kind=doc.get("kind"), fields=None if doc.get("kind") else question_fields(doc))
             return {**result, "status": "needs_input", "questions": (st.get("awaiting") or {}).get("questions"),
                     "state": st["state"]}
         if not problems:

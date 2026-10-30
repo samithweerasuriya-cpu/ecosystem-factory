@@ -3,7 +3,7 @@
 
 Read by evals/run_evals.py (the `stale` command) and engine/gate.py (lock). A suite is a folder
 evals/<suite>/ with suite.json {"agent": <agent file>, "rulebook": <rulebook or null>, "kind":
-"reviewer" | "agent"}, cases/<case>/ and keys/<case>.json. Reports are evals/reports/*.json.
+"reviewer" | "agent" | "interview" | "charter"}, cases/<case>/ and keys/<case>.json. Reports are evals/reports/*.json.
 
 A report counts for locking when it passed, ran 3 times per case ("full" or "smoke" mode, never
 "quick"), its model and CLI version equal the pinned model (config/models.json) and the CLI now

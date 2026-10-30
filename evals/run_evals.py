@@ -31,7 +31,10 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   (evals/thresholds.json). Recall per rule and per severity, false-fail rate on clean cases, verdict
   match, invalid-output rate (over runs, reported separately), variance (run agreement, tokens).
   When a key has "locations" ({rule: [words]}), a finding counts for its rule only if its location or
-  issue names one of the words (whole word, any case); every other finding is a false finding (reported).
+  issue names one of the words (whole word, any case). Every finding not in must_find (at a matching location
+  where one is given) is a false finding, on clean and planted cases alike (T2.5); recall is also reported per run.
+- Job suites (T2.5, kinds interview and charter): every run drives a real intake job in a temporary factory copy
+  (evals/jobsim.py, run_jobs); see evals/README.md, "Job suites".
 - Scoring (agents, T1.2): suite.json names the output schema, the list field, the quote field and the
   fields to check. Output must be one JSON object that passes the output schema and copies the job ID.
   Each listed item matches a key's expected item when its quote appears in the inputs and is part of
@@ -54,6 +57,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine"))
 import agent_call  # noqa: E402
 import evalcheck  # noqa: E402
+import jobsim  # noqa: E402
 import labcore as lc  # noqa: E402
 import schemacheck  # noqa: E402
 import validate_findings as vf  # noqa: E402
@@ -77,12 +81,15 @@ def eval_caps():
 
 # ---------- suite, cases, prompts ----------
 
+JOB_KINDS = ("interview", "charter")                  # T2.5: each run drives a real job (evals/jobsim.py)
+
+
 def load_suite(name):
     s = evalcheck.suites().get(name)
     if s is None:
         raise Refused(f"no suite {name!r} (evals/{name}/suite.json)")
-    if s.get("kind") not in ("reviewer", "agent"):
-        raise Refused(f"suite {name}: kind {s.get('kind')!r} is not supported (reviewer or agent)")
+    if s.get("kind") not in ("reviewer", "agent") + JOB_KINDS:
+        raise Refused(f"suite {name}: kind {s.get('kind')!r} is not supported (reviewer, agent, interview or charter)")
     if s["kind"] == "agent":
         missing = [k for k in ("output_schema", "items_field", "quote_field", "check_fields") if not s.get(k)]
         if missing:
@@ -90,6 +97,9 @@ def load_suite(name):
     s["agent_spec"] = agent_call.parse_agent(lc.ROOT / s["agent"])
     rb = lc.ROOT / s["rulebook"]
     s["rulebook_text"] = rb.read_text(encoding="utf-8")
+    if s["kind"] in JOB_KINDS:                          # the guide or the charter format: no rule table
+        s["severities"] = {}
+        return s
     s["severities"] = vf.rulebook_severities(rb)
     if not s["severities"]:
         raise Refused(f"suite {name}: rulebook {s['rulebook']} has no rules")
@@ -207,7 +217,14 @@ def leak_check(s, cases):
     """[(case id, term, where)] for every leak term found in what the agent receives."""
     hits = []
     for c in cases:
-        prompt = build_prompt(s, c)
+        if s["kind"] in JOB_KINDS:                     # checked again on every round's prompt (evals/jobsim.py)
+            prompt = "\n".join(f.read_text(encoding="utf-8", errors="replace")
+                               for f in sorted(c["dir"].rglob("*")) if f.is_file())
+        else:
+            prompt = build_prompt(s, c)
+        for term in [c["key"].get("canary")] if c["key"].get("canary") else []:
+            if re.search(r"(?<!\w)" + re.escape(term) + r"(?!\w)", s["agent_spec"]["body"] + prompt, re.IGNORECASE):
+                hits.append((c["id"], term, "agent instructions or prompt"))
         for term in c["key"].get("leak_terms", []):
             rx = re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE)
             for where, text in (("agent instructions", s["agent_spec"]["body"]), ("prompt", prompt)):
@@ -237,7 +254,7 @@ def names_word(text, word):
 
 
 def invalid(errors):
-    return {"valid": False, "errors": errors, "found": [], "verdict": None, "false_findings": 0,
+    return {"valid": False, "errors": errors, "found": [], "verdict": None, "false_findings": 0, "findings": 0,
             "invented": 0, "duplicates": 0, "fields_ok": []}
 
 
@@ -256,18 +273,19 @@ def score(text, s, case, schema):
         return invalid(errs)
     locations = case["key"].get("locations", {})
     must = set(case["key"].get("must_find", []))
-    found, false_findings = set(), 0
+    found, false_findings, findings = set(), 0, 0
     for f in doc.get("findings") or []:
+        findings += 1
         rule = str(f.get("rule", "")).strip().upper()
         where = f"{f.get('location', '')} {f.get('issue', '')}"
         if rule in locations and not any(names_word(where, w) for w in locations[rule]):
             false_findings += 1                                        # right rule, wrong place
             continue
         found.add(rule)
-        if locations and rule not in must:
+        if rule not in must:                                           # T2.5 item 9: clean and planted cases alike
             false_findings += 1
     return {"valid": True, "errors": [], "found": sorted(found), "verdict": doc.get("verdict"),
-            "false_findings": false_findings, "invented": 0, "duplicates": 0, "fields_ok": []}
+            "false_findings": false_findings, "findings": findings, "invented": 0, "duplicates": 0, "fields_ok": []}
 
 
 def norm(text):
@@ -342,10 +360,14 @@ def aggregate_agent(cases, results, maj):
                          "expected": len(key["expected"]), "found": found, "fields_ok": ok,
                          "invented_per_run": [sc["invented"] for sc in scores],
                          "duplicates_per_run": [sc["duplicates"] for sc in scores],
+                         "recall_per_run": [f"{len(sc['found'])} of {len(key['expected'])}" for sc in scores],
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3),
                          "tokens": case_tokens(rs), "cached_runs": sum(1 for r in rs if r.get("cached"))})
     metrics = {
         "expected_recall": round(hits / total, 3) if total else None, "expected_found": f"{hits} of {total}",
+        "expected_recall_per_run": round(sum(len(r["score"]["found"]) for c in cases for r in results[c["id"]])
+                                         / sum(len(c["key"]["expected"]) * len(results[c["id"]]) for c in cases), 3)
+        if total and runs else None,
         "field_accuracy": round(fields / hits, 3) if hits else None, "fields_correct": f"{fields} of {hits}",
         "invented_cases": inv_cases, "duplicate_cases": dup_cases, "invented_items_all_runs": inv_items,
         "invalid_output_rate": round(invalid_runs / runs, 3) if runs else None,
@@ -362,13 +384,17 @@ def aggregate(s, cases, results, th):
         return aggregate_agent(cases, results, maj)
     per_case, rule_hits, rule_total = [], {}, {}
     clean = clean_ff = vm_cases = vm_hits = 0
-    runs = invalid = false_findings = 0
+    runs = invalid = false_findings = findings = run_hits = run_total = 0
     for c in cases:
         rs, key = results[c["id"]], c["key"]
         scores = [r["score"] for r in rs]
         runs += len(rs)
         invalid += sum(1 for sc in scores if not sc["valid"])
         passed = sum(1 for sc in scores if run_passes(sc, key))
+        must = set(key["must_find"])
+        run_hits += sum(len(must & set(sc["found"])) for sc in scores)        # T2.5 item 11: per run
+        run_total += len(must) * len(scores)
+        findings += sum(sc.get("findings", 0) for sc in scores)
         for rule in key["must_find"]:
             hit = sum(1 for sc in scores if rule in sc["found"]) >= maj
             rule_total[rule] = rule_total.get(rule, 0) + 1
@@ -385,6 +411,7 @@ def aggregate(s, cases, results, th):
                          "found": sorted({r for sc in scores for r in sc["found"]}),
                          "verdicts": [sc["verdict"] for sc in scores],
                          "false_findings_per_run": [sc.get("false_findings", 0) for sc in scores],
+                         "runs_recalled": f"{sum(1 for sc in scores if must <= set(sc['found']))} of {len(scores)}",
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3),
                          "tokens": case_tokens(rs), "cached_runs": sum(1 for r in rs if r.get("cached"))})
     by_sev = {}
@@ -398,8 +425,10 @@ def aggregate(s, cases, results, th):
         "recall_major": round(by_sev["major"][0] / by_sev["major"][1], 3) if "major" in by_sev else None,
         "false_fail_rate": round(clean_ff / clean, 3) if clean else None,
         "verdict_match": round(vm_hits / vm_cases, 3) if vm_cases else None,
+        "recall_per_run": round(run_hits / run_total, 3) if run_total else None,
         "invalid_output_rate": round(invalid / runs, 3) if runs else None,
-        "false_findings_all_runs": false_findings,
+        "false_findings_all_runs": false_findings, "findings_all_runs": findings,
+        "false_finding_rate": round(false_findings / findings, 3) if findings else None,
         "cases": len(cases), "clean_cases": clean, "runs": runs, "invalid_runs": invalid,
         "cases_passed": sum(1 for p in per_case if p["pass"]),
     }
@@ -503,6 +532,11 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         raise Refused("the CLI did not report its version (claude --version)")
     n_runs = 1 if mode in ("quick", "discrimination") else th["runs_per_case"]
     framework = evalcheck.framework_hashes()
+    if s["kind"] in JOB_KINDS:
+        if discrimination:
+            raise Refused(f"suite {name}: a {s['kind']} suite has no discrimination mode yet (its agent calls run "
+                          "in the job's own engine, on the agent's pinned model)")
+        return run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only)
     plan, est_tokens, est_seconds = [], 0, 0
     for c in cases:
         prompt = build_prompt(s, c)
@@ -589,14 +623,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     if discrimination:
         report["counts_for_lock"] = False
         report["too_easy"] = metrics["cases"] > 0 and metrics["cases_passed"] == metrics["cases"]
-    d = evalcheck.evals_dir() / "reports"
-    d.mkdir(exist_ok=True)
-    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    path, n = d / f"{stamp}-{name}-{mode}.json", 1
-    while path.exists():                                               # T1.4: a report is never overwritten
-        n += 1
-        path = d / f"{stamp}-{name}-{mode}-{n}.json"
-    lc.save_json(path, report)
+    path = save_report(name, mode, report)
     m = metrics
     out(f"Report {lc.rel(path)}: {'PASS' if report['pass'] else 'FAIL'}")
     if s["kind"] == "agent":
@@ -605,10 +632,11 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
             f"with duplicates {m['duplicate_cases']}")
         out(f"  invalid-output rate {m['invalid_output_rate']} ({m['invalid_runs']} of {m['runs']} runs)")
     else:
-        out(f"  recall per rule {m['recall_per_rule']}; major {m['recall_major']}; blocker {m['recall_blocker']}")
+        out(f"  recall per rule {m['recall_per_rule']}; major {m['recall_major']}; blocker {m['recall_blocker']}; "
+            f"per run {m['recall_per_run']}")
         out(f"  false-fail rate {m['false_fail_rate']}; verdict match {m['verdict_match']}; "
             f"invalid-output rate {m['invalid_output_rate']} ({m['invalid_runs']} of {m['runs']} runs); "
-            f"false findings {m['false_findings_all_runs']}")
+            f"false findings {m['false_findings_all_runs']} of {m['findings_all_runs']} ({m['false_finding_rate']})")
     out(f"  cases passed {m['cases_passed']} of {m['cases']}; tokens {report['usage']['tokens_all']:,} "
         f"({spent:,} new); minimum counts: {'met' if mc['met'] else 'not met' if mc['applies'] else 'not applicable (no route uses this agent)'}")
     for f_ in fails:
@@ -621,6 +649,122 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                "(suite design rule 5)." if report["too_easy"] else
                f"The weaker model failed {m['cases'] - m['cases_passed']} of {m['cases']} case(s): the suite discriminates."))
         return report, 0
+    return report, 0 if report["pass"] else 1
+
+
+def save_report(name, mode, report):
+    d = evalcheck.evals_dir() / "reports"
+    d.mkdir(exist_ok=True)
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    path, n = d / f"{stamp}-{name}-{mode}.json", 1
+    while path.exists():                                               # T1.4: a report is never overwritten
+        n += 1
+        path = d / f"{stamp}-{name}-{mode}-{n}.json"
+    lc.save_json(path, report)
+    return path
+
+
+def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only):
+    """An interview or charter suite (T2.5, evals/jobsim.py): every run drives a real job in its own temporary
+    factory copy; no cache (a run is many calls). Thresholds for these kinds are enforced from build item 5; until
+    then a report passes only when every case passes."""
+    est_calls = {"interview": 8, "charter": 1}[s["kind"]]
+    est_tokens = est_seconds = 0
+    for c in cases:
+        text = "\n".join(f.read_text(encoding="utf-8", errors="replace") for f in sorted(c["dir"].rglob("*"))
+                         if f.is_file())
+        e = agent_call.estimate(s["agent_spec"], text + s["rulebook_text"])
+        calls = c.get("est_calls", 1 if c.get("single_call") else est_calls)
+        est_tokens += e["tokens"] * calls * n_runs
+        est_seconds += e["seconds"] * calls * n_runs
+    out(f"Suite {name} ({mode}): {len(cases)} case(s) x {n_runs} run(s), each a job in its own factory copy.")
+    out(f"Estimate: about {est_tokens:,} tokens and {round(est_seconds / 60, 1)} minutes (model {model}, CLI {cli}); "
+        f"first-pass acceptance and end-to-end jobs come on top.")
+    if estimate_only:
+        return None, 0
+    caps = eval_caps()
+    ceiling = caps.get("tokens_per_invocation", 1_000_000)
+    if est_tokens > caps.get("confirm_above_tokens", 1_000_000):
+        confirm_estimate(est_tokens)
+        ceiling = max(ceiling, int(est_tokens * 1.5))
+    results, spent, stopped, run_records = {c["id"]: [] for c in cases}, 0, None, []
+    acceptance = {}
+    maj = th["case_majority"] if n_runs > 1 else 1
+    try:
+        for c in cases:
+            for n in range(1, n_runs + 1):
+                if stopped:
+                    break
+                if s["kind"] == "interview":
+                    rec = jobsim.run_interview(c, n, cmd=cmd)
+                else:
+                    rec = jobsim.run_charter(c, n, cmd=cmd, keep=True)
+                spent += rec["usage"]["total"]
+                sc = rec["score"]
+                out(f"  {c['id']} run {n}: {sc['outcome']} {'pass' if sc['pass'] else 'FAIL'} "
+                    f"tokens={rec['usage']['total']}")
+                results[c["id"]].append(rec)
+                if spent >= ceiling:
+                    stopped = f"token ceiling reached ({spent:,} >= {ceiling:,})"
+            if s["kind"] == "charter" and results[c["id"]] and not stopped:
+                draft = jobsim.pick_draft(results[c["id"]], maj)
+                for r in results[c["id"]]:
+                    if r is not draft and r.get("_copy"):
+                        jobsim.remove_copy(r.pop("_copy"))
+                acceptance[c["id"]] = jobsim.first_pass(draft, c["key"], cmd=cmd) if draft else \
+                    {"accepted": False, "state": "no draft", "verdicts": [], "tokens": 0}
+                spent += acceptance[c["id"]]["tokens"]
+                out(f"  {c['id']} first-pass acceptance: {'accepted' if acceptance[c['id']]['accepted'] else 'not accepted'} "
+                    f"({acceptance[c['id']]['state']})")
+    except jobsim.LeakStop as e:
+        out(f"LEAK: {e}. Stopped; no report written.")
+        return None, 2
+    finally:
+        for rs in results.values():
+            for r in rs:
+                if r.get("_copy"):
+                    jobsim.remove_copy(r.pop("_copy"))
+    if stopped:
+        out(f"STOPPED: {stopped}. No report written.")
+        return None, 3
+    for rs in results.values():
+        for r in rs:
+            for k in [k for k in r if k.startswith("_")]:
+                r.pop(k)
+            run_records.append(save_run_record(name, r))
+    agg = jobsim.aggregate_interview if s["kind"] == "interview" else jobsim.aggregate_charter
+    per_case, metrics = agg(cases, results, maj)
+    for p in per_case:
+        if p["case"] in acceptance:
+            p["first_pass_acceptance"] = acceptance[p["case"]]
+    mc = min_counts(s, metrics, th)
+    usage_runs = [r for rs in results.values() for r in rs]
+    if only and mode != "quick":
+        mode = f"{mode}-partial"
+    report = {
+        "suite": name, "mode": mode, "ts": lc.now(), "model": model, "cli_version": cli,
+        "handoff_format": lc.HANDOFF_FORMAT,
+        "models_reported": sorted({m for r in usage_runs for m in r.get("models") or []}),
+        "agent": {"path": s["agent"], "sha256": s["agent_spec"]["sha256"]},
+        "rulebook": {"path": s["rulebook"], "sha256": lc.sha256_path(lc.ROOT / s["rulebook"])},
+        "thresholds": th.get(s["kind"], {}), "threshold_failures": [], "min_counts": mc,
+        "pass": metrics["runs"] > 0 and metrics["cases_passed"] == metrics["cases"],
+        "metrics": metrics, "cases": per_case,
+        "usage": {"calls": len(usage_runs), "cached": 0, "tokens_new": sum(r["usage"]["total"] for r in usage_runs),
+                  "tokens_all": sum(r["usage"]["total"] for r in usage_runs),
+                  "tokens_acceptance": sum(a["tokens"] for a in acceptance.values()), "estimate_tokens": est_tokens},
+        "run_records": run_records,
+        "framework": framework,
+    }
+    path = save_report(name, mode, report)
+    out(f"Report {lc.rel(path)}: {'PASS' if report['pass'] else 'FAIL'} (cases passed {metrics['cases_passed']} of "
+        f"{metrics['cases']}; tokens {spent:,})")
+    for k in ("field_recall", "field_accuracy", "contradictions_caught_rate", "contradictions_invented",
+              "repeated_question_rate", "false_ready_rate", "invented_cases", "invalid_output_rate"):
+        if k in metrics:
+            out(f"  {k} {metrics[k]}")
+    if mode == "quick" or mode.endswith("-partial"):
+        out(f"  {mode} mode: for drafting only; never counts for lock.")
     return report, 0 if report["pass"] else 1
 
 

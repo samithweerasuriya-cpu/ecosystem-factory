@@ -9,6 +9,7 @@ import builtins
 import importlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -68,7 +69,12 @@ class IntakeBase(AgentCallBase):
         os.environ["FAKE_CLAUDE_RESPONSES"] = str(f)
 
     def ask(self, job, *qs):
-        return json.dumps({"status": "needs_input", "job_id": job, "questions": list(qs)})
+        """The interviewer's questions (T2.5: objects naming their field; the field is the bracketed ID at the end of
+        the text, else goal)."""
+        def obj(q):
+            m = re.search(r"\[([a-z_]+)\]$", q)
+            return {"field": m.group(1) if m else "goal", "text": q}
+        return json.dumps({"status": "needs_input", "job_id": job, "questions": [obj(q) for q in qs]})
 
     def playback(self, job, text="Situation: the rota keeper builds the week by hand (current_process)."):
         return json.dumps({"status": "needs_input", "job_id": job, "kind": "playback", "playback": text})
@@ -172,6 +178,37 @@ class InterviewTests(IntakeBase):
         self.assertIn('Q1: Confirm, or tell me what to correct. (Answer exactly "Confirmed"', text)
         st = self.lc.load_state(j)
         self.assertEqual((st["counters"]["input_rounds"], st["awaiting"]["kind"]), (2, "playback"))
+
+    def test_each_question_names_one_charter_field_kept_with_the_round(self):
+        j = self.new_intake()
+        self.respond(j, self.ask(j, "How is it done today? [current_process]", "What is out? [scope]"))
+        r = self.ac.call_job(j, self.agent["interviewer"])
+        self.assertEqual(r["status"], "needs_input")
+        st = self.lc.load_state(j)
+        self.assertEqual(st["awaiting"]["fields"], ["current_process", "scope"])
+        text = (self.tmp / r["questions"]).read_text(encoding="utf-8")
+        self.assertIn("Q1: How is it done today? [current_process]", text)
+        spec = self.ac.output_spec("interviewer")
+        enum = spec["schema"]["$defs"]["question"]["properties"]["field"]["enum"]
+        self.assertEqual(enum, spec["schema"]["properties"]["fields"]["required"])     # one list of 22 IDs
+        self.assertEqual(len(enum), 22)
+        for bad in ({"field": "colour", "text": "Q? [colour]"}, {"text": "Q?"}, "Plain text? [scope]",
+                    {"field": "scope", "text": "Q?", "why": "x"}):
+            doc = {"status": "needs_input", "job_id": j, "questions": [bad]}
+            self.assertTrue(self.ac.question_problems(doc, spec, j), bad)
+        ok = {"status": "needs_input", "job_id": j, "questions": [{"field": "scope", "text": "Q? [scope]"}]}
+        self.assertEqual(self.ac.question_problems(ok, spec, j), [])
+        plain = self.ac.output_spec("charter-writer")                          # other authors keep plain text
+        self.assertEqual(self.ac.question_problems({**ok, "questions": ["Q?"]}, plain, j), [])
+
+    def test_a_question_without_a_known_field_is_invalid_and_re_asked(self):
+        j = self.new_intake()
+        bad = json.dumps({"status": "needs_input", "job_id": j, "questions": [{"field": "colour", "text": "Q?"}]})
+        self.respond(j, bad, self.ask(j, "What is out? [scope]"))
+        r = self.ac.call_job(j, self.agent["interviewer"])
+        self.assertEqual(r["status"], "needs_input")
+        self.assertEqual(self.lc.load_state(j)["awaiting"]["fields"], ["scope"])
+        self.assertIn("$.questions[0].field", self.calls()[-1]["stdin"])
 
     def test_a_playback_over_500_words_or_from_an_agent_not_marked_is_invalid(self):
         j = self.new_intake()

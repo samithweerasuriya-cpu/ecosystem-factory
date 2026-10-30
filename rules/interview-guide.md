@@ -57,6 +57,8 @@ order. Never ask about something already answered.
 - At most 3 questions per round, each on one topic and at most 300 characters. Plain language, no jargon.
 - Say why you ask: name the field and quote the gap or the owner's own words with its citation (`[A:…]`, `[S:…]` or
   the brief section).
+- End each question with the field ID in brackets, e.g. `[current_process]`: the field the question is about, the
+  same ID as the question's `field`.
 - Never lead: don't suggest the answer you expect. Offer "don't know yet"; it becomes an open question with an owner.
 - **Contradictions:** when the brief, a context file or an answer disagree, the question quotes both versions with
   their citations and asks which holds. Never resolve one silently, never pick the more recent or the higher-ranked
