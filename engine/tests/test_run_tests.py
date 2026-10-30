@@ -6,6 +6,7 @@ import sys
 import tempfile
 import time
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from support import REPO, force_rmtree
@@ -191,6 +192,21 @@ class WatchdogTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run_tests._seconds(argv, argv[0], 1)
         self.assertEqual(run_tests._seconds(["--timeout", "90"], "--timeout", 1), 90)
+
+    def test_an_unknown_argument_runs_nothing(self):
+        """T2.5 (lesson 3): `--help` started a full run twice; an argument the runner doesn't take now stops it."""
+        started = []
+        real, run_tests.supervise = run_tests.supervise, lambda **kw: started.append(kw) or (0, {})
+        err = io.StringIO()
+        try:
+            for argv in (["--help"], ["-h"], ["--fast", "--quick"], ["tests/test_x.py"]):
+                with redirect_stderr(err):
+                    self.assertEqual(run_tests.main(argv), 2, argv)
+            self.assertEqual(started, [])
+            self.assertIn("nothing was run", err.getvalue())
+            self.assertEqual(run_tests.unknown_args(["--fast", "-v", "--timeout", "90", "--test-timeout", "5"]), [])
+        finally:
+            run_tests.supervise = real
 
 
 

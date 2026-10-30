@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.20.2 (2026-10-30)
+
+T2.5 build work, items 1 and 2.
+
+- `engine/run_tests.py` refuses any argument it does not take (e.g. `--help`) with a usage line and exit 2, and runs nothing. `--help` had started a full run twice (lesson 3).
+- The factory-only tests `test_intake_t24.py` and `test_parity_t25.py` moved from `engine/tests/` to `tests/`. The generator copies `engine/tests` into every ecosystem, where the intake agents don't exist, so both would have failed in a regenerated ecosystem.
+- Handoff parity now also covers the thin ecosystem's `action-writer` and `action-critic`. Their route, agents, rulebook and config are rendered by the generator, in memory, from `docs/thin/blueprint.json` into the test copy; nothing is written to `C:\ecosystems`.
+
 ## 0.20.1 (2026-10-30)
 
 Handoff parity for every route agent (start of T2.5, before any live call; lesson 13 recurred).

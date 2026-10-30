@@ -2,32 +2,39 @@
 stands for get the same prompt, compared as full text (rendered handoff and every inlined file) apart from the
 IDs and the paths that carry them: the same rules, input labels and order, ROUNDS line, review line and output
 format. Lesson 13 recurred in T2.4: the interviewer's evaluation handoff had no ROUNDS line, and the old parity
-test compared one critic only. Every agent call uses fake_claude.py instead of the real CLI."""
+test compared one critic only. Covered: the factory's intake route and the thin ecosystem's actions route
+(action-writer, action-critic), rendered from docs/thin/blueprint.json into the test copy. Factory-only test
+(tests/): engine/tests is copied into every generated ecosystem. Every agent call uses fake_claude.py."""
 import importlib
 import json
 import shutil
 import sys
+from pathlib import Path
 
-from support import REPO
-from test_intake_t24 import IntakeBase
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "engine" / "tests"))
+from support import REPO  # noqa: E402
+from test_agent_call_t13 import AgentCallBase  # noqa: E402
+from test_intake_t24 import IntakeBase  # noqa: E402
 
 SUITE = "parity-check"
+ROLES = {"artifact": None, "earlier stage output": "earlier", "your earlier questions": "questions",
+         "gate feedback": "feedback"}
 
 
-class RouteAgentParityTests(IntakeBase):
-    def setUp(self):
-        super().setUp()
+class ParityMixin:
+    """Builds an evaluation case from a job's own files, each tagged with the role a case author gives it, and
+    compares the two prompts. Needs self.agent ({name: agent file}) and the runner imported as self.re."""
+
+    def import_runner(self):
         sys.path.insert(0, str(self.tmp / "evals"))
         self.re = importlib.import_module("run_evals")
         self.covered = set()
 
-    def tearDown(self):
+    def drop_runner_path(self):
         while str(self.tmp / "evals") in sys.path:
             sys.path.remove(str(self.tmp / "evals"))
-        super().tearDown()
 
     def case_from_job(self, job, agent, case_id):
-        """An evaluation case built from the job's own files, each tagged with the role a case author gives it."""
         h = self.lc.build_handoff(job)
         st = self.lc.load_state(job)
         d = self.tmp / f"evals/{SUITE}/cases/{case_id}"
@@ -38,15 +45,13 @@ class RouteAgentParityTests(IntakeBase):
             if label in ("brief", "source registry"):              # built from the goal; found in the evidence pack
                 continue
             if label == "evidence pack":
-                name = "evidence"
-                shutil.copytree(src, d / name)
-                inputs.append({"file": name, "as": "evidence"})
-                pairs.append((i["path"], f"{self.lc.rel(d / name)}/"))
+                shutil.copytree(src, d / "evidence")
+                inputs.append({"file": "evidence", "as": "evidence"})
+                pairs.append((i["path"], f"{self.lc.rel(d / 'evidence')}/"))
                 continue
             name = f"{n:02d}-{src.name}"
             shutil.copy(src, d / name)
-            role = {"artifact": None, "earlier stage output": "earlier", "your earlier questions": "questions",
-                    "gate feedback": "feedback"}.get(label, "context" if label.startswith("context ") else "answer")
+            role = ROLES.get(label, "context" if label.startswith("context ") else "answer")
             if role is None:
                 artifact = name
                 inputs.append(name)
@@ -56,9 +61,8 @@ class RouteAgentParityTests(IntakeBase):
         case = {"id": case_id, "dir": d, "inputs": inputs, "goal": st["goal"], "counters": st["counters"]}
         if artifact:
             case["artifact"] = artifact
-        spec = self.ac.parse_agent(self.agent[agent])
-        s = {"name": SUITE, "kind": "reviewer" if st["stage_kind"] == "review" else "agent", "agent_spec": spec,
-             "rulebook": "rules/default-agent-rules.md"}
+        s = {"name": SUITE, "kind": "reviewer" if st["stage_kind"] == "review" else "agent",
+             "agent_spec": self.ac.parse_agent(self.agent[agent]), "rulebook": "rules/default-agent-rules.md"}
         return h, s, case, pairs
 
     def assert_parity(self, job, agent, case_id):
@@ -81,6 +85,23 @@ class RouteAgentParityTests(IntakeBase):
         self.assertEqual(norm(eval_prompt), norm(job_prompt), agent)
         self.covered.add(agent)
         return eval_prompt
+
+    def assert_every_route_agent_covered(self, routes, agent_dir):
+        on_routes = {x["agent"] for r in routes.values() if not r.get("stand_in_agents")
+                     for x in r["stages"] + r["reviews"] + [{"agent": r.get("deliver")}]
+                     if x.get("agent") and (agent_dir / f"{x['agent']}.md").is_file()}
+        self.assertTrue(on_routes)
+        self.assertEqual(on_routes - self.covered, set(), "a route agent with no parity check")
+
+
+class RouteAgentParityTests(ParityMixin, IntakeBase):
+    def setUp(self):
+        super().setUp()
+        self.import_runner()
+
+    def tearDown(self):
+        self.drop_runner_path()
+        super().tearDown()
 
     def test_every_route_agent_gets_its_job_handoff_in_an_evaluation(self):
         j = self.new_intake()
@@ -110,11 +131,52 @@ class RouteAgentParityTests(IntakeBase):
         self.assertIn("source registry", p)
 
         routes = json.loads((REPO / "config/routes.json").read_text(encoding="utf-8"))["routes"]
-        on_routes = {x["agent"] for r in routes.values() if not r.get("stand_in_agents")
-                     for x in r["stages"] + r["reviews"] + [{"agent": r.get("deliver")}]
-                     if x.get("agent") and (REPO / f".claude/agents/{x['agent']}.md").is_file()}
-        self.assertEqual(on_routes - self.covered, set(), "a route agent with no parity check")
+        self.assert_every_route_agent_covered(routes, REPO / ".claude/agents")
 
     def test_a_case_role_outside_the_list_is_refused(self):
         with self.assertRaises(self.re.Refused):
             self.re.case_inputs({"id": "E009", "inputs": [{"file": "a.md", "as": "instructions"}]})
+
+
+class ThinRouteParityTests(ParityMixin, AgentCallBase):
+    """The thin ecosystem's route, rendered by the generator (in memory) from docs/thin/blueprint.json into this
+    test's copy, so the action agents are checked with the files a generated ecosystem gets. Nothing is
+    written to C:\\ecosystems."""
+    auto_result = False
+
+    def setUp(self):
+        super().setUp()
+        for d in ("docs/thin", "templates"):
+            shutil.copytree(REPO / d, self.tmp / d, dirs_exist_ok=True)
+        shutil.copy(REPO / ".gitattributes", self.tmp / ".gitattributes")     # the generator copies it
+        gen = importlib.import_module("generate")
+        _, plan = gen.build(self.tmp / "docs/thin/blueprint.json")
+        for rel, f in plan.items():
+            if rel.startswith(("config/", "rules/", "schemas/", ".claude/agents/")):
+                p = self.tmp / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes(f["data"])
+        self.routes = json.loads((self.tmp / "config/routes.json").read_text(encoding="utf-8"))["routes"]
+        self.agent = {p.stem: p for p in (self.tmp / ".claude/agents").glob("*.md")}
+        self.import_runner()
+
+    def tearDown(self):
+        self.drop_runner_path()
+        super().tearDown()
+
+    def test_the_action_agents_get_their_job_handoff_in_an_evaluation(self):
+        (route_name, r), = self.routes.items()
+        j = self.lc.new_job(route_name, "standup", "Action items from the standup notes")["job_id"]
+        notes = self.tmp / "inbox/notes.md"
+        notes.parent.mkdir(parents=True, exist_ok=True)
+        notes.write_text("The chair will send the agenda by Friday.\n", encoding="utf-8")
+        self.lc.record_input(j, str(notes), "synthetic")
+        self.lc.apply(j, "dispatch")
+        writer, critic = r["stages"][0]["agent"], r["reviews"][0]["agent"]
+        self.assert_parity(j, writer, "E001")
+        art = self.write(f"jobs/{j}/drafts/v1.json", "{}")
+        self.lc.apply(j, "artifact_ready", artifact=art)
+        p = self.assert_parity(j, critic, "E002")
+        self.assertIn("REVIEW: critic", p)
+        self.assertEqual((writer, critic), ("action-writer", "action-critic"))
+        self.assert_every_route_agent_covered(self.routes, self.tmp / ".claude/agents")

@@ -4,6 +4,7 @@
   python engine/run_tests.py [-v]            # FULL: before every commit and in every Check
   python engine/run_tests.py --fast [-v]     # FAST: during work (skips modules with TIER = "full")
   options: --test-timeout SECONDS (default 600)   --timeout SECONDS (default 3600, the whole run)
+  any other argument (e.g. --help) is refused with exit 2 and nothing runs (T2.5, lesson 3)
 
 Tests run against temporary copies (LAB_ROOT). This runner fingerprints every file under
 logs/, jobs/ and .lab/ of the real repo before and after the suite and fails if anything
@@ -250,9 +251,31 @@ def _seconds(argv, flag, default):
     return value
 
 
+USAGE = "usage: run_tests.py [--fast] [-v] [--test-timeout SECONDS] [--timeout SECONDS]"
+
+
+def unknown_args(argv):
+    """Arguments the runner does not take (T2.5: `--help` started a full run twice, lesson 3). A flag that takes
+    a value takes the next argument with it."""
+    bad, i = [], 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("--test-timeout", "--timeout"):
+            i += 2
+            continue
+        if a not in ("--fast", "-v"):
+            bad.append(a)
+        i += 1
+    return bad
+
+
 def main(argv):
     if "--child" in argv:
         return child(argv)
+    bad = unknown_args(argv)
+    if bad:
+        print(f"run_tests.py: unknown argument(s) {' '.join(bad)}; nothing was run.\n{USAGE}", file=sys.stderr)
+        return 2
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     close_stdin()
     os.environ.pop("LAB_ROOT", None)  # a stray LAB_ROOT must not redirect the guard
