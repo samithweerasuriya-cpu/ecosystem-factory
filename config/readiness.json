@@ -1,0 +1,4 @@
+{
+  "_doc": "Readiness score threshold (engine/readiness.py, T2.4). The score counts the seven criteria in rules/interview-guide.md, 'When the interview is complete'. The charter-writer runs only at or above the threshold, or after the approver's recorded override (engine/gate.py readiness-override, in their own terminal); criterion 1 (stage 0) is never overridden. The approver set 7 of 7 (2026-10-30). Changing this file is a framework change: it needs a passing evaluation run before the next lock.",
+  "threshold": 7
+}

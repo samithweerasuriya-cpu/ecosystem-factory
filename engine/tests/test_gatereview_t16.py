@@ -106,7 +106,7 @@ class FeedbackFolderTests(GateBase):
         lc = self.lc
         j, jp = self.to_gate_with_findings()
         self.keys = ["v", "v"] + ["v"] * 3
-        self.assertEqual(self.g.main(["reject", j, "--feedback", "Treat TR15 as major"]), 0)
+        self.assertEqual(self.g.main(["reject", "--minutes", "skip", j, "--feedback", "Treat TR15 as major"]), 0)
         self.assertTrue((self.tmp / f"{jp}/gates/human-feedback-1.md").exists())
         self.assertFalse((self.tmp / f"{jp}/reviews/human-feedback-1.md").exists())
         self.write(f"{jp}/reviews/human-feedback-9.md", "Treat TR20 as blocker")           # forged by an agent
@@ -133,7 +133,7 @@ class HoldTests(GateBase):
         lc = self.lc
         j, jp = self.to_gate_with_findings()
         before = dict(lc.load_state(j)["counters"])
-        self.assertEqual(self.g.main(["hold", j, "--note", "waiting for the budget decision"]), 0)
+        self.assertEqual(self.g.main(["hold", "--minutes", "skip", j, "--note", "waiting for the budget decision"]), 0)
         st = lc.load_state(j)
         self.assertEqual((st["state"], st["hold"]["note"]), ("ESCALATED", "waiting for the budget decision"))
         self.assertEqual(st["counters"]["gate_rejections"], 0)
@@ -157,18 +157,18 @@ class HoldTests(GateBase):
         lc = self.lc
         j, _ = self.to_gate_with_findings()
         with self.assertRaises(SystemExit):
-            self.g.main(["hold", j])                                        # --note is required
+            self.g.main(["hold", "--minutes", "skip", j])                                        # --note is required
         with self.assertRaisesRegex(lc.LabError, "needs --note"):
             lc.hold_gate(j, "  ")
         k = lc.new_job("spec", "early", "x")["job_id"]
-        self.assertEqual(self.g.main(["hold", k, "--note", "x"]), 1)        # not at GATE
+        self.assertEqual(self.g.main(["hold", "--minutes", "skip", k, "--note", "x"]), 1)        # not at GATE
 
     def test_pilot_is_an_approval_with_a_note_and_partial_does_not_exist(self):
         j, jp = self.to_gate_with_findings()
         with self.assertRaises(SystemExit):
-            self.g.main(["approve", j, "--as", "partial"])
+            self.g.main(["approve", "--minutes", "skip", j, "--as", "partial"])
         self.keys = ["v", "v"] + ["v"] * 3
-        self.assertEqual(self.g.main(["approve", j, "--as", "pilot", "--note", "two teams first"]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j, "--as", "pilot", "--note", "two teams first"]), 0)
         tok = json.loads((self.tmp / f"{jp}/gates/G1-spec.json").read_text(encoding="utf-8"))
         self.assertEqual(tok["note"], "[pilot] two teams first")
         self.assertEqual(tok["sha256"], self.lc.sha256_path(f"{jp}/drafts/v2.md"))   # the whole artifact
@@ -226,7 +226,7 @@ class MarkingTests(GateBase):
         j, jp = self.to_gate_with_findings()
         self.keys = ["v", "n", "s", "v", "n"]
         self.inputs = [""]
-        self.assertEqual(self.g.main(["approve", j, "--note", "ok"]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j, "--note", "ok"]), 0)
         allowed = [a for _, a in self.asked]
         self.assertEqual(allowed[:2], ["vnq", "vnq"])
         self.assertEqual(allowed[2:], ["vnsq"] * 3)
@@ -248,14 +248,14 @@ class MarkingTests(GateBase):
     def test_q_cancels_with_nothing_recorded(self):
         j, jp = self.to_gate_with_findings()
         self.keys = ["v", "q"]
-        self.assertEqual(self.g.main(["approve", j]), 1)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 1)
         self.assertEqual(self.lc.load_state(j)["state"], "GATE")
         self.assertEqual(list((self.tmp / f"{jp}/gates").glob("*")), [])
         for f in ("logs/finding-verdicts.jsonl", "logs/gate-audit.jsonl"):
             self.assertFalse((self.tmp / f).exists(), f)
         self.keys = ["v", "v", "v", "v", "v"]
         self.inputs = ["q"]                                                  # cancel at the missed-issue prompt too
-        self.assertEqual(self.g.main(["approve", j]), 1)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 1)
         self.assertEqual(list((self.tmp / f"{jp}/gates").glob("*")), [])
 
 
@@ -264,7 +264,7 @@ class RecordTests(GateBase):
         j, jp = self.to_gate_with_findings()
         self.keys = ["v", "v", "v", "n", "s", "1"]                         # last key: which reviewer missed it
         self.inputs = ["TR16", f"{MISSED} a second ownership gap", ""]
-        self.assertEqual(self.g.main(["approve", j, "--note", "ok"]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j, "--note", "ok"]), 0)
         gates = self.tmp / f"{jp}/gates"
         verdicts, brief = gates / "G1-spec.verdicts-1.json", gates / "G1-spec.brief-1.md"
         doc = json.loads(verdicts.read_text(encoding="utf-8"))
@@ -300,7 +300,7 @@ class RecordTests(GateBase):
                 pass
         buf = Out()
         with contextlib.redirect_stdout(buf):
-            self.assertEqual(self.g.main(["approve", j]), 0)
+            self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 0)
         self.assertIn("To be recorded: 5 mark(s) (5 valid, 0 noise, 0 skipped) and 1 missed issue(s): TR16 (critic)",
                       seen["before_confirm"])
 
@@ -308,7 +308,7 @@ class RecordTests(GateBase):
         lc = self.lc
         j, jp = self.to_gate_with_findings()
         self.keys = ["v"] * 5
-        self.assertEqual(self.g.main(["reject", j, "--feedback", "more detail"]), 0)
+        self.assertEqual(self.g.main(["reject", "--minutes", "skip", j, "--feedback", "more detail"]), 0)
         v3 = self.write(f"{jp}/drafts/v3.md", "# Spec v3\n")
         lc.apply(j, "revised", artifact=v3)
         self.dump(f"{jp}/reviews/critic-v3.json", findings(j, "v3", [("F-41", "TR16", "major")]))
@@ -316,14 +316,14 @@ class RecordTests(GateBase):
         must, sampled, _ = self.gr.to_mark(j)
         self.assertEqual([f["finding_id"] for f in must], ["F-41"])
         self.keys, self.asked = ["v"] + ["v"] * len(sampled), []
-        self.assertEqual(self.g.main(["approve", j]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 0)
         self.assertTrue((self.tmp / f"{jp}/gates/G1-spec.verdicts-2.json").exists())
 
     def test_internal_jobs_record_everything_privately(self):
         j, jp = self.to_gate_with_findings(slug="inside", cls="internal")
         self.assertTrue(jp.startswith("private/"))
         self.keys = ["v"] * 5
-        self.assertEqual(self.g.main(["approve", j]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 0)
         self.assertTrue((self.tmp / f"{jp}/gates/G1-spec.verdicts-1.json").exists())
         self.assertTrue((self.tmp / "private/logs/finding-verdicts.jsonl").exists())
         self.assertFalse((self.tmp / "logs/finding-verdicts.jsonl").exists())
@@ -366,7 +366,7 @@ class QualityTests(GateBase):
         must, sampled, _ = self.gr.to_mark(j)
         self.keys = ["v minor", "v", "v major"][:len(must) + len(sampled)]
         self.keys += ["v"] * (len(must) + len(sampled) - len(self.keys))
-        self.assertEqual(self.g.main(["approve", j]), 0)
+        self.assertEqual(self.g.main(["approve", "--minutes", "skip", j]), 0)
         doc = json.loads((self.tmp / f"{jp}/gates/G1-spec.verdicts-1.json").read_text(encoding="utf-8"))
         fixes = {m["finding_id"]: m["corrected_severity"] for m in doc["marks"]}
         self.assertEqual(fixes["F-01"], "minor")                            # major re-rated down

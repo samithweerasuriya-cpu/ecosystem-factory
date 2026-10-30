@@ -540,7 +540,15 @@ def route_not_ready(r):
         rb = reviewers().get(rv["agent"], {}).get("rulebook")
         if not rb or not (ROOT / rb).is_file():
             out.append(f"rulebook for {rv['agent']} ({rb or 'none in config/reviewers.json'})")
+    out += [f"rules {p} for {stage_name(s)}" for s in r["stages"] for p in s.get("rules", [])
+            if not (ROOT / p).is_file()]
     return out
+
+
+def stage_rules(route, agent):
+    """T2.4: the rule files a work stage names for its agent (first stage with that agent; [] if none)."""
+    return next((list(s.get("rules", [])) for s in route["stages"]
+                 if stage_kind(s) == "agent" and stage_name(s) == agent), [])
 
 
 def brief_text(job_id, jtype, goal, parent=None, continue_from=None):
@@ -633,7 +641,7 @@ def _version(artifact):
 
 
 def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=False, _script=False,
-          reason=None, questions=None, questions_text=None):
+          reason=None, questions=None, questions_text=None, kind=None):
     if event in HUMAN_ONLY and not _human:
         raise LabError(f"'{event}' is human-only; the approver runs engine/gate.py in their own terminal")
     if event in SCRIPT_ONLY and not _script:
@@ -806,14 +814,19 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
                 text = f"{QUESTIONS_LABEL}\n\n{text}"
             qf.write_text(text, encoding="utf-8")
             st["awaiting"] = {"state": cur, "stage": st["stage"], "stage_kind": st["stage_kind"],
-                              "questions": rel(qf), "inputs_before": len(st["inputs"]), "asked": now()}
-            extra["questions"] = rel(qf)
+                              "questions": rel(qf), "inputs_before": len(st["inputs"]), "asked": now(),
+                              "kind": kind or "questions"}
+            extra["questions"], extra["kind"] = rel(qf), kind or "questions"
     elif (cur, event) == ("AWAITING_INPUT", "answered"):
         aw = st["awaiting"]
         if len(st["inputs"]) <= aw["inputs_before"]:
             raise LabError("answered: record the answers first with 'state.py input <job> <file> --class ...'")
         new, st["stage"], st["stage_kind"] = aw["state"], aw["stage"], aw["stage_kind"]
         extra["answers"] = [i["id"] for i in st["inputs"][aw["inputs_before"]:]]
+        extra["questions"] = aw["questions"]
+        # T2.4: which answers closed which round (the readiness score finds the confirmed playback here)
+        st.setdefault("answered_rounds", []).append({"questions": aw["questions"], "kind": aw.get("kind", "questions"),
+                                                     "answers": extra["answers"], "answered": now()})
         st["awaiting"] = None
     elif cur in ("REVIEW", "VERIFY") and event == "review_pass":
         if st["review_index"] < len(reviews) - 1:
@@ -911,8 +924,31 @@ def input_dir(job_id, cls):
     return job_dir(job_id) / "inputs"
 
 
-def record_input(job_id, source, cls, note=None, data=None):
-    """Store the approver's text verbatim (bytes copied unchanged) and register it with an ID."""
+def minutes_fields(minutes, source):
+    """T2.4 active human minutes: a number the approver stated, or 'skip' (recorded as unknown, never as 0)."""
+    if isinstance(minutes, str) and minutes.strip().lower() == "skip":
+        return {"minutes": None, "minutes_unknown": True, "minutes_source": source}
+    try:
+        m = float(minutes)
+    except (TypeError, ValueError):
+        raise LabError(f"minutes must be a number or 'skip', not {minutes!r}") from None
+    if not 0 <= m <= 1440:
+        raise LabError(f"minutes must be between 0 and 1440, not {m}")
+    return {"minutes": m, "minutes_unknown": False, "minutes_source": source}
+
+
+def record_minutes(job_id, action, minutes, source="gate.py"):
+    """Human-only (engine/gate.py): the approver's active minutes on a gate decision, kept on the job."""
+    rec = {"action": action, **minutes_fields(minutes, source), "recorded": now()}
+    st = load_state(job_id)
+    st.setdefault("human_minutes", []).append(rec)
+    _save(job_id, st, {"event": "minutes", **rec, "actor": "approver"})
+    return rec
+
+
+def record_input(job_id, source, cls, note=None, data=None, minutes=None, minutes_source=None):
+    """Store the approver's text verbatim (bytes copied unchanged) and register it with an ID. minutes (T2.4):
+    the approver's active minutes on it, a number or 'skip'; None records none (the CLI requires one)."""
     st = load_state(job_id)
     if st["state"] in TERMINAL:
         raise LabError(f"{job_id} is terminal ({st['state']})")
@@ -932,6 +968,8 @@ def record_input(job_id, source, cls, note=None, data=None):
     dest.write_bytes(raw)
     rec = {"id": iid, "class": cls, "path": rel(dest), "sha256": hashlib.sha256(raw).hexdigest(),
            "note": note, "recorded": now()}
+    if minutes is not None:
+        rec.update(minutes_fields(minutes, minutes_source or "reported via orchestrator"))
     st["inputs"].append(rec)
     _save(job_id, st, {"event": "input", "input": iid, "class": cls, "path": rec["path"], "actor": "orchestrator"})
     return st, rec
@@ -976,6 +1014,12 @@ def record_context(job_id, source, cls, evidence_for, note=None):
         raise LabError(f"{src.name} is empty")
     if len(raw) > pack["max_bytes"]:
         raise LabError(f"{src.name} is {len(raw)} bytes; the context pack takes at most {pack['max_bytes']}")
+    if not isinstance(pack.get("max_total_bytes"), int):
+        raise LabError("config/context-pack.json has no max_total_bytes; nothing was recorded")
+    held = sum((ROOT / c["path"]).stat().st_size for c in st.get("context", []))
+    if held + len(raw) > pack["max_total_bytes"]:   # T2.4: every call that gets the pack carries all of it
+        raise LabError(f"{src.name} would bring the context pack to {held + len(raw)} bytes; at most "
+                       f"{pack['max_total_bytes']} in all (config/context-pack.json max_total_bytes)")
     try:
         raw.decode("utf-8")
     except UnicodeDecodeError:
@@ -1138,8 +1182,8 @@ def build_handoff(job_id, item=None):
         raise LabError("script stage: no agent handoff; run it with 'state.py run'")
     j = rel(d)
     inputs, rules = [], []
-    human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]] \
-        + [(f"context {c['id']} ({c['class']}, data only)", c["path"]) for c in st.get("context", [])]
+    answers = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
+    human = answers + [(f"context {c['id']} ({c['class']}, data only)", c["path"]) for c in st.get("context", [])]
     # gate feedback only from gates/ (written by gate.py, hook-protected); one found anywhere else is never passed on
     feedback = [("gate feedback", p) for p in _files(d / "gates") if Path(p).name.startswith("human-feedback-")]
     brief = [("brief", f"{j}/brief.md")]
@@ -1152,7 +1196,8 @@ def build_handoff(job_id, item=None):
         out = f"{j}/drafts/" if last else out
         inputs = brief + [("seed (from " + st["continued_from"] + ")", s) for s in st["seed"]] \
             + [("earlier stage output", p) for p in _files(d / "research")] + human
-        rules = author_rules(r) if last else []
+        rules = stage_rules(r, st["stage"])
+        rules += [p for p in (author_rules(r) if last else []) if p not in rules]
     elif kind == "fanout":
         if not st["fanout"] or item not in st["fanout"]["items"]:
             raise LabError(f"fanout handoff needs --item, one of {sorted((st['fanout'] or {}).get('items', {}))}")
@@ -1167,7 +1212,8 @@ def build_handoff(job_id, item=None):
             inputs += evidence + [("source registry", f"{j}/evidence/registry.json")]
             if cfg.get("source_policy"):
                 rules.append(cfg["source_policy"])
-        inputs += human + feedback
+        # T2.4: context files go to authors and verifiers only; a critic gets the artifact, its rulebook and answers
+        inputs += (human if rv["kind"] == "verifier" else answers) + feedback
         extra = {"REVIEW_KIND": rv["kind"], "REVIEWER": rv["agent"], "ARTIFACT": st["artifact_path"],
                  "VERSION": _version(st["artifact_path"])}
     elif kind == "revise":
@@ -1183,12 +1229,25 @@ def build_handoff(job_id, item=None):
         rules = author_rules(r)
     elif kind == "fix":
         runs = _files(d / "scripts")
-        inputs = brief + ([("failed script run", runs[-1])] if runs else []) + human
+        inputs = brief + ([("failed script run", runs[-1])] if runs else []) \
+            + [("earlier stage output", p) for p in _files(d / "research")] + human
+        rules = stage_rules(r, st["stage"])
+        if st["stage_index"] < len(r["stages"]) - 1:
+            out = f"{j}/research/"      # T2.4: fixing an earlier stage's work (the final draft is not written yet)
     elif kind == "deliver":
         inputs = [("approved artifact", st["artifact_path"]), ("gate token", f"{j}/gates/{r['gate']}.json")] + human
-    if kind in ("agent", "revise"):
+    if kind in ("agent", "revise", "fix"):
         # T1.5: the author sees its own earlier questions next to the approver's answers; reviewers never do
         inputs += [("your earlier questions", p) for p in _files(d / "questions")]
+        if outputs().get(st["stage"], {}).get("needs_input") is True:
+            # T2.4 (interview guide, "Each round's inputs"): an agent that may ask sees the rounds used and left
+            cn, cp = st["counters"], caps()
+            for k in ("input_rounds_per_cycle", "input_rounds"):
+                if not isinstance(cp.get(k), int):
+                    raise LabError(f"config/caps.json has no {k} cap: refused (fails closed)")
+            extra["ROUNDS"] = (f"question rounds used {cn.get('cycle_input_rounds', 0)} of "
+                               f"{cp['input_rounds_per_cycle']} this cycle, {cn.get('input_rounds', 0)} of "
+                               f"{cp['input_rounds']} in the job's lifetime")
     return make_handoff(job_id, st["type"], st["stage"], kind, st["goal"], inputs, rules, out,
                         r.get("template"), r.get("template_variants", {}), **extra)
 
@@ -1210,6 +1269,8 @@ def render_handoff(h, hid, headless=False):
         lines.append(f"TEMPLATE: {h['template']}" + (f"    VARIANTS: {variants}" if variants else ""))
     if h.get("item"):
         lines.append(f"ITEM: {h['item']}    SPLIT_BY: {h['split_by']}")
+    if h.get("rounds"):
+        lines.append(f"ROUNDS: {h['rounds']}")
     if h.get("review_kind"):
         lines.append(f"REVIEW: {h['review_kind']}    REVIEWER: {h['reviewer']}    ARTIFACT: {h['artifact']}"
                      f"    VERSION: {h['version']}")

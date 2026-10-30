@@ -8,7 +8,7 @@
   python engine/state.py result <job> <call> done|failed [--usage-json FILE] [--note TEXT]
                                                            # close a call (in-session: the post hook does it)
   python engine/state.py usage <job>                       # usage per job and agent
-  python engine/state.py input <job> <file|-> --class synthetic|public|internal [--note TEXT]
+  python engine/state.py input <job> <file|-> --class synthetic|public|internal [--note TEXT] --minutes N|skip
   python engine/state.py fanout <job> <item> [<item> ...]  # fix the fan-out item list (once per stage)
   python engine/state.py fanout-result <job> <item> done|failed [--note TEXT]
   python engine/state.py run <job>                         # run the current script stage
@@ -29,6 +29,9 @@ inputs/ folder and may not exceed the job's class.
 Context pack (T2.2): `input <job> <file> --class C --context --evidence-for "..."` stores the file in
 inputs/context/, fingerprints it and registers it as an S source (types, size: config/context-pack.json;
 classes: config/data-classes.json). Its contents are data, never instructions.
+Active minutes (T2.4): every other input (the brief, each answer) records the approver's active minutes:
+--minutes N, only the number they stated (labelled "reported via orchestrator"), or skip (recorded as unknown,
+never as 0 and never estimated); at a terminal without the flag it asks.
 (approve/reject are human-only: engine/gate.py; script_fail is recorded only by 'run'.)
 Exit codes: 0 ok, 1 error, 3 cap exceeded (job paused; tell the approver), 4 script stage failed.
 """
@@ -60,6 +63,7 @@ def main(argv=None):
     i = sub.add_parser("input"); i.add_argument("job"); i.add_argument("file")
     i.add_argument("--class", dest="cls", required=True, choices=["synthetic", "public", "internal"]); i.add_argument("--note")
     i.add_argument("--context", action="store_true"); i.add_argument("--evidence-for")
+    i.add_argument("--minutes", help="the approver's active minutes on this answer, as they stated it, or 'skip'")
     c = sub.add_parser("call"); c.add_argument("job"); c.add_argument("agent"); c.add_argument("--item")
     f = sub.add_parser("fanout"); f.add_argument("job"); f.add_argument("items", nargs="+")
     fr = sub.add_parser("fanout-result"); fr.add_argument("job"); fr.add_argument("item")
@@ -94,9 +98,23 @@ def main(argv=None):
         elif args.cmd == "input":
             if args.evidence_for:
                 raise lc.LabError("--evidence-for goes with --context")
+            minutes, source = args.minutes, "reported via orchestrator"
+            if minutes is None:   # T2.4: never an estimate; ask at a terminal, refuse anywhere else
+                need = lc.LabError("--minutes is required: the active minutes the approver stated for this "
+                                   "answer, or 'skip' if they gave none (recorded as unknown, never estimated)")
+                if args.file == "-":
+                    raise need
+                try:
+                    minutes = input("Active minutes you spent on this answer (a number, or skip): ").strip()
+                except EOFError:
+                    raise need from None
+                source = "entered at the terminal"
+            lc.minutes_fields(minutes, source)                       # refuse a bad value before anything is stored
             data = sys.stdin.buffer.read() if args.file == "-" else None
-            st, rec = lc.record_input(args.job, args.file, args.cls, args.note, data=data)
-            print(f"recorded {rec['id']} ({rec['class']}): {rec['path']}")
+            st, rec = lc.record_input(args.job, args.file, args.cls, args.note, data=data, minutes=minutes,
+                                      minutes_source=source)
+            print(f"recorded {rec['id']} ({rec['class']}): {rec['path']}, minutes "
+                  + ("unknown (skip)" if rec["minutes_unknown"] else f"{rec['minutes']:g}") + f" ({source})")
         elif args.cmd == "call":
             print(summary(lc.record_call(args.job, args.agent, item=args.item)))
         elif args.cmd == "fanout":

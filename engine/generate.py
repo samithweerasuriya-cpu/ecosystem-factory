@@ -364,9 +364,11 @@ def lint_agent(path_name, data, rules_bytes, settings, empty_tools=None):
                     probs.append(f"{where}: tool {t!r} is not allowed (allowed: {', '.join(sorted(ALLOWED_TOOLS))})")
             if not tools:
                 deny = set((settings or {}).get("permissions", {}).get("deny", []))
-                if not {"Agent", "Task"} <= deny:
-                    probs.append(f"{where}: tools [] needs the settings to deny the Agent and Task tools "
-                                 "(it runs headless only)")
+                # T2.4: the factory denies its own headless agents by name, keeping the main session's delegation
+                named = {f"Agent({name})", f"Task({name})"}
+                if not ({"Agent", "Task"} <= deny or named <= deny):
+                    probs.append(f"{where}: tools [] needs the settings to deny the Agent and Task tools, or "
+                                 f"Agent({name}) and Task({name}) (it runs headless only)")
                 if empty_tools:
                     probs.append(f"{where}: {empty_tools}")
     if "model" in v and v["model"] not in ("inherit",):

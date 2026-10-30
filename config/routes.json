@@ -1,5 +1,5 @@
 {
-  "_doc": "Job routes in route format v1 (schemas/route.schema.json). The demo route exercises every stage kind except script; T0.10 runs it with stand-in agents (stand_in_agents: true). The factory routes intake (gate G0-charter), design (parent G0-charter, gate G1-blueprint) and build (parent G1-blueprint, gate G2-golive) were added in T1.5 as skeletons: their agents are built in T2.4 (intake), T3.4 (design) and T4.1-T4.3 (build), which also set their final stages and reviewers. Until every agent file and reviewer rulebook exists, state.py new refuses a job on them.",
+  "_doc": "Job routes in route format v1 (schemas/route.schema.json). The demo route exercises every stage kind except script; T0.10 runs it with stand-in agents (stand_in_agents: true). The factory routes intake (gate G0-charter), design (parent G0-charter, gate G1-blueprint) and build (parent G1-blueprint, gate G2-golive) were added in T1.5 as skeletons: their agents are built in T2.4 (intake), T3.4 (design) and T4.1-T4.3 (build), which also set their final stages and reviewers. Until every agent file and reviewer rulebook exists, state.py new refuses a job on them. Intake (T2.4): the interviewer asks in rounds (AWAITING_INPUT) until it reports its status; the readiness script then scores it (engine/readiness.py) and below the threshold hands the job back to the interviewer (fix_with); then the charter-writer, the charter-critic, the charter-verifier and gate G0-charter. A stage's rules are the files its agent works from.",
   "routes": {
     "demo": {
       "stages": [
@@ -18,14 +18,16 @@
     },
     "intake": {
       "stages": [
-        {"agent": "interviewer"},
-        {"agent": "charter-writer"}
+        {"agent": "interviewer", "rules": ["rules/interview-guide.md"]},
+        {"script": "readiness"},
+        {"agent": "charter-writer", "rules": ["schemas/charter.v1.md"]}
       ],
       "reviews": [
         {"agent": "charter-critic", "kind": "critic"},
         {"agent": "charter-verifier", "kind": "verifier"}
       ],
       "revise_with": "charter-writer",
+      "fix_with": "interviewer",
       "gate": "G0-charter",
       "deliver": null
     },

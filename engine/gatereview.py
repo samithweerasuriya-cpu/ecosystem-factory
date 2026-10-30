@@ -181,8 +181,10 @@ def brief(job_id):
     lc.verify_outputs(job_id, st)
     gate, art, d = st["route"]["gate"], st["artifact_path"], lc.job_dir(job_id)
     version = lc._version(art) if art else None
+    import readiness
+    ready_head, ready_flags = readiness.brief_lines(job_id)    # T2.4: intake jobs only
     L = [f"# Gate brief: {job_id} at {gate}", "",
-         f"State {st['state']}. Goal: {st['goal']}", ""]
+         f"State {st['state']}. Goal: {st['goal']}", ""] + ready_head
     L += ["## What you are approving", ""]
     if art:
         L.append(f"- Artifact {art} ({version}), fingerprint {lc.sha256_path(art)}")
@@ -214,6 +216,7 @@ def brief(job_id):
     unc = d / "evidence" / f"uncited-{version}.json"
     if unc.exists():
         L.append(f"- Uncited sentences listed for the Verifier: {len(lc.load_json(unc).get('sentences', []))}")
+    L += [""] + ready_flags[:-1] if ready_flags else []
     L += ["", "## Open questions", ""]
     oq = open_questions(art) if art else []
     L += [f"- {q}" for q in oq] or ["- None listed in the artifact."]

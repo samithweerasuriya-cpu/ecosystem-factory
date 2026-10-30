@@ -102,10 +102,10 @@ class InternalJobTests(LabTestBase):
         lc.apply(j, "review_pass")
         lc.handoff(j); lc.record_call(j, "verifier")
         lc.apply(j, "review_pass")
-        self.assertEqual(g.main(["reject", j, "--feedback", "INTERNAL-MARKER: tighten section 2"]), 0)
+        self.assertEqual(g.main(["reject", "--minutes", "skip", j, "--feedback", "INTERNAL-MARKER: tighten section 2"]), 0)
         lc.apply(j, "revised", artifact=self.write(f"{home}/drafts/v3.md", "INTERNAL-MARKER v3\n"))
         lc.apply(j, "review_pass"); lc.apply(j, "review_pass")
-        self.assertEqual(g.main(["approve", j, "--note", "ok"]), 0)
+        self.assertEqual(g.main(["approve", "--minutes", "skip", j, "--note", "ok"]), 0)
         return j, home
 
     def test_internal_job_writes_nothing_under_tracked_paths(self):

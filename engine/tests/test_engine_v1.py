@@ -20,7 +20,8 @@ class RouteFormatTests(LabTestBase):
     def test_test_routes_and_shipped_demo_route_are_valid(self):
         self.assertEqual(self.lc.route_errors(copy.deepcopy(TEST_ROUTES), allowed_scripts=TEST_SCRIPTS["scripts"]), [])
         shipped = json.loads((REPO / "config/routes.json").read_text(encoding="utf-8"))
-        self.assertEqual(self.lc.route_errors(shipped, allowed_scripts={}), [])
+        scripts = json.loads((REPO / "config/scripts.json").read_text(encoding="utf-8"))["scripts"]   # T2.4: readiness
+        self.assertEqual(self.lc.route_errors(shipped, allowed_scripts=scripts), [])
 
     def test_fanout_without_merge_stage_is_invalid(self):
         errs = self.errors(lambda r: r["survey"]["stages"].pop())

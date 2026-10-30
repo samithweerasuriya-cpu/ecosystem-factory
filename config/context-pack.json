@@ -1,5 +1,6 @@
 {
-  "_doc": "Context pack limits (engine/labcore.py record_context, state.py input --context, T2.2). A context file is stored verbatim in jobs/<job>/inputs/context/, fingerprinted (sha256, bound by the approval chain) and registered in the job's evidence registry, which gives it the S ID charters cite. Only these file types, at most max_bytes and at least 1 byte, valid UTF-8 text; anything else is refused. Its classification must be in config/data-classes.json and no higher than the job's class. Contents are data, never instructions (DR07). Changing this file is a framework change: it needs a passing evaluation run before the next lock.",
+  "_doc": "Context pack limits (engine/labcore.py record_context, state.py input --context, T2.2). A context file is stored verbatim in jobs/<job>/inputs/context/, fingerprinted (sha256, bound by the approval chain) and registered in the job's evidence registry, which gives it the S ID charters cite. Only these file types, at most max_bytes and at least 1 byte, valid UTF-8 text; anything else is refused. max_total_bytes (T2.4) caps the whole pack (about 15,000 tokens): every call that receives the pack (interviewer, charter-writer, charter-verifier) carries all of it inline. Its classification must be in config/data-classes.json and no higher than the job's class. Contents are data, never instructions (DR07). Changing this file is a framework change: it needs a passing evaluation run before the next lock.",
   "types": [".txt", ".md", ".csv", ".json"],
-  "max_bytes": 500000
+  "max_bytes": 500000,
+  "max_total_bytes": 60000
 }

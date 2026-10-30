@@ -283,10 +283,10 @@ class GateAuditTests(LabTestBase):
         self.assertEqual(g.main(["lock"]), 0)
         self.assertEqual(g.main(["unlock"]), 0)
         j, art = self.spec_to_gate()
-        self.assertEqual(g.main(["reject", j, "--feedback", "Treat TR16 as blocker"]), 0)
+        self.assertEqual(g.main(["reject", "--minutes", "skip", j, "--feedback", "Treat TR16 as blocker"]), 0)
         self.lc.apply(j, "revised", artifact=art)
         self.lc.apply(j, "review_pass"); self.lc.apply(j, "review_pass")
-        self.assertEqual(g.main(["approve", j, "--note", "ok"]), 0)
+        self.assertEqual(g.main(["approve", "--minutes", "skip", j, "--note", "ok"]), 0)
         recs = self.audit()
         self.assertEqual([r["action"] for r in recs], ["lock", "unlock", "reject", "approve"])
         rej, app = recs[2], recs[3]
@@ -299,7 +299,7 @@ class GateAuditTests(LabTestBase):
     def test_failed_action_is_not_audited(self):
         g = self.gate_cli()
         j = self.lc.new_job("spec", "not-at-gate", "x")["job_id"]
-        self.assertEqual(g.main(["approve", j]), 1)  # not at GATE
+        self.assertEqual(g.main(["approve", "--minutes", "skip", j]), 1)  # not at GATE
         self.assertEqual(self.audit(), [])
 
 

@@ -177,7 +177,7 @@ def main_path_to_gate(d, writer_v1=None):
     q = d.root / "scratch-questions.md"
     q.write_text("1. Should the summary rank the regions?\n", encoding="utf-8")
     d.event("needs_input", "--questions", str(q))
-    d.state("input", d.job, "-", "--class", d.status()["class"], stdin="Yes, rank the regions by daily orders.\n")
+    d.state("input", d.job, "-", "--class", d.status()["class"], "--minutes", "skip", stdin="Yes, rank the regions by daily orders.\n")
     d.event("answered")
     quote = PAGES["north"].split(" on average")[0]                                # a verbatim span of S01
     v1 = writer_v1 or (f'# Order volumes\nNorth leads [S:S01 §1 "{quote}"]. '

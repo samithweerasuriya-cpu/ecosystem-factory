@@ -16,7 +16,7 @@ v1 replaces the thin v0 charter for every new job; v0 stays only for the Phase 1
 | `schema_version` | text | yes | Must be `"1"`. |
 | `slug` | text | yes | Lowercase, digits and hyphens, 2–41 characters. |
 | `title` | text | yes | Short name of the problem. |
-| `answers_ref` | text | no | The answers file, from the charter's folder (format: `$defs.answers_file` in the schema). When given, every `[A:…]` must name an answer in it and every quote must be word for word. In a job, answers are checked by `engine/evidence.py` and the charter verifier instead. |
+| `answers_ref` | text | no | The answers file, from the charter's folder (format: `$defs.answers_file` in the schema). When given, every `[A:…]` must name an answer in it and every quote must be word for word. In a job (T2.4) the charter-writer leaves it out: the script checks every `[A:…]` and quote against the job's recorded answers and every context-inventory ID against the job's registered context files (`engine/agent_call.py`, hand checks `charter.v1`); the charter-verifier checks that they support the claims. |
 | `goal` | `text`, `cites` | yes | What changes for people when this works. |
 | `success_metrics.agent_checkable` | list | yes | Each `id` (`M01`…), `metric`, `target`, `check` (how a script or reviewer measures it), `cites`. |
 | `success_metrics.outcome` | list | yes | Each `id`, `metric`, `target`, `cites`: what the people involved notice; not checkable by an agent. |

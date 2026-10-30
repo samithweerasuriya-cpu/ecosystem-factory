@@ -268,7 +268,7 @@ class CapTests(DeliveryBase):
         self.set_caps(input_rounds=1)
         q = d.root / "q.md"; q.write_text("Q?\n")
         d.event("needs_input", "--questions", str(q))
-        d.state("input", d.job, "-", "--class", "synthetic", stdin="A.\n"); d.event("answered")
+        d.state("input", d.job, "-", "--class", "synthetic", "--minutes", "1", stdin="A.\n"); d.event("answered")
         self.assertCap(d.event("needs_input", "--questions", str(q), expect=3), "input_rounds")
 
     def test_agent_calls_per_job_and_lifetime(self):

@@ -84,8 +84,10 @@ def cited(value, path="$"):
                 yield from cited(v, f"{path}.{k}")
 
 
-def check_charter_v1(path, doc):
-    """Charter v1 (T2.1): the schema plus the hand checks in schemas/charter.v1.md."""
+def check_charter_v1(path, doc, answers=None, context_ids=None):
+    """Charter v1 (T2.1): the schema plus the hand checks in schemas/charter.v1.md. In a job (T2.4,
+    agent_call), answers is {answer ID: text} from the job's recorded answers (instead of answers_ref) and
+    context_ids the job's registered context files, which the context inventory may not go beyond."""
     from evidence import CITE_RE, normalise
     schema = json.loads((ROOT / "schemas/charter.v1.schema.json").read_text(encoding="utf-8"))
     probs = schemacheck.check(doc, schema)
@@ -102,8 +104,10 @@ def check_charter_v1(path, doc):
 
     # citations: well formed, A or S, short quotes; S in the inventory; A in the answers file when one is given
     files = {f["id"]: f for f in doc["context_inventory"]}
-    answers = None
-    if "answers_ref" in doc:
+    source = "the job's recorded answers" if answers is not None else doc.get("answers_ref")
+    if context_ids is not None:
+        probs += [f"context file {f} is not registered in this job" for f in sorted(set(files) - set(context_ids))]
+    if answers is None and "answers_ref" in doc:
         adoc, p = load(path.parent / doc["answers_ref"])
         p = p or schemacheck.check(adoc, schema["$defs"]["answers_file"], root=schema)
         if p:
@@ -123,7 +127,7 @@ def check_charter_v1(path, doc):
             probs.append(f"{loc}: [S:{sid}] is not in the context inventory")
         elif kind == "A" and answers is not None:
             if sid not in answers:
-                probs.append(f"{loc}: [A:{sid}] is not an answer in {doc['answers_ref']}")
+                probs.append(f"{loc}: [A:{sid}] is not an answer in {source}")
             elif quote is not None and normalise(quote) not in normalise(answers[sid]):
                 probs.append(f"{loc}: quote is not word for word in answer {sid}")
         if kind == "A" and quote is not None:

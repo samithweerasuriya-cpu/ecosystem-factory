@@ -17,7 +17,11 @@
     "gate": {"type": "string", "pattern": "^G\\d+-[a-z0-9-]+$"},
     "agent_stage": {
       "type": "object", "required": ["agent"], "additionalProperties": false,
-      "properties": {"agent": {"$ref": "#/$defs/name"}}
+      "properties": {
+        "agent": {"$ref": "#/$defs/name"},
+        "rules": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1},
+                  "description": "T2.4: rule files this stage's agent works from (e.g. the interview guide); added to its handoff, and to the fix handoff when the agent is the route's fix_with."}
+      }
     },
     "script_stage": {
       "type": "object", "required": ["script"], "additionalProperties": false,

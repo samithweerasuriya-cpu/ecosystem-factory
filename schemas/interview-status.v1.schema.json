@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Interview status v1 (the interviewer's answer when it has no more questions, T2.4)",
+  "description": "What the interviewer reports once it stops asking: the state of every charter field from the interview guide's question bank, the examples, the contradictions, the confirmed playback and any instruction-like text it found. engine/readiness.py scores it against the guide's seven 'complete' criteria. Questions, the playback and a stage 0 stop are other answer shapes, checked by engine/agent_call.py. Citations use the evidence format: [A:A03] or [A:A03 \"quote\"] for an answer, [S:S01] or [S:S01 \"quote\"] for a context file.",
+  "type": "object",
+  "required": ["job_id", "status", "stage0", "fields", "examples", "contradictions", "playback", "flags", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["complete", "incomplete"], "description": "incomplete: the round limit was reached with gaps left (each one an open question with an owner)."},
+    "stage0": {
+      "type": "object", "required": ["passed", "cites"], "additionalProperties": false,
+      "properties": {"passed": {"type": "boolean"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "fields": {
+      "type": "object",
+      "required": ["title", "slug", "goal", "success_metrics", "users_and_stakeholders", "current_process", "scope",
+                   "open_questions", "inputs", "glossary", "context_inventory", "data_classification", "source_policy",
+                   "output", "quality_rulebook", "examples", "acceptance_tests", "acceptance_criteria", "risk",
+                   "systems", "gates", "caps"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {"$ref": "#/$defs/field"}, "slug": {"$ref": "#/$defs/field"}, "goal": {"$ref": "#/$defs/field"},
+        "success_metrics": {"$ref": "#/$defs/field"}, "users_and_stakeholders": {"$ref": "#/$defs/field"},
+        "current_process": {"$ref": "#/$defs/field"}, "scope": {"$ref": "#/$defs/field"},
+        "open_questions": {"$ref": "#/$defs/field"}, "inputs": {"$ref": "#/$defs/field"},
+        "glossary": {"$ref": "#/$defs/field"}, "context_inventory": {"$ref": "#/$defs/field"},
+        "data_classification": {"$ref": "#/$defs/field"}, "source_policy": {"$ref": "#/$defs/field"},
+        "output": {"$ref": "#/$defs/field"}, "quality_rulebook": {"$ref": "#/$defs/field"},
+        "examples": {"$ref": "#/$defs/field"}, "acceptance_tests": {"$ref": "#/$defs/field"},
+        "acceptance_criteria": {"$ref": "#/$defs/field"}, "risk": {"$ref": "#/$defs/field"},
+        "systems": {"$ref": "#/$defs/field"}, "gates": {"$ref": "#/$defs/field"}, "caps": {"$ref": "#/$defs/field"}
+      }
+    },
+    "examples": {
+      "type": "object", "required": ["good", "bad"], "additionalProperties": false,
+      "properties": {
+        "good": {"type": "array", "items": {"$ref": "#/$defs/example"}},
+        "bad": {"type": "array", "items": {
+          "type": "object", "required": ["id", "breaks", "cites"], "additionalProperties": false,
+          "properties": {"id": {"$ref": "#/$defs/id"}, "breaks": {"type": "array", "items": {"type": "string"}},
+                         "cites": {"$ref": "#/$defs/cites"}}}}
+      }
+    },
+    "contradictions": {"type": "array", "items": {
+      "type": "object", "required": ["field", "versions", "resolved_by"], "additionalProperties": false,
+      "properties": {
+        "field": {"type": "string", "minLength": 1},
+        "versions": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+        "resolved_by": {"anyOf": [{"type": "string", "pattern": "^A[0-9]{2,}$"}, {"type": "null"}],
+                        "description": "The answer ID that settled it; null while unresolved."}
+      }}},
+    "playback": {
+      "type": "object", "required": ["answer"], "additionalProperties": false,
+      "properties": {"answer": {"anyOf": [{"type": "string", "pattern": "^A[0-9]{2,}$"}, {"type": "null"}],
+                                "description": "The answer ID that confirmed the latest playback; null if none."}}
+    },
+    "flags": {"type": "array", "description": "Instruction-like text found in the brief, a context file or an answer (DR07): reported, never followed. Flags reach the gate brief; they don't block readiness.",
+      "items": {
+        "type": "object", "required": ["rule", "location", "quote"], "additionalProperties": false,
+        "properties": {
+          "rule": {"type": "string", "pattern": "^[A-Z]{2,3}[0-9]{2,3}$"},
+          "location": {"type": "string", "minLength": 1, "description": "An answer or context ID, with a section or line, e.g. S02 line 4."},
+          "quote": {"type": "string", "minLength": 1, "description": "At most 25 words of the text, word for word."}
+        }}},
+    "summary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9-]{0,15}$"},
+    "cites": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "field": {
+      "type": "object", "required": ["state", "cites"], "additionalProperties": false,
+      "properties": {
+        "state": {"enum": ["answered", "default", "open_question", "vague", "contradictory", "missing"]},
+        "cites": {"$ref": "#/$defs/cites"},
+        "owner": {"type": "string", "description": "Required for open_question: a role from users_and_stakeholders, else the problem owner."}
+      }
+    },
+    "example": {
+      "type": "object", "required": ["id", "cites"], "additionalProperties": false,
+      "properties": {"id": {"$ref": "#/$defs/id"}, "cites": {"$ref": "#/$defs/cites"}}
+    }
+  }
+}

@@ -7,6 +7,12 @@
     "demo-verifier": {
       "rulebook": "rules/demo-rulebook.md"
     },
+    "charter-critic": {
+      "rulebook": "rules/charter-checklist.md"
+    },
+    "charter-verifier": {
+      "rulebook": "rules/charter-verifier.md"
+    },
     "check-refs": {
       "rulebook": "rules/check-refs.md"
     },

@@ -1,5 +1,17 @@
 # Engine changelog
 
+## 0.20.0 (2026-10-30)
+
+Intake agents and route (T2.4).
+
+- Four headless, tool-less agents in `.claude/agents/` (`interviewer`, `charter-writer`, `charter-critic`, `charter-verifier`), each with the default agent rules byte for byte, `maxTurns: 1` and the guard hook block; `.claude/settings.json` denies them in-session by name (`Agent(<name>)`, `Task(<name>)`), which the generator lint now accepts besides the blanket deny. Rulebooks `rules/charter-checklist.md` (CH01-CH15) and `rules/charter-verifier.md` (CV01-CV09), each with DR07 (minor), in `config/reviewers.json` (severity lock).
+- Route `intake`: interviewer (rules: the interview guide) → script `readiness` → charter-writer (rules: `schemas/charter.v1.md`) → charter-critic → charter-verifier → gate G0-charter; `fix_with: interviewer`. A route stage may name `rules` (route schema); they go into its handoff and into the fix handoff, and a missing rules file starts no job. A fix of an earlier stage writes to `research/` and sees the earlier stage output and its own questions.
+- `engine/readiness.py`: scores exactly the seven criteria of the guide's "When the interview is complete" (refuses if the guide and `CRITERIA` differ) from the interviewer's latest saved status (`schemas/interview-status.v1.schema.json`) and the job's own state (recorded answers, context files, answered rounds); threshold in `config/readiness.json` (7). Below it the job goes back to the interviewer with the report. `gate.py readiness-override <job> --reason` (human-only, terminal, job ID typed) writes `gates/readiness-override.json`, audits reason and score, and never overrides stage 0. The gate brief's first lines read "Readiness: <n> of 7" or "Readiness: override …", and a flags section lists the interviewer's DR07 flags (they don't block readiness).
+- Answers: the playback (`kind: playback`, at most 500 words, only for `playback: true`) is a question round of its own ending in the fixed "Confirm, or tell me what to correct." question; only an answer of exactly "Confirmed" (any case, trailing . or !) to the last answered round confirms it. A stage 0 stop (`status: stop`, only for `may_stop: true`) is saved and escalates the job. `hand_checks: charter.v1` runs the charter v1 hand checks against the job's recorded answers and context files (`designcheck.check_charter_v1(..., answers=, context_ids=)`). A needs_input author's handoff shows the question rounds used and left (ROUNDS).
+- Context files reach authors and verifiers only; a critic's handoff has the artifact, its rulebook and the answers. `config/context-pack.json` `max_total_bytes` 60,000 caps the whole pack.
+- Active human minutes: `state.py input` (brief, answers) needs `--minutes N|skip` (asked at a terminal; the flag is labelled "reported via orchestrator"); `gate.py approve|reject|hold --minutes N|skip` (asked when absent) record them on the job (`human_minutes`) and in the gate audit. `skip` is unknown, never 0. Question rounds record their kind; `answered` records which answers closed which round (`answered_rounds`).
+- `/onboard` step 5 creates the intake job and registers the brief (A01, with the stated minutes) and the context files listed in the brief.
+
 ## 0.19.0 (2026-10-30)
 
 Onboarding and the problem brief (T2.2).

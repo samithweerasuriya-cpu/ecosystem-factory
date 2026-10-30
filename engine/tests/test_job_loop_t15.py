@@ -352,7 +352,8 @@ class RouteReadinessTests(LabTestBase):
         shipped = json.loads((repo / "config/routes.json").read_text(encoding="utf-8"))
         if not {"intake", "design", "build"} <= set(shipped["routes"]):
             self.skipTest("not the factory (a generated ecosystem has its own routes)")
-        self.assertEqual(self.lc.route_errors(shipped, allowed_scripts={}), [])
+        scripts = json.loads((repo / "config/scripts.json").read_text(encoding="utf-8"))["scripts"]   # T2.4: readiness
+        self.assertEqual(self.lc.route_errors(shipped, allowed_scripts=scripts), [])
         r = shipped["routes"]
         self.assertEqual((r["intake"]["gate"], r["design"]["requires_parent_gate"], r["design"]["gate"],
                           r["build"]["requires_parent_gate"], r["build"]["gate"]),
@@ -362,6 +363,7 @@ class RouteReadinessTests(LabTestBase):
                          {"G0-charter": "human", "G1-blueprint": "human", "G2-golive": "human"})
         for name in ("intake", "design", "build"):
             self.assertNotIn("stand_in_agents", r[name])
+        for name in ("design", "build"):                     # T2.4 built the intake agents; the others follow
             self.assertTrue(self.lc.route_not_ready(r[name]), name)
 
     def test_stand_in_agents_must_be_a_boolean(self):

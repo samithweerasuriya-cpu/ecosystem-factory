@@ -10,8 +10,12 @@
   python engine/gate.py relink <job>                    # point a stopped child at its parent's new approval
   python engine/gate.py lock | unlock                   # operate mode on/off (protects framework files)
   python engine/gate.py ceiling <job> [--tokens N] [--minutes M]   # raise a job's usage ceiling
+  python engine/gate.py readiness-override <job> --reason TEXT   # write the charter below the readiness threshold
 
-approve/reject/hold/resume/lock/unlock refuse to run without an interactive terminal.
+approve/reject/hold/resume/lock/unlock/readiness-override refuse to run without an interactive terminal.
+approve, reject and hold record your active minutes on the decision (T2.4): --minutes N, or asked; 'skip' is
+recorded as unknown, never as 0. readiness-override (T2.4) is refused when stage 0 failed (never overridden);
+it is audited with its reason and the score at the time, and the gate brief then reads "Readiness: override".
 approve, reject and hold print the gate brief; approve and reject ask for a mark on every blocker and
 major finding and on a sample of the minors (one letter and Enter each: v valid, n noise, s skip, q cancel), then
 for any missed issues; the brief shown and the verdicts are saved in the job's gates/ folder
@@ -169,29 +173,80 @@ def decide(args):
               f"{counts['skipped']} skipped) and {len(missed)} missed issue(s)"
               + (": " + ", ".join(f"{x['rule']} ({x['reviewer']})" for x in missed) if missed else "")
               + ". Type the job ID to confirm, or anything else to cancel.")
+    minutes = ask_minutes(args.minutes)
     confirm(args.job)
     files, review = gr.record(args.job, args.cmd, text, marks, missed, sampled, minors)
     if args.cmd == "approve":
         note = f"[pilot] {args.note}".strip() if args.as_ == "pilot" else args.note
         st = lc.approve_gate(args.job, note, review=review)
         gr.write(files, args.job)
-        lc.gate_audit("approve", args.job, note=note, review=review)
+        m = lc.record_minutes(args.job, "approve", minutes)
+        lc.gate_audit("approve", args.job, note=note, review=review, minutes=m)
         print(f"Approved {st['route']['gate']} for {args.job}. State: {st['state']}")
     elif args.cmd == "reject":
         try:
             st = lc.reject_gate(args.job, args.feedback)
         except lc.CapExceeded:  # rejection was recorded and the job escalated: record and audit it too
             gr.write(files, args.job)
-            lc.gate_audit("reject", args.job, feedback=args.feedback, review=review, cap_exceeded=True)
+            m = lc.record_minutes(args.job, "reject", minutes)
+            lc.gate_audit("reject", args.job, feedback=args.feedback, review=review, cap_exceeded=True, minutes=m)
             raise
         gr.write(files, args.job)
-        lc.gate_audit("reject", args.job, feedback=args.feedback, review=review)
+        m = lc.record_minutes(args.job, "reject", minutes)
+        lc.gate_audit("reject", args.job, feedback=args.feedback, review=review, minutes=m)
         print(f"Rejected. State: {st['state']}")
     else:
         st = lc.hold_gate(args.job, args.note)
         gr.write(files, args.job)
-        lc.gate_audit("hold", args.job, note=args.note, brief_sha256=review["brief_sha256"], brief=review["brief"])
+        m = lc.record_minutes(args.job, "hold", minutes)
+        lc.gate_audit("hold", args.job, note=args.note, brief_sha256=review["brief_sha256"], brief=review["brief"],
+                      minutes=m)
         print(f"Held at {st['route']['gate']}: {args.job} is ESCALATED until: python engine/gate.py resume {args.job}")
+    return 0
+
+
+def ask_minutes(given):
+    """T2.4: the approver's active minutes on this decision: --minutes, or asked here; 'skip' is unknown."""
+    value, tries = given, 0
+    while value is None:
+        if tries == 3:
+            print("No valid minutes after 3 tries: nothing was recorded.", file=sys.stderr)
+            sys.exit(1)
+        tries += 1
+        try:
+            value = input("Active minutes you spent on this decision (a number, or skip): ").strip()
+        except EOFError:
+            print("Refusing: no interactive terminal (input closed). Run this yourself.", file=sys.stderr)
+            sys.exit(1)
+        try:
+            lc.minutes_fields(value, "gate.py")
+        except lc.LabError as e:
+            print(e, file=sys.stderr)
+            value = None
+    lc.minutes_fields(value, "gate.py")      # a bad --minutes stops here, before anything is recorded
+    return value
+
+
+def override_readiness(args):
+    """readiness-override: the approver lets the charter be written below the readiness threshold."""
+    import readiness
+    lc.approver()
+    require_terminal()
+    rep = readiness.latest_report(args.job)
+    if rep:
+        print(f"Readiness of {args.job}: {rep.get('score')} of {len(readiness.CRITERIA)} "
+              f"(threshold {rep.get('threshold')}), result {rep.get('result')}")
+        for c in rep.get("criteria", []):
+            if not c["passed"]:
+                print(f"  not met: {c['n']}. {c['text']}")
+                for p in c["problems"][:5]:
+                    print(f"     - {p}")
+    confirm(args.job)
+    rec = readiness.record_override(args.job, args.reason)
+    lc.gate_audit("readiness-override", args.job, reason=rec["reason"], score=rec["score"],
+                  threshold=rec["threshold"], failed=rec["failed"], report=rec["report"])
+    print(f"Readiness override recorded for {args.job} (score {rec['score']} of {len(readiness.CRITERIA)}). "
+          "The next readiness run passes as 'override'.")
     return 0
 
 
@@ -216,6 +271,9 @@ def main(argv=None):
     a.add_argument("--as", dest="as_", choices=["pilot"], help="approve as a pilot (recorded in the note)")
     r = sub.add_parser("reject"); r.add_argument("job"); r.add_argument("--feedback", required=True)
     h = sub.add_parser("hold"); h.add_argument("job"); h.add_argument("--note", required=True)
+    for p in (a, r, h):
+        p.add_argument("--minutes", help="your active minutes on this decision, or 'skip' (asked when absent)")
+    ro = sub.add_parser("readiness-override"); ro.add_argument("job"); ro.add_argument("--reason", required=True)
     rs = sub.add_parser("resume"); rs.add_argument("job")
     v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("gate"); v.add_argument("--chain", action="store_true")
     rl = sub.add_parser("relink"); rl.add_argument("job")
@@ -226,6 +284,8 @@ def main(argv=None):
     try:
         if args.cmd in ("approve", "reject", "hold"):
             return decide(args)
+        if args.cmd == "readiness-override":
+            return override_readiness(args)
         if args.cmd == "resume":
             confirm(args.job)
             st = lc.apply(args.job, "resume", actor=lc.approver(), _human=True)
