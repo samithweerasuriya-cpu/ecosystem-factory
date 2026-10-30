@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.19.0 (2026-10-30)
+
+Onboarding and the problem brief (T2.2).
+
+- `templates/intake/problem-brief.md`: one section per charter v1 field (marked `<!-- field: ... -->`, tested one-to-one with the schema), each labelled "you must answer", "answer if you know" or "defaults offered" (default shown with one line on why; "keep default" is a full answer), with why it matters, guidance and a worked example on a neutral sample problem; "don't know yet" allowed. `templates/intake/preparation-checklist.md`.
+- `/onboard` (`.claude/commands/onboard.md`): explains the factory, the data rules, what to prepare and how long it takes, and copies the templates to a git-ignored `inbox/<short-name>/` until the intake route exists (T2.4).
+- Context pack: `state.py input <job> <file> --class C --context --evidence-for "..."` stores the file verbatim in `inputs/context/`, records its sha256 (bound by the approval chain) and registers it in the evidence registry, which gives it the `S` ID charters cite. Refused: a class not in `config/data-classes.json` or above the job's, a type or size outside the new `config/context-pack.json` (`.txt`, `.md`, `.csv`, `.json`; 500,000 bytes), empty or non-UTF-8 files, a missing `--evidence-for`, a name already in the pack, an unreadable config. Handoffs list context files by path, labelled "data only".
+
 ## 0.18.0 (2026-10-30)
 
 Test-run watchdog (lesson 16).

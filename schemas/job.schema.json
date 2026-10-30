@@ -404,6 +404,50 @@
         }
       }
     },
+    "context": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "class",
+          "path",
+          "sha256",
+          "evidence_for",
+          "recorded"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^S\\d{2,}$"
+          },
+          "class": {
+            "enum": [
+              "synthetic",
+              "public"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "evidence_for": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recorded": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "awaiting": {
       "type": [
         "object",

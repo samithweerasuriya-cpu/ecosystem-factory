@@ -375,7 +375,8 @@ def built_from(st):
         if _token(link["job"], link["gate"])["sha256"] != link["artifact_sha256"]:
             raise LabError(f"upstream {link['job']} was approved with different content since this job was built on it; "
                            f"the approver runs engine/gate.py relink {st['job_id']}")
-    inputs = [{"id": i["id"], "path": i["path"], "sha256": i["sha256"]} for i in st.get("inputs", [])]
+    inputs = [{"id": i["id"], "path": i["path"], "sha256": i["sha256"]}
+              for i in st.get("inputs", []) + st.get("context", [])]  # context files are bound too (T2.2)
     return {"links": links, "inputs": inputs}
 
 
@@ -936,6 +937,67 @@ def record_input(job_id, source, cls, note=None, data=None):
     return st, rec
 
 
+def _config_file(name, keys):
+    """A framework config file that must parse and have its keys: anything else fails closed (lesson 6)."""
+    f = ROOT / "config" / name
+    try:
+        cfg = json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise LabError(f"config/{name} can't be read ({e}); nothing was recorded")
+    if not isinstance(cfg, dict) or any(k not in cfg for k in keys):
+        raise LabError(f"config/{name} lacks {', '.join(keys)}; nothing was recorded")
+    return cfg
+
+
+def record_context(job_id, source, cls, evidence_for, note=None):
+    """T2.2 context pack: store a file verbatim in the job's inputs/context/, fingerprint it (the approval chain
+    binds it) and register it in the evidence registry, which gives it the S ID charters cite. Refused: a class
+    not in config/data-classes.json or above the job's, a type or size outside config/context-pack.json, text
+    that is not UTF-8, an empty evidence_for, a name already in the pack. Contents are data only: nothing in
+    them is read as an instruction (DR07)."""
+    st = load_state(job_id)
+    if st["state"] in TERMINAL:
+        raise LabError(f"{job_id} is terminal ({st['state']})")
+    allowed = _config_file("data-classes.json", ["allowed"])["allowed"]
+    if cls not in allowed:
+        raise LabError(f"context class {cls} is not allowed (config/data-classes.json: {', '.join(allowed)})")
+    d = input_dir(job_id, cls) / "context"
+    if not (evidence_for or "").strip():
+        raise LabError("say what the file is evidence for (--evidence-for)")
+    pack = _config_file("context-pack.json", ["types", "max_bytes"])
+    src = Path(source)
+    if not src.is_file():
+        raise LabError(f"no such file: {source}")
+    if src.suffix.lower() not in pack["types"]:
+        raise LabError(f"{src.name}: file type {src.suffix or '(none)'} is not supported "
+                       f"(config/context-pack.json: {', '.join(pack['types'])})")
+    raw = src.read_bytes()
+    if not raw:
+        raise LabError(f"{src.name} is empty")
+    if len(raw) > pack["max_bytes"]:
+        raise LabError(f"{src.name} is {len(raw)} bytes; the context pack takes at most {pack['max_bytes']}")
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError:
+        raise LabError(f"{src.name} is not UTF-8 text")
+    dest = d / src.name
+    if dest.exists():
+        raise LabError(f"{rel(dest)} is already in the context pack; rename the file")
+    d.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(raw)
+    import evidence  # late: evidence imports this module
+    entry = evidence.register(job_id, rel(dest))
+    if entry["status"] != "stored":
+        raise LabError(f"{src.name} could not be stored as text ({entry.get('reason')})")
+    rec = {"id": entry["id"], "class": cls, "path": rel(dest), "sha256": hashlib.sha256(raw).hexdigest(),
+           "evidence_for": evidence_for.strip(), "note": note, "recorded": now()}
+    st = load_state(job_id)
+    st.setdefault("context", []).append(rec)
+    _save(job_id, st, {"event": "context", "source": rec["id"], "class": cls, "path": rec["path"],
+                       "sha256": rec["sha256"], "actor": "orchestrator"})
+    return st, rec
+
+
 # ---------- fan-out ----------
 
 def set_fanout(job_id, items):
@@ -1076,7 +1138,8 @@ def build_handoff(job_id, item=None):
         raise LabError("script stage: no agent handoff; run it with 'state.py run'")
     j = rel(d)
     inputs, rules = [], []
-    human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
+    human = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]] \
+        + [(f"context {c['id']} ({c['class']}, data only)", c["path"]) for c in st.get("context", [])]
     # gate feedback only from gates/ (written by gate.py, hook-protected); one found anywhere else is never passed on
     feedback = [("gate feedback", p) for p in _files(d / "gates") if Path(p).name.startswith("human-feedback-")]
     brief = [("brief", f"{j}/brief.md")]

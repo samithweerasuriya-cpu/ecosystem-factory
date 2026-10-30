@@ -10,6 +10,9 @@ __pycache__/
 logs/blocked.jsonl
 logs/tests-last.json
 logs/tests-last-fast.json
+
+# Problem briefs and context files being drafted before intake (/onboard, T2.2): never tracked
+inbox/
 .lab/active_job
 
 # Secrets and personal settings
