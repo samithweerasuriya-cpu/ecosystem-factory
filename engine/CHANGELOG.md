@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.20.1 (2026-10-30)
+
+Handoff parity for every route agent (start of T2.5, before any live call; lesson 13 recurred).
+
+- `labcore.step_handoff` decides one step's inputs (labels and order), rules and extra lines (ROUNDS, the review line) from the route; `build_handoff` (jobs) and `evals/run_evals.py` (evaluations) both call it. Before, the runner chose its own: an interviewer or charter-writer case had no ROUNDS line, a charter-writer case got only its suite's rulebook, and a charter-verifier case was labelled a critic without its evidence pack, source registry or context files.
+- An agent a route uses gets its route step's handoff in an evaluation (`labcore.route_place`, `run_evals.route_handoff`); TYPE is the route's name. A case input is a file name (an answer) or `{"file", "as": answer | context | earlier | questions | evidence | feedback, "class"}`; `counters` gives the question rounds already used. Agents on no route (the calibration critic) get the same prompt as before, so the handoff format stays 2 and no report goes stale.
+- `engine/tests/test_parity_t25.py`: drives an intake job through all four agents and compares each step's full prompt with the evaluation prompt for a case built from the same files, apart from IDs and paths; it fails when a route agent with an agent file has no check.
+
 ## 0.20.0 (2026-10-30)
 
 Intake agents and route (T2.4).

@@ -19,6 +19,8 @@ evals/
 
 Case IDs are opaque (`E001`, ...), so an ID never hints at the answer.
 
+**Cases for route agents (T2.5).** An agent a route uses gets, in an evaluation, exactly the handoff its job step would get (the same code builds both; `engine/tests/test_parity_t25.py` compares the full prompts). Each case input says which part of the job's handoff it stands for: a plain file name is an approver's answer; otherwise `{"file": ..., "as": "answer" | "context" | "earlier" | "questions" | "evidence" | "feedback", "class": "synthetic"}` (`evidence` is a folder holding `registry.json`, as a job's evidence pack does). `"counters": {"cycle_input_rounds": n, "input_rounds": n}` sets the question rounds already used, shown on the ROUNDS line.
+
 ## How to run
 
 ```

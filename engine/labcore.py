@@ -1181,43 +1181,15 @@ def build_handoff(job_id, item=None):
     if kind == "script":
         raise LabError("script stage: no agent handoff; run it with 'state.py run'")
     j = rel(d)
-    inputs, rules = [], []
-    answers = [(f"input {i['id']} ({i['class']})", i["path"]) for i in st["inputs"]]
-    human = answers + [(f"context {c['id']} ({c['class']}, data only)", c["path"]) for c in st.get("context", [])]
-    # gate feedback only from gates/ (written by gate.py, hook-protected); one found anywhere else is never passed on
-    feedback = [("gate feedback", p) for p in _files(d / "gates") if Path(p).name.startswith("human-feedback-")]
-    brief = [("brief", f"{j}/brief.md")]
-    evidence = [("evidence pack", f"{j}/evidence/")]
+    last = kind in ("agent", "fix") and st["stage_index"] == len(r["stages"]) - 1
     out = {"agent": f"{j}/research/", "fanout": f"{j}/research/", "review": f"{j}/reviews/",
            "revise": f"{j}/drafts/", "fix": f"{j}/drafts/", "deliver": f"{j}/delivery/"}[kind]
-    extra = {}
-    if kind == "agent":
-        last = st["stage_index"] == len(r["stages"]) - 1
-        out = f"{j}/drafts/" if last else out
-        inputs = brief + [("seed (from " + st["continued_from"] + ")", s) for s in st["seed"]] \
-            + [("earlier stage output", p) for p in _files(d / "research")] + human
-        rules = stage_rules(r, st["stage"])
-        rules += [p for p in (author_rules(r) if last else []) if p not in rules]
-    elif kind == "fanout":
-        if not st["fanout"] or item not in st["fanout"]["items"]:
-            raise LabError(f"fanout handoff needs --item, one of {sorted((st['fanout'] or {}).get('items', {}))}")
-        extra = {"ITEM": item, "SPLIT_BY": st["fanout"]["split_by"]}
-        inputs = brief + human
-    elif kind == "review":
-        rv = r["reviews"][st["review_index"]]
-        cfg = reviewers().get(rv["agent"], {})
-        rules = [cfg["rulebook"]] if cfg.get("rulebook") else []
-        inputs = [("artifact", st["artifact_path"])]
-        if rv["kind"] == "verifier":
-            inputs += evidence + [("source registry", f"{j}/evidence/registry.json")]
-            if cfg.get("source_policy"):
-                rules.append(cfg["source_policy"])
-        # T2.4: context files go to authors and verifiers only; a critic gets the artifact, its rulebook and answers
-        inputs += (human if rv["kind"] == "verifier" else answers) + feedback
-        extra = {"REVIEW_KIND": rv["kind"], "REVIEWER": rv["agent"], "ARTIFACT": st["artifact_path"],
-                 "VERSION": _version(st["artifact_path"])}
-    elif kind == "revise":
-        findings = []
+    if kind == "agent" and last:
+        out = f"{j}/drafts/"
+    if kind == "fix" and not last:
+        out = f"{j}/research/"          # T2.4: fixing an earlier stage's work (the final draft is not written yet)
+    findings = []
+    if kind == "revise":
         for p in _files(d / "reviews"):
             if p.endswith(".json"):
                 try:
@@ -1225,31 +1197,106 @@ def build_handoff(job_id, item=None):
                         findings.append(("findings to address", p))
                 except ValueError:
                     pass
-        inputs = [("artifact", st["artifact_path"])] + brief + evidence + findings + feedback + human
-        rules = author_rules(r)
-    elif kind == "fix":
-        runs = _files(d / "scripts")
-        inputs = brief + ([("failed script run", runs[-1])] if runs else []) \
-            + [("earlier stage output", p) for p in _files(d / "research")] + human
-        rules = stage_rules(r, st["stage"])
-        if st["stage_index"] < len(r["stages"]) - 1:
-            out = f"{j}/research/"      # T2.4: fixing an earlier stage's work (the final draft is not written yet)
-    elif kind == "deliver":
-        inputs = [("approved artifact", st["artifact_path"]), ("gate token", f"{j}/gates/{r['gate']}.json")] + human
-    if kind in ("agent", "revise", "fix"):
-        # T1.5: the author sees its own earlier questions next to the approver's answers; reviewers never do
-        inputs += [("your earlier questions", p) for p in _files(d / "questions")]
-        if outputs().get(st["stage"], {}).get("needs_input") is True:
-            # T2.4 (interview guide, "Each round's inputs"): an agent that may ask sees the rounds used and left
-            cn, cp = st["counters"], caps()
-            for k in ("input_rounds_per_cycle", "input_rounds"):
-                if not isinstance(cp.get(k), int):
-                    raise LabError(f"config/caps.json has no {k} cap: refused (fails closed)")
-            extra["ROUNDS"] = (f"question rounds used {cn.get('cycle_input_rounds', 0)} of "
-                               f"{cp['input_rounds_per_cycle']} this cycle, {cn.get('input_rounds', 0)} of "
-                               f"{cp['input_rounds']} in the job's lifetime")
+    runs = _files(d / "scripts")
+    parts = {
+        "brief": [("brief", f"{j}/brief.md")],
+        "seed": [("seed (from " + st["continued_from"] + ")", s) for s in st["seed"]],
+        "earlier": [("earlier stage output", p) for p in _files(d / "research")],
+        "answers": [answer_input(i["id"], i["class"], i["path"]) for i in st["inputs"]],
+        "context": [context_input(c["id"], c["class"], c["path"]) for c in st.get("context", [])],
+        # gate feedback only from gates/ (written by gate.py, hook-protected); one found anywhere else is never passed on
+        "feedback": [("gate feedback", p) for p in _files(d / "gates") if Path(p).name.startswith("human-feedback-")],
+        "evidence": f"{j}/evidence/",
+        "findings": findings,
+        "failed_run": [("failed script run", runs[-1])] if runs else [],
+        "gate_token": f"{j}/gates/{r['gate']}.json",
+        "questions": [("your earlier questions", p) for p in _files(d / "questions")],
+    }
+    inputs, rules, extra = step_handoff(r, st["stage"], kind, parts, last=last, review_index=st["review_index"],
+                                        counters=st["counters"], artifact=st["artifact_path"])
+    if kind == "fanout":
+        if not st["fanout"] or item not in st["fanout"]["items"]:
+            raise LabError(f"fanout handoff needs --item, one of {sorted((st['fanout'] or {}).get('items', {}))}")
+        extra = {"ITEM": item, "SPLIT_BY": st["fanout"]["split_by"]}
     return make_handoff(job_id, st["type"], st["stage"], kind, st["goal"], inputs, rules, out,
                         r.get("template"), r.get("template_variants", {}), **extra)
+
+
+def answer_input(input_id, cls, path):
+    return (f"input {input_id} ({cls})", path)
+
+
+def context_input(source_id, cls, path):
+    return (f"context {source_id} ({cls}, data only)", path)
+
+
+def rounds_line(counters):
+    """T2.4 (interview guide, "Each round's inputs"): an agent that may ask sees the rounds used and left."""
+    cp = caps()
+    for k in ("input_rounds_per_cycle", "input_rounds"):
+        if not isinstance(cp.get(k), int):
+            raise LabError(f"config/caps.json has no {k} cap: refused (fails closed)")
+    return (f"question rounds used {counters.get('cycle_input_rounds', 0)} of {cp['input_rounds_per_cycle']} this "
+            f"cycle, {counters.get('input_rounds', 0)} of {cp['input_rounds']} in the job's lifetime")
+
+
+def step_handoff(r, stage, kind, parts, last=False, review_index=None, counters=None, artifact=None, version=None):
+    """(inputs, rules, extra) for one step of route r: which inputs in which order, which rules, which extra
+    lines. Job steps (build_handoff) and evaluation runs (evals/run_evals.py) both call it, so an evaluation
+    gets the handoff the job would send (T1.5 parity; widened in T2.5 after the ROUNDS line went missing).
+    parts holds the labelled inputs per kind (brief, seed, earlier, answers, context, feedback, findings,
+    failed_run, questions: lists of (label, path[, text])) and the evidence folder and gate token paths."""
+    def g(k):
+        return list(parts.get(k) or [])
+    answers, human = g("answers"), g("answers") + g("context")
+    evidence = [("evidence pack", parts["evidence"])] if parts.get("evidence") else []
+    inputs, rules, extra = [], [], {}
+    if kind == "agent":
+        inputs = g("brief") + g("seed") + g("earlier") + human
+        rules = stage_rules(r, stage)
+        rules += [p for p in (author_rules(r) if last else []) if p not in rules]
+    elif kind == "fanout":
+        inputs = g("brief") + human
+    elif kind == "review":
+        rv = r["reviews"][review_index]
+        cfg = reviewers().get(rv["agent"], {})
+        rules = [cfg["rulebook"]] if cfg.get("rulebook") else []
+        inputs = [("artifact", artifact)]
+        if rv["kind"] == "verifier":
+            inputs += evidence + ([("source registry", parts["evidence"] + "registry.json")] if evidence else [])
+            if cfg.get("source_policy"):
+                rules.append(cfg["source_policy"])
+        # T2.4: context files go to authors and verifiers only; a critic gets the artifact, its rulebook and answers
+        inputs += (human if rv["kind"] == "verifier" else answers) + g("feedback")
+        extra = {"REVIEW_KIND": rv["kind"], "REVIEWER": rv["agent"], "ARTIFACT": artifact,
+                 "VERSION": version or _version(artifact)}
+    elif kind == "revise":
+        inputs = [("artifact", artifact)] + g("brief") + evidence + g("findings") + g("feedback") + human
+        rules = author_rules(r)
+    elif kind == "fix":
+        inputs = g("brief") + g("failed_run") + g("earlier") + human
+        rules = stage_rules(r, stage)
+    elif kind == "deliver":
+        inputs = [("approved artifact", artifact), ("gate token", parts["gate_token"])] + human
+    if kind in ("agent", "revise", "fix"):
+        # T1.5: the author sees its own earlier questions next to the approver's answers; reviewers never do
+        inputs += g("questions")
+        if outputs().get(stage, {}).get("needs_input") is True:
+            extra["ROUNDS"] = rounds_line(counters or {})
+    return inputs, rules, extra
+
+
+def route_place(agent):
+    """(route name, route, kind, index) for the first route in config/routes.json that runs this agent: a work
+    stage ("agent", stage index) or a review ("review", review index). None for an agent no route uses."""
+    for name, r in routes().items():
+        for i, s in enumerate(r.get("stages", [])):
+            if s.get("agent") == agent:
+                return name, r, "agent", i
+        for i, rv in enumerate(r.get("reviews", [])):
+            if rv.get("agent") == agent:
+                return name, r, "review", i
+    return None
 
 
 def make_handoff(job, jtype, stage, kind, goal, inputs, rules, output_dir, template=None, variants=None, **extra):

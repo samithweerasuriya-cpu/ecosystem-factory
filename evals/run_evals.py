@@ -124,14 +124,72 @@ EVAL_TYPE = "eval"
 EVAL_OUTPUT_DIR = "(kept by the evaluation runner)"
 
 
+CASE_ROLES = ("answer", "context", "earlier", "questions", "evidence", "feedback")
+ROLE_LABELS = {"earlier": "earlier stage output", "questions": "your earlier questions", "feedback": "gate feedback"}
+
+
+def case_inputs(case):
+    """[(file name, role, class)] for a case's inputs. An input is a file name (an approver's answer) or
+    {"file", "as": one of CASE_ROLES, "class"}: the part of a job's handoff it stands for (T2.5)."""
+    out = []
+    for n in case["inputs"]:
+        e = n if isinstance(n, dict) else {"file": n}
+        if not isinstance(e.get("file"), str) or e.get("as", "answer") not in CASE_ROLES:
+            raise Refused(f"case {case['id']}: input {n!r} needs a file name and a role in {CASE_ROLES}")
+        out.append((e["file"], e.get("as", "answer"), e.get("class", "synthetic")))
+    return out
+
+
+def case_files(case):
+    return [n for n, _, _ in case_inputs(case)]
+
+
+def route_handoff(s, case, ids, goal, place):
+    """A route agent's case: the handoff the job step would get, from labcore.step_handoff (T2.5 parity). The
+    case files stand in for the job's parts by role; "counters" gives the question rounds already used."""
+    route_name, r, kind, idx = place
+    if (kind == "review") != (s["kind"] == "reviewer"):
+        raise Refused(f"suite {s['name']}: kind {s['kind']} but the agent is a route {kind} step")
+    jid = ids["job_id"]
+    parts = {"brief": [("brief", f"jobs/{jid}/brief.md", lc.brief_text(jid, route_name, goal))]}
+    answers = contexts = 0
+    for n, role, cls in case_inputs(case):
+        p = lc.rel(case["dir"] / n)
+        if kind == "review" and n == case.get("artifact"):
+            continue
+        if role == "answer":
+            answers += 1
+            parts.setdefault("answers", []).append(lc.answer_input(f"A{answers:02d}", cls, p))
+        elif role == "context":
+            contexts += 1
+            parts.setdefault("context", []).append(lc.context_input(f"S{contexts:02d}", cls, p))
+        elif role == "evidence":
+            parts["evidence"] = p.rstrip("/") + "/"
+        else:
+            parts.setdefault(role, []).append((ROLE_LABELS[role], p))
+    stage = s["agent_spec"]["name"]
+    if kind == "review":
+        inputs, rules, extra = lc.step_handoff(r, stage, kind, parts, review_index=idx,
+                                               artifact=ids["artifact_path"], version=ids["artifact_version"])
+    else:
+        inputs, rules, extra = lc.step_handoff(r, stage, kind, parts, last=idx == len(r["stages"]) - 1,
+                                               counters=case.get("counters", {}))
+    return lc.make_handoff(jid, route_name, stage, kind, goal, inputs, rules, EVAL_OUTPUT_DIR,
+                           r.get("template"), r.get("template_variants", {}), **extra)
+
+
 def eval_handoff(s, case):
-    """The handoff an evaluation case gets, built like a job step's (T1.5 parity, labcore.make_handoff): a
-    reviewer gets the artifact and the other case files as approver inputs; an author gets the brief and the
-    case files as approver inputs. The rulebook goes in as the job's rules do."""
+    """The handoff an evaluation case gets, built like a job step's (T1.5 parity, labcore.make_handoff). An
+    agent a route uses gets exactly its route step's handoff (route_handoff). Otherwise (the calibration
+    critic): a reviewer gets the artifact and the other case files as approver inputs; an author gets the
+    brief and the case files as approver inputs; the rulebook goes in as the job's rules do."""
     ids = ids_for(s, case)
     jid, name = ids["job_id"], s["agent_spec"]["name"]
     goal = case.get("goal") or f"Evaluation case {case['id']}"
-    others = [n for n in case["inputs"] if s["kind"] == "agent" or n != case["artifact"]]
+    place = lc.route_place(name)
+    if place is not None:
+        return route_handoff(s, case, ids, goal, place)
+    others = [n for n in case_files(case) if s["kind"] == "agent" or n != case["artifact"]]
     human = [(f"input A{i:02d} (synthetic)", lc.rel(case["dir"] / n)) for i, n in enumerate(others, 1)]
     if s["kind"] == "agent":
         brief = ("brief", f"jobs/{jid}/brief.md", lc.brief_text(jid, EVAL_TYPE, goal))
@@ -228,7 +286,7 @@ def score_agent(text, s, case, schema):
             errs.append(f"$.{k}: not copied exactly")
     if errs:
         return invalid(errs)
-    inputs = norm(" ".join((case["dir"] / n).read_text(encoding="utf-8") for n in case["inputs"]))
+    inputs = norm(" ".join((case["dir"] / n).read_text(encoding="utf-8") for n in case_files(case)))
     expected = case["key"]["expected"]
     matched, invented = {}, 0
     for it in doc.get(s["items_field"]) or []:
