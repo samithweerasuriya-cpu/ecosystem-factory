@@ -57,7 +57,7 @@ To reject:                         .venv\Scripts\python.exe engine\gate.py rejec
 
 ## Current phase
 
-**Phase 1** (Samith updates this line when a phase exit is passed.)
+**Phase 2** (Samith updates this line when a phase exit is passed.)
 
 Only do work that belongs to the current phase. If asked for later-phase work, name the exit that is not yet passed and ask Samith to confirm.
 
