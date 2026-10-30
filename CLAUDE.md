@@ -71,7 +71,7 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 6. **One question at a time**, only when the answer changes what you build.
 7. **Recommend, don't just list.**
 8. **Effort log.** Each build-log row has an estimate and an actual (sessions), and what broke.
-9. **Test tiers.** During work, run the fast tier: `.venv\Scripts\python.exe engine\run_tests.py --fast` (unit tests; the log guard stays on). Run the full suite (`engine\run_tests.py`, no flag) in every Check and before every commit that changes `engine/`, `config/`, `schemas/`, `rules/`, `templates/`, `.claude/` or any tests. Documentation-only commits need no suite run. Never run (or time) two suites at once. A Check passed on the fast tier alone is not a pass.
+9. **Test tiers.** During work, run the fast tier: `.venv\Scripts\python.exe engine\run_tests.py --fast` (unit tests; the log guard stays on). Run the full suite (`engine\run_tests.py`, no flag) in every Check and before every commit that changes `engine/`, `config/`, `schemas/`, `rules/`, `templates/`, `.claude/` or any tests. Documentation-only commits need no suite run. Never run (or time) two suites at once. Full suites run in the foreground only; the runner's watchdog stops a hung test (`--test-timeout`, `--timeout`). A Check passed on the fast tier alone is not a pass.
 
 ## Hard rules
 

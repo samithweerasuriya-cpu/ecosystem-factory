@@ -9,6 +9,7 @@ __pycache__/
 # Runtime state that stays local
 logs/blocked.jsonl
 logs/tests-last.json
+logs/tests-last-fast.json
 .lab/active_job
 
 # Secrets and personal settings

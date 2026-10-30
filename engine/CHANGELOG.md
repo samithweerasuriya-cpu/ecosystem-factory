@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.18.0 (2026-10-30)
+
+Test-run watchdog (lesson 16).
+
+- `engine/run_tests.py` runs the suite in a child process that writes the test it is on to a heartbeat file, and only watches it. Past `--test-timeout` (default 600 s) or `--timeout` (whole run, default 3600 s) it stops the child and every process it started, names the test, still runs the guard, records a failed result with `timed_out` (kind, test, limit) and exits 2.
+- Full runs are recorded in `logs/tests-last.json` only (the export reads it); fast runs, timeouts included, in `logs/tests-last-fast.json` (untracked, also in the ecosystem `.gitignore`), so a fast run never replaces the full record.
+
 ## 0.17.0 (2026-10-29)
 
 Charter v1 (T2.1): the intake charter, schema-first.
