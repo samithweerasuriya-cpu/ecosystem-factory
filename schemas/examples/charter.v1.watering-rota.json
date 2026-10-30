@@ -1,0 +1,128 @@
+{
+  "schema_version": "1",
+  "slug": "watering-rota",
+  "title": "Away-day requests to a weekly watering rota",
+  "answers_ref": "charter.v1.watering-rota.answers.json",
+  "goal": {"text": "Every plot is watered every day of a dry week, even when its holder is away, without hand-built rotas.",
+           "cites": ["[A:A01]"]},
+  "success_metrics": {
+    "agent_checkable": [
+      {"id": "M01", "metric": "Plot-days with a waterer", "target": "every plot, every day of the week",
+       "check": "A script counts rows per plot and day (Q01).", "cites": ["[A:A07]"]},
+      {"id": "M02", "metric": "Rows that put someone on a day they are away", "target": "none",
+       "check": "The critic compares every row with the requests (Q02).", "cites": ["[A:A07]"]}
+    ],
+    "outcome": [
+      {"id": "M03", "metric": "Plot holders reporting a forgotten plot", "target": "none in a dry week", "cites": ["[A:A08]"]}
+    ]
+  },
+  "users_and_stakeholders": [
+    {"role": "plot-holder", "relation": "user", "interest": "Reads the rota and waters on their days.", "cites": ["[A:A02]"]},
+    {"role": "rota-keeper", "relation": "approver", "interest": "Approves the rota before it reaches the sheet.", "cites": ["[A:A02]"]},
+    {"role": "committee", "relation": "stakeholder", "interest": "The watering work is shared fairly.", "cites": ["[A:A02]"]}
+  ],
+  "current_process": {
+    "steps": ["Plot holders send away-days by message.", "The rota keeper copies them onto paper.", "The week is built by hand."],
+    "problems": ["Plots get missed.", "The same few people water most days."],
+    "cites": ["[A:A03]"]
+  },
+  "scope": {
+    "in": ["One week's away-day requests in, one watering rota out, written to the rota sheet after approval."],
+    "out": ["Messaging plot holders", "Plot rents", "Anything beyond watering"],
+    "cites": ["[A:A04]"]
+  },
+  "inputs": {
+    "description": "One week's away-day requests.",
+    "format": "plain text, one request per line",
+    "constraints": ["Plot number", "Holder's first name", "Days away"],
+    "samples": [{"source": "S01", "description": "A typical week's request list."}],
+    "cites": ["[A:A05]", "[S:S01 §whole file]"]
+  },
+  "glossary": [
+    {"term": "away-day", "meaning": "A day a plot holder cannot water, given in their request.", "cites": ["[A:A05]"]}
+  ],
+  "acceptance_tests": [
+    {"id": "T01", "words": "a whole dry week goes by and no plot holder tells me their plot was forgotten.",
+     "cites": ["[A:A08 \"a whole dry week goes by and no plot holder tells me their plot was forgotten.\"]"]}
+  ],
+  "context_inventory": [
+    {"id": "S01", "path": "inputs/context/away-requests-week-27.txt", "classification": "synthetic",
+     "evidence_for": "What a week's requests look like; source of the sample rows."}
+  ],
+  "data_classification": {"class": "synthetic", "cites": ["[A:A12 \"The requests are made up for testing.\"]"]},
+  "source_policy": {
+    "ranks": [
+      {"rank": 1, "what": "The rota keeper's own decisions", "use_for": "Rules, limits, scope"},
+      {"rank": 2, "what": "The week's request list", "use_for": "Who is away when"},
+      {"rank": 3, "what": "None in this problem", "use_for": "Not used"},
+      {"rank": 4, "what": "None in this problem", "use_for": "Not used"},
+      {"rank": 5, "what": "Everything else", "use_for": "Not used"}
+    ],
+    "official_sources": {"domains": {}, "files": {"inputs/context/away-requests-week-27.txt": 2}},
+    "confidence": {
+      "high": "The row quotes the request line that decided it.",
+      "medium": "Not used: every row needs its request line.",
+      "low": "Not used: a row without a request line is left out and raised as a question."
+    },
+    "conflicts": ["If two requests for one plot disagree, report both to the rota keeper; never pick one silently."],
+    "cites": ["[A:A12]"]
+  },
+  "output": {
+    "description": "One row per day and plot.",
+    "format": "Table, rendered by a script from the validated rota",
+    "fields": [
+      {"name": "date", "description": "ISO date."},
+      {"name": "plot", "description": "Plot number from the requests."},
+      {"name": "waterer", "description": "A plot holder's first name from the requests."},
+      {"name": "source", "description": "The request line that decided the row, quoted."}
+    ],
+    "cites": ["[A:A06]"]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {"id": "Q01", "statement": "Every plot is watered every day of the week.", "severity": "blocker",
+       "cites": ["[A:A07 \"Every plot is watered every day; missing one is a blocker.\"]"]},
+      {"id": "Q02", "statement": "Nobody waters on a day they are away.", "severity": "major",
+       "cites": ["[A:A07 \"Nobody waters on a day they are away; major.\"]"]},
+      {"id": "Q03", "statement": "Nobody waters more than two days a week.", "severity": "major",
+       "cites": ["[A:A07 \"Nobody waters more than two days a week; major.\"]"]},
+      {"id": "Q04", "statement": "Each row quotes the request that decided it.", "severity": "minor",
+       "cites": ["[A:A07 \"Each row quotes the request that decided it; minor.\"]"]}
+    ],
+    "definitions": ["A week runs Monday to Sunday; a waterer's days are counted across all plots they water."]
+  },
+  "examples": {
+    "good": [
+      {"id": "E01", "text": "2099-07-06 | Plot 4 | Cleo | Plot 4, Ada, away Mon-Wed", "origin": "synthetic", "cites": ["[A:A09]"]},
+      {"id": "E02", "text": "2099-07-09 | Plot 4 | Ada | Plot 4, Ada, away Mon-Wed", "origin": "synthetic", "cites": ["[A:A09]"]}
+    ],
+    "bad": [
+      {"id": "E03", "text": "2099-07-07 | Plot 4 | Ada | Plot 4, Ada, away Mon-Wed", "why": "Ada is away that day.",
+       "breaks": ["Q02"], "origin": "synthetic", "cites": ["[A:A09]"]},
+      {"id": "E04", "text": "A week with no row for Plot 7 on 2099-07-08.", "why": "A plot is not watered.",
+       "breaks": ["Q01"], "origin": "synthetic", "cites": ["[A:A09]"]}
+    ]
+  },
+  "risk": {"reversibility": "partly", "blast_radius": "team",
+           "notes": "People act on the sheet at once; the sheet can be corrected, a lost watering day cannot.", "cites": ["[A:A10]"]},
+  "systems": [
+    {"id": "rota-sheet", "description": "The allotment's shared rota sheet (fictional).", "access": "write", "cites": ["[A:A10]"]}
+  ],
+  "gates": [
+    {"id": "G1", "decision": "Approve or reject the reviewed draft rota.", "mode": "human", "approver_role": "approver",
+     "before_write": [], "cites": ["[A:A11 \"I check the draft rota\"]"]},
+    {"id": "G2", "decision": "Confirm writing the approved rota to the rota sheet.", "mode": "human", "approver_role": "approver",
+     "before_write": ["rota-sheet"], "cites": ["[A:A11 \"I confirm again right before anything goes on the sheet.\"]"]}
+  ],
+  "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 15,
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A11 \"fifteen agent calls a job is plenty.\"]"]},
+  "open_questions": [
+    {"id": "OQ01", "question": "Do two plots sharing one water butt count as one plot?", "owner": "committee"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC01", "criterion": "The rota writer and critic meet the evaluation thresholds on synthetic request lists.",
+     "check": "Evaluation report before go-live.", "cites": ["[A:A07]", "[S:S01 §whole file]"]},
+    {"id": "AC02", "criterion": "Nothing reaches the rota sheet without the G2 confirmation.", "check": "Gate record for each write.",
+     "cites": ["[A:A11]"]}
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "_doc": "Data classifications a charter may use (engine/designcheck.py, charter v1, T2.1). The charter schema can name synthetic, public and internal; only the classes listed here pass the design check, for the charter and for every file in its context inventory. Standing rule (primer, T2.0): factory runs use synthetic or public data only. Allowing internal is a deliberate change to this file (framework config: it needs a passing evaluation run before the next lock), never a schema default. Confidential and customer data are never allowed: the schema has no value for them.",
+  "allowed": ["synthetic", "public"]
+}

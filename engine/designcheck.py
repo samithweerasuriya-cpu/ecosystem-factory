@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Charter v0 and blueprint v0 checks (stdlib only, T1.2): the JSON Schema plus the hand checks in
-schemas/charter.v0.md and schemas/blueprint.v0.md.
+"""Charter v0 and v1 and blueprint v0 checks (stdlib only, T1.2, T2.1): the JSON Schema plus the hand checks
+in schemas/charter.v0.md, schemas/charter.v1.md and schemas/blueprint.v0.md. The charter version comes from
+its schema_version.
 
   python engine/designcheck.py charter <charter.json>
   python engine/designcheck.py blueprint <blueprint.json>
@@ -40,6 +41,8 @@ def check_charter(path):
     doc, probs = load(path)
     if doc is None:
         return probs
+    if isinstance(doc, dict) and doc.get("schema_version") == "1":
+        return check_charter_v1(Path(path), doc)
     probs = schemacheck.check(doc, json.loads((ROOT / "schemas/charter.v0.schema.json").read_text(encoding="utf-8")))
     if probs:
         return probs
@@ -48,6 +51,139 @@ def check_charter(path):
     probs += [f"gate {d} appears twice" for d in dupes([g["id"] for g in doc["gates"]])]
     for n, ex in enumerate(doc["examples"]["bad"]):
         probs += [f"examples.bad[{n}] breaks unknown rule {r}" for r in ex["breaks"] if r not in ids]
+    return probs
+
+
+UNKNOWN_RE = re.compile(r"\b(TBD|TBC|TODO)\b|\bto be (decided|confirmed|determined)\b|\bdon['’]?t know\b|\?\?\?",
+                        re.IGNORECASE)
+
+
+def strings(value, path="$"):
+    """(path, text) for every string in a charter, leaving out citations and open questions."""
+    if isinstance(value, str):
+        yield path, value
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from strings(v, f"{path}[{i}]")
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            if k not in ("cites", "open_questions"):
+                yield from strings(v, f"{path}.{k}")
+
+
+def cited(value, path="$"):
+    """(path, citation) for every citation in a charter."""
+    if isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from cited(v, f"{path}[{i}]")
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            if k == "cites":
+                yield from ((f"{path}.cites[{i}]", c) for i, c in enumerate(v))
+            else:
+                yield from cited(v, f"{path}.{k}")
+
+
+def check_charter_v1(path, doc):
+    """Charter v1 (T2.1): the schema plus the hand checks in schemas/charter.v1.md."""
+    from evidence import CITE_RE, normalise
+    schema = json.loads((ROOT / "schemas/charter.v1.schema.json").read_text(encoding="utf-8"))
+    probs = schemacheck.check(doc, schema)
+    if probs:
+        return probs
+    for name, items, key in (
+            ("metric", doc["success_metrics"]["agent_checkable"] + doc["success_metrics"]["outcome"], "id"),
+            ("acceptance test", doc["acceptance_tests"], "id"), ("context file", doc["context_inventory"], "id"),
+            ("quality rule", doc["quality_rulebook"]["rules"], "id"),
+            ("example", doc["examples"]["good"] + doc["examples"]["bad"], "id"), ("gate", doc["gates"], "id"),
+            ("system", doc["systems"], "id"), ("open question", doc["open_questions"], "id"),
+            ("acceptance criterion", doc["acceptance_criteria"], "id"), ("role", doc["users_and_stakeholders"], "role")):
+        probs += [f"{name} {d} appears twice" for d in dupes([x[key] for x in items])]
+
+    # citations: well formed, A or S, short quotes; S in the inventory; A in the answers file when one is given
+    files = {f["id"]: f for f in doc["context_inventory"]}
+    answers = None
+    if "answers_ref" in doc:
+        adoc, p = load(path.parent / doc["answers_ref"])
+        p = p or schemacheck.check(adoc, schema["$defs"]["answers_file"], root=schema)
+        if p:
+            return [f"answers_ref {doc['answers_ref']}: {x}" for x in p]
+        answers = {a["id"]: a["text"] for a in adoc["answers"]}
+    max_words = json.loads((ROOT / "config/evidence.json").read_text(encoding="utf-8"))["max_quote_words"]
+    quotes = {}
+    for loc, c in cited(doc):
+        m = CITE_RE.fullmatch(c.strip())
+        if not m:
+            probs.append(f"{loc}: citation {c!r} is not well formed")
+            continue
+        kind, sid, quote = m.group(1), m.group(2), m.group(4)
+        if quote is not None and words(quote) > max_words:
+            probs.append(f"{loc}: quote longer than {max_words} words")
+        if kind == "S" and sid not in files:
+            probs.append(f"{loc}: [S:{sid}] is not in the context inventory")
+        elif kind == "A" and answers is not None:
+            if sid not in answers:
+                probs.append(f"{loc}: [A:{sid}] is not an answer in {doc['answers_ref']}")
+            elif quote is not None and normalise(quote) not in normalise(answers[sid]):
+                probs.append(f"{loc}: quote is not word for word in answer {sid}")
+        if kind == "A" and quote is not None:
+            quotes.setdefault(loc.rsplit(".cites", 1)[0], []).append(normalise(quote))
+    for n, t in enumerate(doc["acceptance_tests"]):
+        if normalise(t["words"]) not in quotes.get(f"$.acceptance_tests[{n}]", []):
+            probs.append(f"acceptance test {t['id']}: words are not quoted from an answer ([A:<id> \"<the same words>\"])")
+    probs += [f"input sample {s['source']} is not in the context inventory" for s in doc["inputs"]["samples"]
+              if s["source"] not in files]
+
+    # data classes: allowed by config, and no file above the charter
+    allowed = json.loads((ROOT / "config/data-classes.json").read_text(encoding="utf-8"))["allowed"]
+    order = ["synthetic", "public", "internal"]
+    cls = doc["data_classification"]["class"]
+    if cls not in allowed:
+        probs.append(f"data classification {cls} is not allowed (config/data-classes.json: {', '.join(allowed)})")
+    for f in doc["context_inventory"]:
+        if f["classification"] not in allowed:
+            probs.append(f"context file {f['id']}: classification {f['classification']} is not allowed "
+                         "(config/data-classes.json)")
+        elif order.index(f["classification"]) > order.index(cls):
+            probs.append(f"context file {f['id']}: classified {f['classification']}, above the charter's {cls}")
+
+    sp = doc["source_policy"]
+    if sorted(r["rank"] for r in sp["ranks"]) != [1, 2, 3, 4, 5]:
+        probs.append("source_policy.ranks must be exactly 1 to 5, once each")
+    paths = {f["path"] for f in doc["context_inventory"]}
+    probs += [f"source_policy.official_sources.files: {p} is not in the context inventory"
+              for p in sp["official_sources"]["files"] if p not in paths]
+
+    relations = {r["relation"] for r in doc["users_and_stakeholders"]}
+    probs += [f"users_and_stakeholders has no {r}" for r in ("user", "approver") if r not in relations]
+    roles = {r["role"] for r in doc["users_and_stakeholders"]}
+    probs += [f"open question {q['id']}: owner {q['owner']} is not a role in users_and_stakeholders"
+              for q in doc["open_questions"] if q["owner"] not in roles]
+
+    ids = {r["id"] for r in doc["quality_rulebook"]["rules"]}
+    for ex in doc["examples"]["bad"]:
+        probs += [f"example {ex['id']} breaks unknown rule {r}" for r in ex["breaks"] if r not in ids]
+    writes = {s["id"] for s in doc["systems"] if s["access"] == "write"}
+    guarded = {w for g in doc["gates"] for w in g["before_write"]}
+    probs += [f"system {w}: no gate is placed before this write (a gate's before_write must name it)"
+              for w in sorted(writes - guarded)]
+    for g in doc["gates"]:
+        probs += [f"gate {g['id']}: before_write names {w}, which is not a write system"
+                  for w in g["before_write"] if w not in writes]
+    probs += [f"gate {g['id']}: mode must be 'human' until Phase 5 (T0.15)" for g in doc["gates"] if g["mode"] != "human"]
+
+    caps, factory = doc["caps"], json.loads((ROOT / "config/caps.json").read_text(encoding="utf-8"))
+    for k in CAP_KEYS:
+        if caps[k] > factory[k]:
+            probs.append(f"caps.{k} {caps[k]} is above the factory's {factory[k]}")
+    for k in ("tokens", "agent_minutes"):
+        if caps["usage_ceiling"][k] > factory["usage_ceiling"][k]:
+            probs.append(f"caps.usage_ceiling.{k} is above the factory's {factory['usage_ceiling'][k]}")
+    if caps["critic_revisions"] > caps["total_revisions_before_gate"]:
+        probs.append("caps.critic_revisions is above caps.total_revisions_before_gate")
+
+    probs += [f"{loc}: {m.group(0)!r} is not allowed; make it an open question with an owner"
+              for loc, text in strings(doc) for m in [UNKNOWN_RE.search(text)] if m]
     return probs
 
 
@@ -152,6 +288,8 @@ def check_blueprint(path):
     if cprobs:
         return [f"charter {doc['charter_ref']}: {p}" for p in cprobs]
     charter = json.loads(charter_path.read_text(encoding="utf-8"))
+    if charter["schema_version"] != "0":
+        return [f"charter {doc['charter_ref']}: blueprint v0 needs a charter v0"]
     if charter["slug"] != doc["slug"]:
         probs.append(f"slug {doc['slug']!r} differs from the charter's {charter['slug']!r}")
     agents = {a["name"]: a for a in doc["agents"]}

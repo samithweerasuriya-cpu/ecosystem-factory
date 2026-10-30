@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.17.0 (2026-10-29)
+
+Charter v1 (T2.1): the intake charter, schema-first.
+
+- `schemas/charter.v1.md` and `charter.v1.schema.json`: goal, success metrics (agent-checkable and outcome), users and stakeholders, current process, scope, inputs with samples, glossary, acceptance tests in the owner's words, context inventory, data classification, source policy (ranks 1-5, official sources in the shape of `config/evidence.json`, confidence and conflict rules), output, quality rulebook with definitions, examples (at least 2 good and 2 bad, real or synthetic), risk, systems, gates, caps, open questions with an owner, acceptance criteria. Every section and list item cites an answer (`[A:..]`) or context file (`[S:..]`) in the evidence module's format.
+- `engine/designcheck.py charter` picks v0 or v1 from `schema_version`. v1 hand checks: unique IDs; citations well formed, `[S:..]` in the inventory, `[A:..]` and quotes matched against the answers file when one is given; acceptance tests quoted from an answer; data classes from the new `config/data-classes.json` (synthetic, public), no file above the charter; ranks 1-5; a user and an approver; open-question owners are roles; bad examples name a rule; every write system is named in the `before_write` of a gate placed before it (a review-only gate does not count); gates `human` until Phase 5; caps no higher than the factory's; no "TBD" or "don't know" outside open questions. Blueprint v0 refuses a v1 charter.
+- Two synthetic examples in `schemas/examples/` (meeting notes to action items; away-day requests to a watering rota written to a fictional sheet behind a gate), each with its answers file; planted-fault tests in `tests/test_charter_t21.py`.
+
 ## 0.16.0 (2026-10-28)
 
 Reporting (T1.7): one status export for the progress dashboard, and evaluation results that count only with real runs behind them.

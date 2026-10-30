@@ -1,0 +1,18 @@
+{
+  "answers": [
+    {"id": "A01", "question": "What should change when this works?", "text": "Turn one meeting's notes into a clean list of action items, so nobody has to re-read the notes to know who does what by when."},
+    {"id": "A02", "question": "Who uses the result, and who approves it?", "text": "The club's volunteers use the list after each meeting. The coordinator approves it before it is shared. The treasurer only cares that money actions are not lost."},
+    {"id": "A03", "question": "How is it done today, and what goes wrong?", "text": "Today someone re-reads the notes the next day and types a list by hand. Actions get missed, owners are guessed, and two people sometimes do the same job."},
+    {"id": "A04", "question": "What is in scope, and what is out?", "text": "In scope: one meeting's notes as plain text in, one action-item list out. Out of scope: calendars, emails, task tools and more than one meeting at a time."},
+    {"id": "A05", "question": "What does the input look like?", "text": "Plain-text notes of 150 to 400 words, with a date, attendees by first name and discussion paragraphs. The repair café notes in the context pack are a fair sample."},
+    {"id": "A06", "question": "What exactly should come out?", "text": "A Markdown table with one row per action: ID, action starting with a verb, owner, due date and the quoted source sentence."},
+    {"id": "A07", "question": "Which quality rules matter, and how serious is breaking each?", "text": "Every action needs a quoted sentence from the notes; that is major. Owner and due date only from the notes, otherwise 'unassigned' or 'not stated'; major. Nothing missed and no duplicates; major. Actions start with a verb; minor."},
+    {"id": "A08", "question": "How will you know it worked?", "text": "I will know it worked when I can hand the list to the volunteers without opening the notes again."},
+    {"id": "A09", "question": "Give two good and two bad rows.", "text": "Good: 'A1 | Send the revised budget to the team | Priya | Friday 31 Oct | Priya will send the revised budget by Friday.' Good: 'A2 | Collect the spare-parts box | unassigned | not stated | Someone needs to collect the spare-parts box.' Bad: 'A3 | Book the venue | Tom | next week | (no source)', because the owner and date are guessed and nothing is quoted. Bad: 'A4 | the toaster sign-up sheet | Mia | not stated | Mia will print the toaster sign-up sheet.', because it does not start with a verb."},
+    {"id": "A10", "question": "What does it touch, and how bad is a mistake?", "text": "Nothing is written anywhere; the list is just a file I read. If it is wrong I fix it by hand, so it is easy to undo and only affects our team."},
+    {"id": "A11", "question": "Where do you want to approve, and what limits?", "text": "I want to approve every list before it goes out. Keep the factory's default limits."},
+    {"id": "A12", "question": "What data is it, and which sources count?", "text": "All notes are made up for testing. The notes themselves are the only source; nothing from the web."},
+    {"id": "A13", "question": "Anything you are unsure about?", "text": "I don't know yet whether we will want the list as a spreadsheet later."},
+    {"id": "A14", "question": "Any words we should define?", "text": "A commitment is when someone says they will do something. 'Let's discuss it later' is not a commitment."}
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "charter.v1",
+  "title": "Problem charter v1",
+  "description": "Problem charter written at intake (T2.1). Prose: schemas/charter.v1.md. Hand checks: engine/designcheck.py. Every section and list item cites the answer ([A:..]) or context file ([S:..]) it came from, in the evidence module's citation format.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "slug", "title", "goal", "success_metrics", "users_and_stakeholders", "current_process",
+               "scope", "inputs", "glossary", "acceptance_tests", "context_inventory", "data_classification",
+               "source_policy", "output", "quality_rulebook", "examples", "risk", "systems", "gates", "caps",
+               "open_questions", "acceptance_criteria"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "slug": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"},
+    "title": {"type": "string", "minLength": 3},
+    "answers_ref": {"type": "string", "minLength": 1, "description": "optional: the answers file, from the charter's folder; when given, every [A:..] must match an answer in it"},
+    "goal": {"$ref": "#/$defs/cited_text"},
+    "success_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_checkable", "outcome"],
+      "properties": {
+        "agent_checkable": {"type": "array", "minItems": 1, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "metric", "target", "check", "cites"],
+          "properties": {"id": {"type": "string", "pattern": "^M[0-9]{2}$"}, "metric": {"$ref": "#/$defs/text"},
+                         "target": {"$ref": "#/$defs/text"}, "check": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}},
+        "outcome": {"type": "array", "minItems": 1, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "metric", "target", "cites"],
+          "properties": {"id": {"type": "string", "pattern": "^M[0-9]{2}$"}, "metric": {"$ref": "#/$defs/text"},
+                         "target": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}}
+      }
+    },
+    "users_and_stakeholders": {"type": "array", "minItems": 2, "items": {
+      "type": "object", "additionalProperties": false, "required": ["role", "relation", "interest", "cites"],
+      "properties": {"role": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"},
+                     "relation": {"enum": ["user", "approver", "stakeholder"]},
+                     "interest": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}},
+    "current_process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps", "problems", "cites"],
+      "properties": {"steps": {"$ref": "#/$defs/texts"}, "problems": {"$ref": "#/$defs/texts"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in", "out", "cites"],
+      "properties": {"in": {"$ref": "#/$defs/texts"}, "out": {"$ref": "#/$defs/texts"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "format", "constraints", "samples", "cites"],
+      "properties": {
+        "description": {"$ref": "#/$defs/text"},
+        "format": {"$ref": "#/$defs/text"},
+        "constraints": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "samples": {"type": "array", "minItems": 1, "items": {
+          "type": "object", "additionalProperties": false, "required": ["source", "description"],
+          "properties": {"source": {"type": "string", "pattern": "^S[0-9]{2}$"}, "description": {"$ref": "#/$defs/text"}}}},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "glossary": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["term", "meaning", "cites"],
+      "properties": {"term": {"type": "string", "minLength": 1}, "meaning": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}},
+    "acceptance_tests": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "words", "cites"],
+      "properties": {"id": {"type": "string", "pattern": "^T[0-9]{2}$"}, "words": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}},
+    "context_inventory": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "path", "classification", "evidence_for"],
+      "properties": {"id": {"type": "string", "pattern": "^S[0-9]{2}$"}, "path": {"type": "string", "minLength": 1},
+                     "classification": {"$ref": "#/$defs/data_class"}, "evidence_for": {"$ref": "#/$defs/text"}}}},
+    "data_classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "cites"],
+      "properties": {"class": {"$ref": "#/$defs/data_class"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "source_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ranks", "official_sources", "confidence", "conflicts", "cites"],
+      "properties": {
+        "ranks": {"type": "array", "minItems": 5, "items": {
+          "type": "object", "additionalProperties": false, "required": ["rank", "what", "use_for"],
+          "properties": {"rank": {"type": "integer", "minimum": 1, "maximum": 5}, "what": {"$ref": "#/$defs/text"},
+                         "use_for": {"$ref": "#/$defs/text"}}}},
+        "official_sources": {
+          "type": "object", "additionalProperties": false, "required": ["domains", "files"],
+          "description": "the same shape as config/evidence.json: host or file path to rank",
+          "properties": {
+            "domains": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1, "maximum": 5}},
+            "files": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1, "maximum": 5}}}},
+        "confidence": {
+          "type": "object", "additionalProperties": false, "required": ["high", "medium", "low"],
+          "properties": {"high": {"$ref": "#/$defs/text"}, "medium": {"$ref": "#/$defs/text"}, "low": {"$ref": "#/$defs/text"}}},
+        "conflicts": {"$ref": "#/$defs/texts"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "format", "fields", "cites"],
+      "properties": {
+        "description": {"$ref": "#/$defs/text"},
+        "format": {"$ref": "#/$defs/text"},
+        "fields": {"type": "array", "minItems": 1, "items": {
+          "type": "object", "additionalProperties": false, "required": ["name", "description"],
+          "properties": {"name": {"type": "string", "pattern": "^[a-z][a-z_]*$"}, "description": {"$ref": "#/$defs/text"}}}},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "quality_rulebook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rules"],
+      "properties": {
+        "rules": {"type": "array", "minItems": 1, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "statement", "severity", "cites"],
+          "properties": {"id": {"type": "string", "pattern": "^Q[0-9]{2}$"}, "statement": {"type": "string", "minLength": 10},
+                         "severity": {"enum": ["blocker", "major", "minor"]}, "cites": {"$ref": "#/$defs/cites"}}}},
+        "definitions": {"type": "array", "items": {"$ref": "#/$defs/text"}, "description": "sentences defining terms the rules use; not rules"}
+      }
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["good", "bad"],
+      "properties": {
+        "good": {"type": "array", "minItems": 2, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "text", "origin", "cites"],
+          "properties": {"id": {"type": "string", "pattern": "^E[0-9]{2}$"}, "text": {"type": "string", "minLength": 3},
+                         "origin": {"enum": ["real", "synthetic"]}, "cites": {"$ref": "#/$defs/cites"}}}},
+        "bad": {"type": "array", "minItems": 2, "items": {
+          "type": "object", "additionalProperties": false, "required": ["id", "text", "why", "breaks", "origin", "cites"],
+          "properties": {"id": {"type": "string", "pattern": "^E[0-9]{2}$"}, "text": {"type": "string", "minLength": 3},
+                         "why": {"$ref": "#/$defs/text"},
+                         "breaks": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^Q[0-9]{2}$"}},
+                         "origin": {"enum": ["real", "synthetic"]}, "cites": {"$ref": "#/$defs/cites"}}}}
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reversibility", "blast_radius", "notes", "cites"],
+      "properties": {
+        "reversibility": {"enum": ["reversible", "partly", "irreversible"]},
+        "blast_radius": {"enum": ["self", "team", "organisation", "external"]},
+        "notes": {"$ref": "#/$defs/text"},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "systems": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "description", "access", "cites"],
+      "properties": {"id": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"}, "description": {"$ref": "#/$defs/text"},
+                     "access": {"enum": ["read", "write"]}, "cites": {"$ref": "#/$defs/cites"}}}},
+    "gates": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "decision", "mode", "approver_role", "before_write", "cites"],
+      "properties": {"id": {"type": "string", "pattern": "^G[0-9]+$"}, "decision": {"$ref": "#/$defs/text"},
+                     "mode": {"enum": ["human", "auto"]}, "approver_role": {"const": "approver"},
+                     "before_write": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"},
+                                      "description": "the write systems this gate is placed directly before; empty for a review-only gate"},
+                     "cites": {"$ref": "#/$defs/cites"}}}},
+    "caps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["critic_revisions", "total_revisions_before_gate", "gate_rejections", "agent_calls_per_job",
+                   "usage_ceiling", "cites"],
+      "properties": {
+        "critic_revisions": {"type": "integer", "minimum": 0},
+        "total_revisions_before_gate": {"type": "integer", "minimum": 0},
+        "gate_rejections": {"type": "integer", "minimum": 1},
+        "agent_calls_per_job": {"type": "integer", "minimum": 1},
+        "usage_ceiling": {
+          "type": "object", "additionalProperties": false, "required": ["tokens", "agent_minutes"],
+          "properties": {"tokens": {"type": "integer", "minimum": 1}, "agent_minutes": {"type": "integer", "minimum": 1}}},
+        "cites": {"$ref": "#/$defs/cites"}
+      }
+    },
+    "open_questions": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "question", "owner"],
+      "properties": {"id": {"type": "string", "pattern": "^OQ[0-9]{2}$"}, "question": {"$ref": "#/$defs/text"},
+                     "owner": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$"}}}},
+    "acceptance_criteria": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "additionalProperties": false, "required": ["id", "criterion", "check", "cites"],
+      "properties": {"id": {"type": "string", "pattern": "^AC[0-9]{2}$"}, "criterion": {"$ref": "#/$defs/text"},
+                     "check": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}}}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 3},
+    "texts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 3}},
+    "cites": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^\\[(A|S):"}},
+    "cited_text": {
+      "type": "object", "additionalProperties": false, "required": ["text", "cites"],
+      "properties": {"text": {"$ref": "#/$defs/text"}, "cites": {"$ref": "#/$defs/cites"}}
+    },
+    "data_class": {"enum": ["synthetic", "public", "internal"]},
+    "answers_file": {
+      "description": "the file answers_ref points to: the approver's answers, one entry per recorded input (IDs as state.py input gives them)",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answers"],
+      "properties": {"answers": {"type": "array", "minItems": 1, "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "question", "text"],
+        "properties": {"id": {"type": "string", "pattern": "^A[0-9]{2}$"}, "question": {"$ref": "#/$defs/text"},
+                       "text": {"type": "string", "minLength": 1}}}}}
+    }
+  }
+}

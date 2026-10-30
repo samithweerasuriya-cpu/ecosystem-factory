@@ -1,0 +1,128 @@
+{
+  "schema_version": "1",
+  "slug": "action-items",
+  "title": "Meeting notes to action-item list",
+  "answers_ref": "charter.v1.action-items.answers.json",
+  "goal": {"text": "Turn one meeting's notes into a clean list of action items, so nobody has to re-read the notes to know who does what by when.",
+           "cites": ["[A:A01]"]},
+  "success_metrics": {
+    "agent_checkable": [
+      {"id": "M01", "metric": "Actions backed by a quoted sentence from the notes", "target": "every action",
+       "check": "The critic checks every row's source against the notes (Q01).", "cites": ["[A:A07]"]},
+      {"id": "M02", "metric": "Commitments in the notes that appear in the list", "target": "every commitment, exactly once",
+       "check": "Evaluation cases with a reference list (field recall).", "cites": ["[A:A03]", "[A:A07]"]}
+    ],
+    "outcome": [
+      {"id": "M03", "metric": "Lists handed to the volunteers without reopening the notes", "target": "every meeting",
+       "cites": ["[A:A08]"]}
+    ]
+  },
+  "users_and_stakeholders": [
+    {"role": "volunteer", "relation": "user", "interest": "Knows who does what by when after each meeting.", "cites": ["[A:A02]"]},
+    {"role": "coordinator", "relation": "approver", "interest": "Approves each list before it is shared.", "cites": ["[A:A02]"]},
+    {"role": "treasurer", "relation": "stakeholder", "interest": "Money actions are not lost.", "cites": ["[A:A02]"]}
+  ],
+  "current_process": {
+    "steps": ["Someone re-reads the notes the next day.", "They type an action list by hand."],
+    "problems": ["Actions get missed.", "Owners are guessed.", "Two people sometimes do the same job."],
+    "cites": ["[A:A03]"]
+  },
+  "scope": {
+    "in": ["One meeting's notes as plain text in, one action-item list out."],
+    "out": ["Calendars", "Emails", "Task tools", "More than one meeting at a time"],
+    "cites": ["[A:A04]"]
+  },
+  "inputs": {
+    "description": "One meeting's notes.",
+    "format": "plain text",
+    "constraints": ["150 to 400 words", "A date", "Attendees by first name", "Discussion paragraphs"],
+    "samples": [{"source": "S01", "description": "Repair café committee notes, a fair sample."}],
+    "cites": ["[A:A05]", "[S:S01 §whole file]"]
+  },
+  "glossary": [
+    {"term": "commitment", "meaning": "Someone says they will do something; 'let's discuss it later' is not one.", "cites": ["[A:A14]"]}
+  ],
+  "acceptance_tests": [
+    {"id": "T01", "words": "I will know it worked when I can hand the list to the volunteers without opening the notes again.",
+     "cites": ["[A:A08 \"I will know it worked when I can hand the list to the volunteers without opening the notes again.\"]"]}
+  ],
+  "context_inventory": [
+    {"id": "S01", "path": "inputs/context/repair-cafe-notes.txt", "classification": "synthetic",
+     "evidence_for": "What real-length input looks like; source of the sample actions."}
+  ],
+  "data_classification": {"class": "synthetic", "cites": ["[A:A12 \"All notes are made up for testing.\"]"]},
+  "source_policy": {
+    "ranks": [
+      {"rank": 1, "what": "The problem owner's own decisions", "use_for": "Goals, scope, rules, terminology"},
+      {"rank": 2, "what": "The meeting notes in the context pack", "use_for": "Every action, owner and due date"},
+      {"rank": 3, "what": "None in this problem", "use_for": "Not used"},
+      {"rank": 4, "what": "None in this problem", "use_for": "Not used"},
+      {"rank": 5, "what": "Everything else, including web pages", "use_for": "Not used: nothing from the web"}
+    ],
+    "official_sources": {"domains": {}, "files": {"inputs/context/repair-cafe-notes.txt": 2}},
+    "confidence": {
+      "high": "The action is quoted word for word from the notes.",
+      "medium": "Not used: every action needs a quote.",
+      "low": "Not used: an action without a quote is left out."
+    },
+    "conflicts": ["If two sentences in the notes disagree, list both and say so; never pick one silently."],
+    "cites": ["[A:A12]"]
+  },
+  "output": {
+    "description": "One row per action.",
+    "format": "Markdown table, rendered by a script from the validated list",
+    "fields": [
+      {"name": "id", "description": "A1, A2, ..."},
+      {"name": "action", "description": "Starts with a verb."},
+      {"name": "owner", "description": "An attendee's name from the notes, or 'unassigned'."},
+      {"name": "due", "description": "From the notes, or 'not stated'."},
+      {"name": "source", "description": "The sentence the action came from, quoted."}
+    ],
+    "cites": ["[A:A06]"]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {"id": "Q01", "statement": "Every action is backed by a quoted sentence from the notes; nothing invented.", "severity": "major",
+       "cites": ["[A:A07 \"Every action needs a quoted sentence from the notes; that is major.\"]"]},
+      {"id": "Q02", "statement": "Owner and due date come only from the notes; otherwise 'unassigned' or 'not stated'.", "severity": "major",
+       "cites": ["[A:A07]"]},
+      {"id": "Q03", "statement": "Nothing missed and no duplicates: every commitment appears exactly once.", "severity": "major",
+       "cites": ["[A:A07 \"Nothing missed and no duplicates; major.\"]"]},
+      {"id": "Q04", "statement": "Every action starts with a verb.", "severity": "minor",
+       "cites": ["[A:A07 \"Actions start with a verb; minor.\"]"]}
+    ],
+    "definitions": ["A commitment is when someone says they will do something; 'let's discuss it later' is not a commitment."]
+  },
+  "examples": {
+    "good": [
+      {"id": "E01", "text": "A1 | Send the revised budget to the team | Priya | Friday 31 Oct | Priya will send the revised budget by Friday.",
+       "origin": "synthetic", "cites": ["[A:A09]"]},
+      {"id": "E02", "text": "A2 | Collect the spare-parts box | unassigned | not stated | Someone needs to collect the spare-parts box.",
+       "origin": "synthetic", "cites": ["[A:A09]"]}
+    ],
+    "bad": [
+      {"id": "E03", "text": "A3 | Book the venue | Tom | next week | (no source)", "why": "The owner and date are guessed and nothing is quoted.",
+       "breaks": ["Q01", "Q02"], "origin": "synthetic", "cites": ["[A:A09]"]},
+      {"id": "E04", "text": "A4 | the toaster sign-up sheet | Mia | not stated | Mia will print the toaster sign-up sheet.",
+       "why": "It does not start with a verb.", "breaks": ["Q04"], "origin": "synthetic", "cites": ["[A:A09]"]}
+    ]
+  },
+  "risk": {"reversibility": "reversible", "blast_radius": "team",
+           "notes": "Nothing is written anywhere; a wrong list is fixed by hand.", "cites": ["[A:A10]"]},
+  "systems": [],
+  "gates": [
+    {"id": "G1", "decision": "Approve or reject each reviewed list before it is shared.", "mode": "human",
+     "approver_role": "approver", "before_write": [], "cites": ["[A:A11 \"I want to approve every list before it goes out.\"]"]}
+  ],
+  "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 25,
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A11 \"Keep the factory's default limits.\"]"]},
+  "open_questions": [
+    {"id": "OQ01", "question": "Will the list also be needed as a spreadsheet later?", "owner": "coordinator"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC01", "criterion": "The writer and the critic meet the evaluation thresholds on synthetic notes like the sample.",
+     "check": "Evaluation report before go-live.", "cites": ["[A:A08]", "[S:S01 §whole file]"]},
+    {"id": "AC02", "criterion": "Every list passes the approver's gate before it is shared.", "check": "Gate record for each job.",
+     "cites": ["[A:A11]"]}
+  ]
+}

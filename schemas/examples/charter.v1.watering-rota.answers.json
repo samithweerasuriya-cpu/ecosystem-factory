@@ -1,0 +1,17 @@
+{
+  "answers": [
+    {"id": "A01", "question": "What should change when this works?", "text": "Every plot gets watered every day of a dry week, even when its holder is away, without the rota keeper juggling messages for an evening."},
+    {"id": "A02", "question": "Who uses the result, and who approves it?", "text": "Plot holders read the rota and water on their days. The rota keeper approves it. The committee cares that the work is shared fairly."},
+    {"id": "A03", "question": "How is it done today, and what goes wrong?", "text": "Plot holders send away-days by message; the rota keeper copies them onto paper and builds the week by hand. Plots get missed, and the same few people end up watering most days."},
+    {"id": "A04", "question": "What is in scope, and what is out?", "text": "In scope: one week's away-day requests in, one watering rota out, written to the rota sheet after approval. Out of scope: messaging plot holders, plot rents and anything beyond watering."},
+    {"id": "A05", "question": "What does the input look like?", "text": "A plain-text list of requests, one per line: plot number, holder's first name, and the days they are away. The sample request list in the context pack is typical."},
+    {"id": "A06", "question": "What exactly should come out?", "text": "A table with one row per day and plot: date, plot, who waters it, and the request line that decided it."},
+    {"id": "A07", "question": "Which quality rules matter, and how serious is breaking each?", "text": "Every plot is watered every day; missing one is a blocker. Nobody waters on a day they are away; major. Nobody waters more than two days a week; major. Each row quotes the request that decided it; minor."},
+    {"id": "A08", "question": "How will you know it worked?", "text": "I will know it worked when a whole dry week goes by and no plot holder tells me their plot was forgotten."},
+    {"id": "A09", "question": "Give two good and two bad rows.", "text": "Good: '2099-07-06 | Plot 4 | Cleo | Plot 4, Ada, away Mon-Wed'. Good: '2099-07-09 | Plot 4 | Ada | Plot 4, Ada, away Mon-Wed'. Bad: '2099-07-07 | Plot 4 | Ada | Plot 4, Ada, away Mon-Wed', because Ada is away that day. Bad: a week with no row for Plot 7 on 2099-07-08, because a plot is not watered."},
+    {"id": "A10", "question": "What does it touch, and how bad is a mistake?", "text": "It writes the week onto the rota sheet that everyone reads. People act on it straight away, so a wrong rota can mean a dry plot before I notice; I can correct the sheet, but not the lost day."},
+    {"id": "A11", "question": "Where do you want to approve, and what limits?", "text": "I check the draft rota, and I confirm again right before anything goes on the sheet. Keep it small: fifteen agent calls a job is plenty."},
+    {"id": "A12", "question": "What data is it, and which sources count?", "text": "The requests are made up for testing. The request list is the only source."},
+    {"id": "A13", "question": "Anything you are unsure about?", "text": "The committee hasn't decided whether two plots sharing one water butt count as one plot."}
+  ]
+}
