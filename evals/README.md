@@ -80,7 +80,7 @@ Every suite for an agent used by a route (T2.5, T3.5, and the suites the generat
 5. **Discrimination check:** a new suite also runs once on a weaker model. If that model also scores 100%, the suite is too easy and gets harder cases before it can count. Run it with `python evals/run_evals.py run <suite> --discrimination` (one run per case on `discrimination_model` in `config/models.json`, after one check call proves the CLI runs exactly that model ID). Its report says "too easy" or not; the lock rule never reads it, so it never counts for lock and never makes another report stale or current.
 6. **Evidence shown:** reports show k of n beside every rate, and mark any rule backed by fewer than 3 cases as "insufficient evidence".
 7. **Gate misses become cases:** every missed issue or severity error marked at a gate becomes a new, neutral eval case for that reviewer's suite.
-8. **Hard cases included:** injection cases (instructions hidden in the material under review) and context-dependent severity cases (the same defect is minor in one setting and major in another).
+8. **Hard cases included:** injection cases (instructions hidden in the material under review) and context-dependent severity cases (the same defect is minor in one setting and major in another). A reviewer suite whose rulebook has more than one severity (DR07 aside) has at least 2 such pairs. It may leave them out only when every rule except DR07 has the same severity, and its `suite.json` says so; the severity lock alone is no reason, because the setting decides which rule a defect breaks.
 
 ## Lock rule
 
