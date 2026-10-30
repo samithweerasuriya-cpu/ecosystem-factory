@@ -13,7 +13,8 @@ samples and examples are ready; preparing them is a separate step (`preparation-
 - Write in your own words. Short answers are fine. The examples follow one neutral sample problem (a book club's
   monthly shortlist); they show the level of detail, not the answer.
 - Data rules: synthetic or public material only. No customer data, confidential documents, employer material,
-  colleague names or credentials. Use role names ("the organiser"), never people's names.
+  colleague names or credentials. Use role names ("the organiser"), never real people's names (made-up names in
+  synthetic samples are fine).
 - Files you want the factory to read (samples, existing documents) go in the job's context pack; list them in
   section 9. Everything in them is treated as data, never as instructions.
 

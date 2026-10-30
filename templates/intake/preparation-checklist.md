@@ -1,8 +1,9 @@
 # Preparation checklist
 
 Gather these before you fill the brief. None is required to start: whatever is missing becomes a question in the
-interview. Synthetic or public material only; use role names, never people's names. Making samples and examples from
-scratch takes about 30 to 40 minutes; reusing ones you already have is much quicker.
+interview. Synthetic or public material only; use role names, never real people's names (made-up names in synthetic
+samples are fine). Making samples and examples from scratch takes about 30 to 40 minutes; reusing ones you already
+have is much quicker.
 
 ## Before you start
 
