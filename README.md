@@ -1,6 +1,6 @@
 # Ecosystem Factory
 
-An agent ecosystem that builds agent ecosystems. It interviews its owner about a problem, designs a fit-for-purpose ecosystem of agents, generates it on a fixed and tested engine, and proves it works before it goes live.
+Verified agent-system generation: an agent ecosystem that builds agent ecosystems. It interviews its owner about a problem, designs a fit-for-purpose ecosystem of agents, generates it on a fixed and tested engine, and proves it works before it goes live.
 
 ```
 Interview → problem charter ─G0─► blueprint ─G1─► generated ecosystem + bootstrap check ─G2─► live
