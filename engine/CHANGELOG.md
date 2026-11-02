@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.22.1 (2026-11-02)
+
+T2.5 case writing, the sample cases (Samith's sample review).
+
+- `evals/jobsim.py`: invented content is read from the parsed charter. `invented_entries` (`{"field": dotted path to a list, "match": {name: regex}}`) flags list entries whatever the key order; `invented_markers` now search the charter's free text only, never its JSON layout.
+- Persona `playback_check` (`{"must_contain": [[phrase, ...], ...], "correction"}`): a playback missing any required item gets the scripted correction instead of the scripted reply; corrections are reported per run and per case (`playback_corrections`). `SIMULATED_RESUMES` names the one simulated resume.
+- First shipped cases for the intake suites (8 samples, six persona profiles), with factory-only tests: a canary per key, a planted canary stops each suite before any call, quotes word for word, persona question budgets within the caps' slots. The job-simulation test modules run in the full tier only.
+
 ## 0.22.0 (2026-11-02)
 
 T2.5 build work, items 5, 6, 7, 8, 10 and a.

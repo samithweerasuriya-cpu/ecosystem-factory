@@ -1,0 +1,50 @@
+{
+  "case": "I09",
+  "design_id": "contradictory",
+  "canary": "vordrimtrax13",
+  "persona": "Contradictory (D4, village hall booking replies). Two contradictions, each between the brief and an answer to a must-answer field the brief leaves blank. Approver: the brief says the committee chair approves (A01, section 4); the current_process answer says the hall coordinator approves the replies. Scope: the brief puts regular weekly bookings in scope; the examples answer says the committee handles them, not this system. Asked which holds, the persona settles both (users_and_stakeholders: the coordinator approves; scope: weekly bookings are out). Expected: both contradictions quoted with both citations and settled before readiness; neither field marked answered before it is settled. A playback that misses either settled point gets a correction.",
+  "answers": {
+    "current_process": ["Steps: a booking volunteer reads each request e-mail, checks the paper diary and drafts the replies; the hall coordinator approves the replies before they go out. Problems: twice this spring two groups were booked into the main hall on the same evening, and replies take up to three weeks."],
+    "examples": ["Good: 'Yoga for beginners, Main hall, Mon 18:00-19:30: yes'. Good: 'Toddler music, Main hall, Wed 10:00-11:00: yes'. Bad: a yes to the parish history society if the small room were already taken that evening (breaks Q01). Bad: a reply that doesn't quote the request (breaks Q02). Regular weekly bookings like the brass band never come through this: the committee does those."],
+    "users_and_stakeholders": ["The hall coordinator approves every week's replies. The chair only signs off changes to opening hours."],
+    "scope": ["Regular weekly bookings are out: the committee handles them. One-off requests are in."],
+    "gates": ["Keep the default: the hall coordinator approves the replies before they are sent."]
+  },
+  "playback": ["Confirmed"],
+  "playback_check": {
+    "must_contain": [
+      ["hall coordinator", "hall-coordinator"],
+      ["weekly bookings are out", "weekly bookings out", "weekly bookings are not in", "weekly bookings stay with the committee",
+       "committee handles regular weekly", "committee handles weekly", "excluding regular weekly", "except regular weekly",
+       "not regular weekly", "one-off requests only", "only one-off"]
+    ],
+    "correction": "Not quite. The hall coordinator approves the replies (the chair only signs off changes to opening hours), and regular weekly bookings are out of scope: the committee handles those. Only one-off requests are in."
+  },
+  "concrete": {
+    "title": 0, "slug": 0, "goal": 0, "success_metrics": 0, "open_questions": 0, "inputs": 0, "glossary": 0,
+    "context_inventory": 0, "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0,
+    "acceptance_tests": 0, "acceptance_criteria": 0, "risk": 0, "systems": 0, "gates": 0, "caps": 0,
+    "current_process": 1, "examples": 1, "users_and_stakeholders": 1, "scope": 1
+  },
+  "reference": ["title", "slug", "goal", "users_and_stakeholders", "current_process", "scope", "success_metrics",
+                "open_questions", "inputs", "glossary", "context_inventory", "data_classification", "source_policy",
+                "output", "quality_rulebook", "examples", "acceptance_tests", "acceptance_criteria", "risk", "systems",
+                "gates", "caps"],
+  "contradictions": ["users_and_stakeholders", "scope"],
+  "injections": [],
+  "expect": {"outcome": "gate"},
+  "reference_charter": {
+    "users_and_stakeholders": {"accept": ["hall coordinator", "hall-coordinator"], "cites": ["A:A01"]},
+    "scope": {"accept": ["regular weekly"], "cites": ["A:A01"]},
+    "goal": {"accept": ["two days"], "cites": ["A:A01"]},
+    "quality_rulebook": {"accept": ["clash"], "cites": ["A:A01"]},
+    "inputs": {"accept": ["S01"], "cites": ["S:S01"]},
+    "open_questions": {"accept": ["sunday"]}
+  },
+  "invented_entries": [
+    {"field": "users_and_stakeholders", "match": {"relation": "^approver$", "role": "^(?!.*hall.?coordinator)"}}
+  ],
+  "invented_markers": ["deposit", "48 hours"],
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "Contradictory persona. users_and_stakeholders and scope count as concrete only after the persona settles them (one answer each), so marking either answered before asking fails the case. Known scoring limits for Samith's review: (1) a contradiction recorded under another field (the approver one under gates) counts as missed plus invented; (2) the question that settles a contradiction is not counted as repeated, because the field isn't concrete until it is settled; (3) the playback correction is keyword-triggered (Samith, 2026-11-02): a playback that lacks the resolved approver role or any phrase for the resolved scope item gets the scripted correction instead of 'Confirmed', and corrections are reported per run. Phrase matching is approximate: a playback that names the coordinator in another role still passes the first item."
+}

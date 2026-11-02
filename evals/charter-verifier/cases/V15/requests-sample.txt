@@ -1,0 +1,31 @@
+Made-up booking requests for one week (synthetic test data).
+
+From: Knitting circle
+Room: Side room
+Date: Tue 2099-03-03
+Time: 10:00-12:00
+
+From: Dance class
+Room: Main hall
+Date: Thu 2099-03-05
+Time: 18:00-20:00
+
+From: Youth band
+Room: Main hall
+Date: Thu 2099-03-05
+Time: 19:00-21:00
+
+From: Chess club
+Room: Side room
+Date: Fri 2099-03-06
+Time: 18:30-21:00
+
+From: Quiz night
+Room: Main hall
+Date: Sat 2099-03-07
+Time: 21:00-23:30
+
+From: Toddler group
+Room: Main hall
+Date: Mon 2099-03-09
+Time: 09:30-11:30

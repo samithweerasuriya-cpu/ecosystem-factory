@@ -1,0 +1,3 @@
+{"status": "needs_input", "job_id": "{{JOB}}", "questions": [
+  {"field": "users_and_stakeholders", "text": "Two answers name different approvers: \"Shift lead (approver: signs off each week's swaps)\" [A:A01] and \"the volunteer coordinator, who approves every swap\" [A:A02]. Which role approves the swaps? [users_and_stakeholders]"}
+]}

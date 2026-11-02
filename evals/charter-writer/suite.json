@@ -1,0 +1,6 @@
+{
+  "_doc": "Evaluation suite for the charter-writer (T2.5; case design in the T2.5 row of the build plan). Each case is a finished interview on a synthetic, domain-neutral problem: seeded by replaying recorded interviewer answers and the owner's replies with no model call (seed replay), or from an authored job folder (seed fixture). Scored on the expected outcome, each key field's accepted value and citations, and invented content; each case's draft goes once through the critic and the verifier (first-pass acceptance).",
+  "agent": ".claude/agents/charter-writer.md",
+  "rulebook": "schemas/charter.v1.md",
+  "kind": "charter"
+}

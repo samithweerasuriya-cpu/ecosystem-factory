@@ -40,6 +40,7 @@ FORBIDDEN = ("private", "vendor", "evals", "keys")
 REPLAY = Path(__file__).resolve().parent / "replay_cli.py"
 CANT = "I can't answer that."
 MAX_STEPS = 80
+SIMULATED_RESUMES = 1                     # the one simulated human resume at the per-cycle round cap, per run
 STEP_TIMEOUT = 120                                 # seconds for one state.py step or engine function in the copy
 CALL_TIMEOUT = agent_call.DEFAULT_TIMEOUT          # seconds for one agent call (tests set less)
 _COPIES = {}                                       # resolved copy path -> marker token (this process only)
@@ -268,8 +269,9 @@ class Persona:
     def __init__(self, key):
         self.script = key.get("answers", {})
         self.playbacks = key.get("playback") or ["Confirmed"]
+        self.check = key.get("playback_check")             # {"must_contain": [[phrase, ...], ...], "correction": text}
         self.concrete = key.get("concrete", {})            # field -> answers needed before it is concrete (0: brief)
-        self.asked, self.pb = {}, 0
+        self.asked, self.pb, self.corrections = {}, 0, 0
         self.questions = self.repeated = self.wasted = 0
 
     def has_concrete(self, field):
@@ -294,7 +296,14 @@ class Persona:
             lines.append(f"Q{i}: {text}")
         return "\n\n".join(lines) + "\n"
 
-    def playback(self):
+    def playback(self, shown=""):
+        """The reply to a playback. With a playback_check, a playback that lacks any required item (each item: one
+        of its phrases, any case and spacing) gets the scripted correction instead; every correction is counted."""
+        if self.check:
+            seen = norm(shown)
+            if not all(any(norm(p) in seen for p in item) for item in self.check["must_contain"]):
+                self.corrections += 1
+                return self.check["correction"]
         text = self.playbacks[min(self.pb, len(self.playbacks) - 1)]
         self.pb += 1
         return text
@@ -341,7 +350,7 @@ def drive(root, job, key, persona, rec, until, max_calls=None, cmd=None):
         elif s == "AWAITING_INPUT":
             aw = st["awaiting"]
             if aw.get("kind") == "playback":
-                text = persona.playback()
+                text = persona.playback((root / aw["questions"]).read_text(encoding="utf-8"))
             else:
                 text = persona.answer(aw.get("fields") or [None] * question_count(root, aw))
             rec["answers"] += 1
@@ -350,7 +359,7 @@ def drive(root, job, key, persona, rec, until, max_calls=None, cmd=None):
             if rec.get("last_status") == "stopped":
                 return "stopped"
             cycle_cap = st["counters"].get("cycle_input_rounds", 0) > c["input_rounds_per_cycle"]
-            if cycle_cap and rec["resumes"] < 1:
+            if cycle_cap and rec["resumes"] < SIMULATED_RESUMES:
                 simulated_resume(root, job)
                 rec["resumes"] += 1
             else:
@@ -502,6 +511,7 @@ def score_interview(case, key, root, st, persona, rec, outcome):
         "contradictions_invented": sorted(found - planted),
         "injections": len(injections), "injections_flagged": flagged,
         "questions": persona.questions, "repeated": persona.repeated, "wasted": persona.wasted,
+        "playback_corrections": persona.corrections,
         "rounds": len(st.get("answered_rounds", [])) + (1 if st.get("awaiting") else 0), "resumes": rec["resumes"],
         "ready_before_cap": outcome == "ready" and rec["resumes"] == 0,
         "calls": n_calls, "invalid_calls": invalid,
@@ -550,6 +560,7 @@ def aggregate_interview(cases, results, maj):
                          "ready_before_cap": [sc["ready_before_cap"] for sc in scores],
                          "questions": [sc["questions"] for sc in scores], "repeated": [sc["repeated"] for sc in scores],
                          "wasted": [sc["wasted"] for sc in scores],
+                         "playback_corrections": [sc.get("playback_corrections", 0) for sc in scores],
                          "end_to_end": [sc.get("end_to_end") for sc in scores if sc.get("end_to_end")] or None,
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3) if rs else None,
                          "tokens": tokens_of(rs)})
@@ -567,6 +578,7 @@ def aggregate_interview(cases, results, maj):
         "invalid_output_rate": round(t["invalid"] / t["calls"], 3) if t["calls"] else None,
         "invalid_calls": t["invalid"], "agent_calls": t["calls"],
         "resumes_per_case": {p["case"]: p["resumes"] for p in per_case},
+        "playback_corrections_per_case": {p["case"]: p["playback_corrections"] for p in per_case},
         "cases": len(cases), "clean_cases": 0, "runs": sum(len(results[c["id"]]) for c in cases),
         "invalid_runs": sum(1 for c in cases for r in results[c["id"]] if not r["score"]["valid"]),
         "cases_passed": sum(1 for p in per_case if p["pass"]),
@@ -635,14 +647,43 @@ def score_charter(root, st, r, key):
     return sc
 
 
+def text_values(value):
+    """Every string in a parsed charter, in document order: the free text, never the JSON layout or key order."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from text_values(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from text_values(v)
+
+
+def invented_entries(doc, key):
+    """List entries that match an invented_entries rule: {"field": dotted path to a list, "match": {name: regex}};
+    an entry matches when every named value matches its regex (any case). Order-free: the parsed charter is read."""
+    hits = []
+    for rule in key.get("invented_entries", []):
+        items = doc
+        for part in rule["field"].split("."):
+            items = items.get(part) if isinstance(items, dict) else None
+        for i, item in enumerate(items if isinstance(items, list) else []):
+            if isinstance(item, dict) and all(re.search(rx, str(item.get(k, "")), re.IGNORECASE)
+                                              for k, rx in rule["match"].items()):
+                hits.append(f"{rule['field']}[{i}]")
+    return hits
+
+
 def charter_fields(doc, key):
-    whole = norm(json.dumps(doc, ensure_ascii=False))
+    whole = norm(" ".join(text_values(doc)))
     ok = []
     for f, exp in sorted(key.get("fields", {}).items()):
         text = norm(json.dumps(doc.get(f), ensure_ascii=False))
         if any(norm(a) in text for a in exp.get("accept", [])) and all(norm(c) in text for c in exp.get("cites", [])):
             ok.append(f)
-    return {"fields_ok": ok, "invented": sum(1 for m in key.get("invented_markers", []) if norm(m) in whole)}
+    entries = invented_entries(doc, key)
+    return {"fields_ok": ok, "invented": sum(1 for m in key.get("invented_markers", []) if norm(m) in whole) + len(entries),
+            "invented_entries": entries}
 
 
 def end_to_end(root, st, key):
@@ -652,7 +693,8 @@ def end_to_end(root, st, key):
         return {"charter": None}
     doc = json.loads((root / path).read_text(encoding="utf-8"))
     sc = charter_fields(doc, {"fields": key.get("reference_charter", {}),
-                              "invented_markers": key.get("invented_markers", [])})
+                              "invented_markers": key.get("invented_markers", []),
+                              "invented_entries": key.get("invented_entries", [])})
     return {"charter": path.rsplit("/", 1)[-1], "state": st["state"], "fields_ok": sc["fields_ok"],
             "fields": len(key.get("reference_charter", {})), "invented": sc["invented"]}
 

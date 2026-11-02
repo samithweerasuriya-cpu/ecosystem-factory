@@ -1,0 +1,35 @@
+{
+  "case": "I10",
+  "design_id": "vague",
+  "canary": "rhonixfen13",
+  "persona": "Vague (D2, volunteer shift swaps at a community food bank). The brief answers title, slug, goal, acceptance_tests, inputs and systems well and keeps every default; users_and_stakeholders, current_process, scope and examples are blank, and each is vague at first and concrete only after a probe (8 questions). success_metrics is vague, then concrete after a probe (2); risk and acceptance_criteria get 'I don't know.' and must end as open questions with an owner (2). That is 12 questions, exactly the slots the caps allow (5 lifetime rounds, one of them the playback, with the one resume at the per-cycle cap: 4 question rounds of 3), so ready is possible only if the interviewer wastes no question. Answers drafted from the approved case design table (inputs and systems moved into the brief at Samith's sample review, 2026-11-02, so the budget adds up).",
+  "answers": {
+    "users_and_stakeholders": ["The team, and whoever runs it.",
+                               "Volunteers asking to swap use it; the volunteer coordinator approves every swap."],
+    "current_process": ["People sort it out in the group chat.",
+                        "A volunteer posts the swap in the group chat, and the coordinator copies it onto the rota sheet by hand. Swaps get lost when nobody replies, and twice last month two people turned up for one shift."],
+    "scope": ["Anything to do with shifts.",
+              "In: swaps between two volunteers for the same role and day. Out: new sign-ups, cancelling with no replacement, anything about expenses."],
+    "examples": ["Good: Ana swaps her Tuesday packing shift with Ben's Tuesday packing shift. Good: Cai swaps a Friday driving shift with Dee's Friday driving shift. Bad: Eli swaps a Monday packing shift for Fay's Monday driving shift. Bad: Gus's swap goes on the rota sheet before anyone checks it.",
+                 "Good: Ana swaps her Tuesday packing shift with Ben's Tuesday packing shift. Good: Cai swaps a Friday driving shift with Dee's Friday driving shift. Bad: Eli swaps a Monday packing shift for Fay's Monday driving shift: breaks 'same role only', a major mistake. Bad: Gus's swap goes on the rota sheet before anyone checks it: breaks 'coordinator approves', a blocker."],
+    "success_metrics": ["Fewer mix-ups.", "No more than one double-booked shift a month."],
+    "risk": ["I don't know."],
+    "acceptance_criteria": ["I don't know."],
+    "open_questions": ["Nothing I can think of."]
+  },
+  "playback": ["Confirmed"],
+  "concrete": {
+    "title": 0, "slug": 0, "goal": 0, "acceptance_tests": 0, "glossary": 0, "context_inventory": 0,
+    "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0, "gates": 0, "caps": 0,
+    "open_questions": 0, "inputs": 0, "systems": 0,
+    "users_and_stakeholders": 2, "current_process": 2, "scope": 2, "examples": 2, "success_metrics": 2
+  },
+  "reference": ["title", "slug", "goal", "acceptance_tests", "users_and_stakeholders", "current_process", "scope",
+                "examples", "success_metrics", "inputs", "systems", "data_classification", "source_policy", "output", "quality_rulebook",
+                "gates", "caps"],
+  "contradictions": [],
+  "injections": [],
+  "expect": {"outcome": "ready", "open_questions": ["risk", "acceptance_criteria"]},
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "Vague persona: the main round-budget test. Passes only if no vague field is marked answered, the two 'I don't know' fields end as open questions with an owner, and the job reaches readiness (the one simulated resume at the per-cycle cap is allowed and reported). Agreed deviation from the design table (Samith, 2026-11-02): the examples' probe answer also states each rule's severity ('a major mistake', 'a blocker'), so the new rules are not left without a severity (the quality_rulebook 'vague if' test)."
+}

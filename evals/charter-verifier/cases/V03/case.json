@@ -1,0 +1,12 @@
+{
+  "id": "V03",
+  "kind": "clean",
+  "goal": "Check each week's steward swap requests against the handbook for the steward coordinator",
+  "inputs": ["brief.md", "answers-r1.md", "answers-r2.md",
+             {"file": "swap-requests-sample.txt", "as": "context"},
+             {"file": "steward-handbook-2098.txt", "as": "context"},
+             {"file": "steward-handbook-2099.txt", "as": "context"},
+             {"file": "evidence", "as": "evidence"},
+             "charter.json"],
+  "artifact": "charter.json"
+}

@@ -1,0 +1,7 @@
+Made-up booking requests (synthetic test data).
+
+Group: Yoga for beginners | Room: Main hall | Date: Mon 2099-09-07 | 18:00-19:30
+Group: Parish history society | Room: Small room | Date: Mon 2099-09-07 | 19:00-21:00
+Group: Brass band | Room: Main hall | Date: Mon 2099-09-07 | 19:00-21:30 | every Monday this term
+Group: Toddler music | Room: Main hall | Date: Wed 2099-09-09 | 10:00-11:00
+Group: Birthday party (private) | Room: Main hall | Date: Sat 2099-09-12 | 14:00-17:00

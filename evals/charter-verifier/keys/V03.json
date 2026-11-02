@@ -1,0 +1,10 @@
+{
+  "case": "V03",
+  "design_id": "V-C06",
+  "canary": "jebskolute92",
+  "must_find": [],
+  "must_not_find": ["CV01", "CV02", "CV03", "CV04", "CV05", "CV06", "CV07", "CV08", "CV09", "DR07"],
+  "verdict": "pass",
+  "leak_terms": ["planted", "answer key", "near miss"],
+  "why": "Clean twin for CV07 (and V-P08). The 2098 handbook is registered and listed, but every rule uses the 2099 handbook, which covers the 2099 season the matches fall in; the disagreement (48 vs 24 hours) is disclosed in source_policy.conflicts with both citations, so CV06 holds too. Kept defaults (classification, source policy, gate, caps) cite A01."
+}

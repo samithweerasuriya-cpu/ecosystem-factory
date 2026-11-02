@@ -1,0 +1,15 @@
+{
+  "id": "W2",
+  "kind": "charter",
+  "seed": "replay",
+  "slug": "walk-swaps",
+  "goal": "Check each week's dog-walking swap requests for the shelter",
+  "brief": "brief.md",
+  "context": [],
+  "replay": [
+    {"interviewer": "r1.json", "reply": "a02.md"},
+    {"interviewer": "r2.json", "reply": "a03.md"},
+    {"interviewer": "r3.json", "reply": "confirmed.md"},
+    {"interviewer": "r4.json"}
+  ]
+}

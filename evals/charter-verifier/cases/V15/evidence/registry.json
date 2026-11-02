@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261102-intake-hall-bookings/inputs/context/requests-sample.txt",
+      "title": "requests-sample.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:09:28+00:00",
+      "sha256": "2ff08ca909d7401887f1599c43daea10af4231feac1902a159b7401556811412",
+      "status": "stored",
+      "reason": null,
+      "bytes": 508
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261102-intake-hall-bookings/inputs/context/hall-prices-2098.txt",
+      "title": "hall-prices-2098.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:09:29+00:00",
+      "sha256": "ff70cb813370e0d26fcbfeedbf03355d57f0a1ed6d0fad2fd1f18a5e70b38399",
+      "status": "stored",
+      "reason": null,
+      "bytes": 210
+    },
+    {
+      "id": "S03",
+      "kind": "file",
+      "path": "jobs/20261102-intake-hall-bookings/inputs/context/hall-prices-2099.txt",
+      "title": "hall-prices-2099.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:09:29+00:00",
+      "sha256": "0a00e727f044f642604bcd72cf49c27ac1eeba3c05c5be5379e269aee8541d62",
+      "status": "stored",
+      "reason": null,
+      "bytes": 196
+    }
+  ]
+}

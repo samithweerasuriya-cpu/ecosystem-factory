@@ -1,0 +1,7 @@
+Made-up swap messages for one week (synthetic test data).
+
+Ivo: can Kit take my Monday evening feed?
+Ned: Ola, would you do Tuesday morning for me?
+Pia: swapping my Wednesday evening with Quin's Thursday evening
+Lu: Max, can you take Saturday morning the week after next?
+Rob: anyone for Friday evening? Sal said yes

@@ -1,0 +1,12 @@
+{
+  "id": "I04",
+  "kind": "interview",
+  "slug": "repair-queue",
+  "goal": "Sort each day's bike drop-off forms into a repair queue with bench time and promised dates",
+  "brief": "brief.md",
+  "context": [
+    {"file": "dropoff-sample.txt", "evidence_for": "the input format", "class": "synthetic"},
+    {"file": "bench-times.txt", "evidence_for": "standard bench minutes per job type", "class": "synthetic"}
+  ],
+  "end_to_end": true
+}

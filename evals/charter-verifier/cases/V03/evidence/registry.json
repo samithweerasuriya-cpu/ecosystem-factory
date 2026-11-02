@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261102-intake-steward-swaps/inputs/context/swap-requests-sample.txt",
+      "title": "swap-requests-sample.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:11:30+00:00",
+      "sha256": "9244e2cddde2d75b5f8acfb6394b1a6a5d99def63b7e1c6d2a1382737058664b",
+      "status": "stored",
+      "reason": null,
+      "bytes": 444
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261102-intake-steward-swaps/inputs/context/steward-handbook-2098.txt",
+      "title": "steward-handbook-2098.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:11:30+00:00",
+      "sha256": "cf391883a1d61c902e43150f918d0a8bb43de4206a45013156580f5ec0ac5d15",
+      "status": "stored",
+      "reason": null,
+      "bytes": 250
+    },
+    {
+      "id": "S03",
+      "kind": "file",
+      "path": "jobs/20261102-intake-steward-swaps/inputs/context/steward-handbook-2099.txt",
+      "title": "steward-handbook-2099.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-02T07:11:30+00:00",
+      "sha256": "2108b8b8c71ac27dbef5d69c3c20a907f9b717abea8cd31f8fd517151d7365bd",
+      "status": "stored",
+      "reason": null,
+      "bytes": 268
+    }
+  ]
+}

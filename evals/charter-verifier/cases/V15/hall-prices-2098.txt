@@ -1,0 +1,8 @@
+Community hall hire prices (synthetic)
+
+Valid 1 January 2098 to 31 December 2098.
+
+Main hall: 18.00 per hour
+Side room: 9.00 per hour
+
+Prices are per started hour. Groups pay the booking volunteers on the day.

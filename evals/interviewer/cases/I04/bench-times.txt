@@ -1,0 +1,9 @@
+Standard bench minutes per job type (synthetic)
+
+true a wheel: 30
+build a wheel: 90
+bleed a hydraulic brake: 45
+replace a chain: 15
+service a hub: 60
+fit new cables: 30
+index gears: 20

@@ -1,0 +1,8 @@
+{
+  "id": "I06",
+  "kind": "interview",
+  "slug": "returns-triage",
+  "goal": "Sort the library's morning returns into shelve, repair and holds-shelf lists",
+  "brief": "brief.md",
+  "context": []
+}

@@ -1,0 +1,135 @@
+{
+  "schema_version": "1",
+  "slug": "hall-bookings",
+  "title": "Hall booking request sorter",
+  "goal": {"text": "The hall coordinator gets one weekly list of booking requests, each checked against the calendar with clashes flagged, instead of reading every message and checking the diary by hand; groups hear back within a week.",
+           "cites": ["[A:A01 \"the hall coordinator gets one weekly list of the requests, each checked against the calendar with clashes flagged\"]", "[A:A01 \"Groups hear back within a week.\"]"]},
+  "success_metrics": {
+    "agent_checkable": [
+      {"id": "M01", "metric": "Proposed bookings that overlap another booking for the same room", "target": "none",
+       "check": "A script compares every proposed row with the other rows and the calendar (Q01).", "cites": ["[A:A01 \"No double bookings in a term.\"]"]},
+      {"id": "M02", "metric": "Rows that quote their request", "target": "every row",
+       "check": "A script finds each quoted request line word for word in the input (Q02).", "cites": ["[A:A01]"]}
+    ],
+    "outcome": [
+      {"id": "M03", "metric": "Double bookings reported by groups", "target": "none in a term", "cites": ["[A:A01 \"No double bookings in a term.\"]"]},
+      {"id": "M04", "metric": "Days from a request to its reply", "target": "7 or fewer for every group", "cites": ["[A:A01 \"Every group gets a reply within 7 days of its request.\"]"]}
+    ]
+  },
+  "users_and_stakeholders": [
+    {"role": "booking-volunteers", "relation": "user", "interest": "Work through the list and send the replies.", "cites": ["[A:A01 \"Booking volunteers (users: work through the list and send the replies).\"]"]},
+    {"role": "hall-coordinator", "relation": "approver", "interest": "Checks the list and confirms bookings.", "cites": ["[A:A01 \"Hall coordinator (approver: checks the list and confirms bookings).\"]"]},
+    {"role": "hall-committee", "relation": "stakeholder", "interest": "Fair use of the hall.", "cites": ["[A:A01]"]},
+    {"role": "booking-groups", "relation": "stakeholder", "interest": "A quick, clear answer.", "cites": ["[A:A01]"]}
+  ],
+  "current_process": {
+    "steps": ["The coordinator reads each request e-mail.", "The coordinator checks the paper diary.", "The coordinator writes the booking in and replies."],
+    "problems": ["Twice this spring two groups were booked into the main hall on the same evening.", "Replies take up to three weeks."],
+    "cites": ["[A:A01]"]
+  },
+  "scope": {
+    "in": ["One week's booking requests in.", "A checked list of proposed bookings out.", "Approved bookings written to the hall calendar."],
+    "out": ["Taking payments", "Key handover", "Cleaning rotas"],
+    "cites": ["[A:A01 \"Out: taking payments, key handover, cleaning rotas.\"]"]
+  },
+  "inputs": {
+    "description": "One week's booking request e-mails, about 15 a week.",
+    "format": "plain text, one request per e-mail",
+    "constraints": ["Group name", "Room", "Date", "Start and end time"],
+    "samples": [{"source": "S01", "description": "A made-up week of request e-mails."}],
+    "cites": ["[A:A01]", "[S:S01 §whole file]"]
+  },
+  "glossary": [
+    {"term": "main hall", "meaning": "The large room.", "cites": ["[A:A01]"]},
+    {"term": "side room", "meaning": "The small meeting room.", "cites": ["[A:A01]"]},
+    {"term": "clash", "meaning": "Two bookings for the same room that overlap in time.", "cites": ["[A:A01 \"Clash: two bookings for the same room that overlap in time.\"]"]}
+  ],
+  "acceptance_tests": [
+    {"id": "T01", "words": "When I run a week of requests through it, every clash is flagged and I can approve the list in ten minutes.",
+     "cites": ["[A:A01 \"When I run a week of requests through it, every clash is flagged and I can approve the list in ten minutes.\"]"]}
+  ],
+  "context_inventory": [
+    {"id": "S01", "path": "inputs/context/requests-sample.txt", "classification": "synthetic", "evidence_for": "the input format"}
+  ],
+  "data_classification": {"class": "synthetic", "cites": ["[A:A01]"]},
+  "source_policy": {
+    "ranks": [
+      {"rank": 1, "what": "The hall coordinator's own decisions", "use_for": "Rules, scope, opening hours"},
+      {"rank": 2, "what": "Reference documents in the context pack", "use_for": "Request format"},
+      {"rank": 3, "what": "Specifications and contracts", "use_for": "Not used"},
+      {"rank": 4, "what": "Official documentation on the maker's own site", "use_for": "Not used"},
+      {"rank": 5, "what": "Everything else", "use_for": "Leads only"}
+    ],
+    "official_sources": {"domains": {}, "files": {"inputs/context/requests-sample.txt": 2}},
+    "confidence": {
+      "high": "The row quotes the request line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row is refused and raised as a question."
+    },
+    "conflicts": ["The higher rank wins within its own area.", "A conflict the ranks do not settle is reported with both citations, never decided silently."],
+    "cites": ["[A:A01]"]
+  },
+  "output": {
+    "description": "One row per request, with a decision: propose, clash or refuse. A request with no room or no time is refused as incomplete; a request outside opening hours is refused with the reason.",
+    "format": "Table, one row per request",
+    "fields": [
+      {"name": "request", "description": "The request line, quoted."},
+      {"name": "group", "description": "The group name from the request."},
+      {"name": "room", "description": "Main hall or side room."},
+      {"name": "date", "description": "ISO date."},
+      {"name": "start", "description": "Start time, 24-hour clock."},
+      {"name": "end", "description": "End time, 24-hour clock."},
+      {"name": "decision", "description": "propose, clash or refuse."},
+      {"name": "reason", "description": "One sentence."}
+    ],
+    "cites": ["[A:A01 \"A request with no room or no time is refused as incomplete.\"]"]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {"id": "Q01", "statement": "No proposed booking overlaps another booking for the same room.", "severity": "blocker",
+       "cites": ["[A:A01 \"Q01 no proposed booking overlaps another booking for the same room (blocker).\"]"]},
+      {"id": "Q02", "statement": "Every row quotes the request it came from.", "severity": "major",
+       "cites": ["[A:A01 \"Q02 every row quotes the request it came from (major).\"]"]},
+      {"id": "Q03", "statement": "A request outside opening hours (08:00 to 22:00) is refused, with the reason.", "severity": "major",
+       "cites": ["[A:A01 \"Q03 a request outside opening hours (08:00 to 22:00) is refused, with the reason (major).\"]"]},
+      {"id": "Q04", "statement": "The reason is one sentence.", "severity": "minor",
+       "cites": ["[A:A01 \"Q04 the reason is one sentence (minor).\"]"]}
+    ]
+  },
+  "examples": {
+    "good": [
+      {"id": "E01", "text": "Tue 2099-03-03 | Side room | Knitting circle | 10:00-12:00 | propose | no clash", "origin": "synthetic", "cites": ["[A:A01]"]},
+      {"id": "E02", "text": "Thu 2099-03-05 | Main hall | Youth band | 19:00-21:00 | clash | Main hall booked 18:00-20:00 by the dance class, which has a soft hold until Monday", "origin": "synthetic", "cites": ["[A:A01]"]}
+    ],
+    "bad": [
+      {"id": "E03", "text": "Thu 2099-03-05 | Main hall | Youth band | 19:00-21:00 | propose", "why": "It overlaps the dance class.",
+       "breaks": ["Q01"], "origin": "synthetic", "cites": ["[A:A01]"]},
+      {"id": "E04", "text": "Sat 2099-03-07 | Main hall | Quiz night | 21:00-23:30 | propose", "why": "It runs past 22:00.",
+       "breaks": ["Q03"], "origin": "synthetic", "cites": ["[A:A01]"]}
+    ]
+  },
+  "risk": {"reversibility": "partly", "blast_radius": "external",
+           "notes": "A wrong booking can be cancelled, but a group that turns up to a double-booked room has lost its evening. About thirty outside groups are affected.",
+           "cites": ["[A:A01 \"Partly reversible\"]", "[A:A02 \"The groups who book the hall, about thirty of them.\"]"]},
+  "systems": [
+    {"id": "request-mail", "description": "The booking request e-mails, as text.", "access": "read", "cites": ["[A:A01]"]},
+    {"id": "hall-calendar", "description": "The hall's shared booking calendar.", "access": "write", "cites": ["[A:A01 \"Writes to the hall's shared booking calendar.\"]"]}
+  ],
+  "gates": [
+    {"id": "G1", "decision": "Approve or reject the checked list of proposed bookings.", "mode": "human", "approver_role": "approver",
+     "before_write": [], "cites": ["[A:A01 \"I approve the checked list\"]"]},
+    {"id": "G2", "decision": "Confirm writing the approved bookings to the hall calendar.", "mode": "human", "approver_role": "approver",
+     "before_write": ["hall-calendar"], "cites": ["[A:A01 \"I confirm once more right before anything goes into the calendar.\"]"]}
+  ],
+  "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 25,
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01]"]},
+  "open_questions": [
+    {"id": "OQ01", "question": "Should regular weekly bookings go through the same list?", "owner": "hall-committee"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC01", "criterion": "Every clash is flagged on four weeks of made-up requests.", "check": "Evaluation report before go-live.",
+     "cites": ["[A:A02 \"it should get every clash right on four weeks of made-up requests\"]"]},
+    {"id": "AC02", "criterion": "Every row quotes its request.", "check": "A script finds each quote word for word in the input.",
+     "cites": ["[A:A02 \"every row should quote its request.\"]"]}
+  ]
+}

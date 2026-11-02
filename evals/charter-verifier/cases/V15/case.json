@@ -1,0 +1,12 @@
+{
+  "id": "V15",
+  "kind": "planted",
+  "goal": "Sort one week's hall booking requests into a checked list for the hall coordinator",
+  "inputs": ["brief.md", "answers-r1.md", "answers-r2.md",
+             {"file": "requests-sample.txt", "as": "context"},
+             {"file": "hall-prices-2098.txt", "as": "context"},
+             {"file": "hall-prices-2099.txt", "as": "context"},
+             {"file": "evidence", "as": "evidence"},
+             "charter.json"],
+  "artifact": "charter.json"
+}

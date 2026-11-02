@@ -1,0 +1,7 @@
+Made-up swap requests for one week (synthetic test data). Kick-off for league matches is 15:00.
+
+Thu 2099-08-13 11:00 | Ravi gives up Gate B, Sat 2099-08-15, to Lena
+Thu 2099-08-13 18:20 | Priti gives up Car park, Sat 2099-08-15, to Sam
+Fri 2099-08-14 16:45 | Ben gives up Gate A, Sat 2099-08-15, to Ada
+Sat 2099-08-15 09:00 | Omar gives up Gate C, Sat 2099-08-15, to Jo
+Mon 2099-08-17 10:10 | Mia gives up Gate A, Sat 2099-08-22, no one named

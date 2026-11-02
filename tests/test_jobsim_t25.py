@@ -25,6 +25,7 @@ FIELDS = ["title", "slug", "goal", "success_metrics", "users_and_stakeholders", 
           "output", "quality_rulebook", "examples", "acceptance_tests", "acceptance_criteria", "risk", "systems",
           "gates", "caps"]
 SLUG = "swaps"
+TIER = "full"                 # process-heavy: every run copies the factory and drives real engine steps (T2.5)
 
 
 class JobSimBase(IntakeBase):
@@ -208,6 +209,33 @@ class InterviewRunTests(JobSimBase):
         self.assertIsNone(ev.record_problem(rep))
         self.assertEqual(self.removed, [{}])                               # no gates/ file in the copy
         self.assertFalse(any((self.tmp / "jobs").iterdir()))               # nothing in the real jobs/
+
+    def test_a_playback_missing_a_required_point_gets_the_scripted_correction_and_is_reported(self):
+        key = self.persona_key(playback_check={"must_contain": [["coordinator approves"]],
+                                               "correction": "Not quite: the coordinator approves every swap."})
+        key["concrete"]["current_process"] = 1                             # one question, so three rounds fit
+        self.fake("interviewer", self.ask("current_process"),
+                  self.playback(self.job, "Situation: people swap in the chat (current_process)."),
+                  self.playback(self.job, "Situation: the coordinator approves every swap (users_and_stakeholders)."),
+                  self.status(self.job, playback="A04"))
+        rep, _ = self.interview(key=key)
+        c = rep["cases"][0]
+        self.assertTrue(c["pass"], rep)
+        self.assertEqual((c["playback_corrections"], c["rounds"], c["resumes"]), ([1], [3], [0]))
+        self.assertEqual(rep["metrics"]["playback_corrections_per_case"], {"P1": [1]})
+        self.assertEqual(self.removed, [{}])                               # nothing under gates/ either way
+
+    def test_a_playback_with_every_required_point_is_confirmed(self):
+        key = self.persona_key(playback_check={"must_contain": [["coordinator approves"]],
+                                               "correction": "Not quite: the coordinator approves every swap."})
+        key["concrete"]["current_process"] = 1
+        self.fake("interviewer", self.ask("current_process"),
+                  self.playback(self.job, "Situation: the coordinator approves every swap (users_and_stakeholders)."),
+                  self.status(self.job, playback="A03"))
+        rep, _ = self.interview(key=key)
+        c = rep["cases"][0]
+        self.assertTrue(c["pass"], rep)
+        self.assertEqual((c["playback_corrections"], c["rounds"]), ([0], [2]))
 
     def test_a_vague_field_marked_answered_fails_the_run(self):
         key = self.persona_key()                                           # asked once: still vague

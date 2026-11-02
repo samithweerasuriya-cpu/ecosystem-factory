@@ -1,0 +1,6 @@
+{
+  "_doc": "Evaluation suite for the charter-verifier (T2.5; case design in the T2.5 row of the build plan). Synthetic, domain-neutral charters for four made-up problems. Each case gives the owner's answers (the brief as A01, then each answer round), the context files, the evidence pack (built by registering the context files in a real job) and the charter under review. Rule 8 pairs: S3 and S4. Misleading-source cases: four planted, two clean.",
+  "agent": ".claude/agents/charter-verifier.md",
+  "rulebook": "rules/charter-verifier.md",
+  "kind": "reviewer"
+}

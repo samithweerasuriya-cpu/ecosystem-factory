@@ -1,0 +1,9 @@
+{
+  "id": "I07",
+  "kind": "single",
+  "slug": "feeding-swaps",
+  "goal": "Check the city farm's feeding-shift swaps each week",
+  "brief": "brief.md",
+  "context": [{"file": "swap-messages.txt", "evidence_for": "the input format", "class": "synthetic"}],
+  "single_call": true
+}

@@ -1,0 +1,9 @@
+{
+  "id": "I01",
+  "kind": "single",
+  "slug": "party-room",
+  "goal": "Check each week's party-room hire requests and draft the answers",
+  "brief": "brief.md",
+  "context": [{"file": "party-requests.txt", "evidence_for": "the input format", "class": "synthetic"}],
+  "single_call": true
+}

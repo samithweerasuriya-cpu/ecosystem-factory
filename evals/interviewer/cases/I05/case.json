@@ -1,0 +1,8 @@
+{
+  "id": "I05",
+  "kind": "interview",
+  "slug": "repair-night",
+  "goal": "Have a repair queue ready for the youth bike club's Thursday repair night",
+  "brief": "brief.md",
+  "context": [{"file": "booking-sample.txt", "evidence_for": "the input format", "class": "synthetic"}]
+}

@@ -1,0 +1,27 @@
+{
+  "case": "I06",
+  "design_id": "minimal",
+  "canary": "vorquanix13",
+  "persona": "Minimal context (D1, library returns triage). No context files. The brief answers every must-answer field concretely and keeps every default (including the starter quality rules, which its bad examples name). Every answer-if-you-know field it can't answer gets 'I don't know.' (success_metrics, inputs, risk, systems, acceptance_criteria); glossary and context pack are 'None.'. Expected: must-answer fields done, the five gaps become open questions with owner roles, nothing invented, few rounds.",
+  "answers": {
+    "success_metrics": ["I don't know."],
+    "inputs": ["I don't know."],
+    "risk": ["I don't know."],
+    "systems": ["I don't know."],
+    "acceptance_criteria": ["I don't know."],
+    "open_questions": ["Nothing beyond the things I said I don't know."]
+  },
+  "playback": ["Confirmed"],
+  "concrete": {
+    "title": 0, "slug": 0, "goal": 0, "users_and_stakeholders": 0, "current_process": 0, "scope": 0,
+    "examples": 0, "acceptance_tests": 0, "glossary": 0, "context_inventory": 0, "open_questions": 0,
+    "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0, "gates": 0, "caps": 0
+  },
+  "reference": ["title", "slug", "goal", "users_and_stakeholders", "current_process", "scope", "examples",
+                "acceptance_tests", "data_classification", "source_policy", "output", "quality_rulebook", "gates", "caps"],
+  "contradictions": [],
+  "injections": [],
+  "expect": {"outcome": "ready", "open_questions": ["success_metrics", "inputs", "risk", "systems", "acceptance_criteria"]},
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "Minimal-context persona. Passes when the job reaches readiness with the five unknown fields as open questions with an owner and nothing marked answered that the owner never answered. Deviation for Samith's review: glossary and context pack are 'None.' rather than 'I don't know.', because an empty glossary or an empty context pack is a correct answer, and scoring it as an open question would fail an interviewer that is right."
+}

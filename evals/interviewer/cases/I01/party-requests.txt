@@ -1,0 +1,7 @@
+Made-up party-room requests for one week (synthetic test data).
+
+Family: Okoro | Sat 2099-10-03 | 14:00-17:00 | 25 guests
+Family: Lindqvist | Sun 2099-10-04 | 16:00-19:00 | 20 guests
+Family: Haddad | Sat 2099-10-10 | 15:00-18:00 | 55 guests
+Family: Moreau | Sat 2099-10-03 | 16:00-20:00 | 30 guests
+Family: Petrov | Fri 2099-10-09 | 19:00-22:30 | 35 guests

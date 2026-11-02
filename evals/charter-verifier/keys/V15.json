@@ -1,0 +1,12 @@
+{
+  "case": "V15",
+  "design_id": "V-P08",
+  "canary": "quatalvor14",
+  "must_find": ["CV06", "CV07"],
+  "must_not_find": ["CV01", "CV02", "CV03", "CV04", "CV05", "CV08", "CV09", "DR07"],
+  "verdict": "fail",
+  "locations": {"CV07": ["fee", "output", "S02", "18.00", "9.00", "2098"],
+                "CV06": ["fee", "output", "S02", "S03"]},
+  "leak_terms": ["planted", "answer key", "near miss"],
+  "why": "Misleading source (subtle). The output's fee field takes its hourly prices from S02, the price list valid only in 2098; the requests are for March 2099 and S03 (valid from 1 January 2099) is registered with the same 'evidence for'. The owner asked for the current price list (A01). CV07 (major): the old list is used as support. CV06 (major): a newer, conflicting list is registered and the conflict is not disclosed (Samith, sample review 2026-11-02). Twin: V-C06, which uses the newer handbook and discloses both, so it passes CV06 and CV07."
+}

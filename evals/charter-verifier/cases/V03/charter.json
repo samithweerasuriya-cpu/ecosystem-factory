@@ -1,0 +1,133 @@
+{
+  "schema_version": "1",
+  "slug": "steward-swaps",
+  "title": "Steward swap checker",
+  "goal": {"text": "The steward coordinator gets each week's swap requests already checked against the handbook rules, and every match has its full steward count, without checking each swap by hand.",
+           "cites": ["[A:A01 \"the steward coordinator gets each week's swap requests already checked against the handbook rules, and every match has its full steward count\"]"]},
+  "success_metrics": {
+    "agent_checkable": [
+      {"id": "M01", "metric": "Matches left with fewer than 12 stewards after the approved swaps", "target": "none",
+       "check": "A script counts stewards per match after the swaps (Q01).", "cites": ["[A:A01]", "[S:S03 §1 \"Every league match needs 12 stewards.\"]"]},
+      {"id": "M02", "metric": "Approved swaps asked less than 24 hours before kick-off", "target": "none",
+       "check": "A script compares each approved swap's time with kick-off (Q02).", "cites": ["[A:A01]", "[S:S03 §2 \"Swaps must be asked for at least 24 hours before kick-off.\"]"]}
+    ],
+    "outcome": [
+      {"id": "M03", "metric": "Matches that start short of stewards", "target": "none all season",
+       "cites": ["[A:A01 \"No match starts short of stewards all season.\"]"]}
+    ]
+  },
+  "users_and_stakeholders": [
+    {"role": "stewards", "relation": "user", "interest": "Ask for swaps and read the decisions.", "cites": ["[A:A01 \"Stewards (users: ask for swaps and read the decisions).\"]"]},
+    {"role": "steward-coordinator", "relation": "approver", "interest": "Approves every swap.", "cites": ["[A:A01 \"Steward coordinator (approver: approves every swap).\"]"]},
+    {"role": "club-secretary", "relation": "stakeholder", "interest": "The right number of stewards at every match.", "cites": ["[A:A01]"]}
+  ],
+  "current_process": {
+    "steps": ["A steward posts a swap request in the group chat.", "The coordinator checks the handbook and the rota.", "The coordinator updates the rota sheet."],
+    "problems": ["Last season three matches started one steward short.", "Swaps asked too late were approved by mistake."],
+    "cites": ["[A:A01]"]
+  },
+  "scope": {
+    "in": ["One week's swap requests in.", "A checked list of swaps out.", "Approved swaps written to the rota sheet."],
+    "out": ["Recruiting stewards", "Training records", "Pay"],
+    "cites": ["[A:A01 \"Out: recruiting stewards, training records, pay.\"]"]
+  },
+  "inputs": {
+    "description": "One week's swap request messages, about 10 a week.",
+    "format": "plain text, one swap per message",
+    "constraints": ["The steward giving up a shift", "The shift", "The steward taking it", "When it was asked"],
+    "samples": [{"source": "S01", "description": "A made-up week of swap requests."}],
+    "cites": ["[A:A01]", "[S:S01 §whole file]"]
+  },
+  "glossary": [
+    {"term": "shift", "meaning": "One steward position at one match.", "cites": ["[A:A01 \"Shift: one steward position at one match.\"]"]},
+    {"term": "kick-off", "meaning": "The published start time of the match.", "cites": ["[A:A01 \"Kick-off: the published start time of the match.\"]"]}
+  ],
+  "acceptance_tests": [
+    {"id": "T01", "words": "When I give it a week of swap requests, every late swap is refused and no match is left short.",
+     "cites": ["[A:A01 \"When I give it a week of swap requests, every late swap is refused and no match is left short.\"]"]}
+  ],
+  "context_inventory": [
+    {"id": "S01", "path": "inputs/context/swap-requests-sample.txt", "classification": "synthetic", "evidence_for": "the input format"},
+    {"id": "S02", "path": "inputs/context/steward-handbook-2098.txt", "classification": "synthetic", "evidence_for": "the swap rules"},
+    {"id": "S03", "path": "inputs/context/steward-handbook-2099.txt", "classification": "synthetic", "evidence_for": "the swap rules"}
+  ],
+  "data_classification": {"class": "synthetic", "cites": ["[A:A01]"]},
+  "source_policy": {
+    "ranks": [
+      {"rank": 1, "what": "The steward coordinator's own decisions", "use_for": "Goals, scope, rules"},
+      {"rank": 2, "what": "Reference documents in the context pack", "use_for": "Swap rules, steward numbers, request format"},
+      {"rank": 3, "what": "Specifications and contracts", "use_for": "Not used"},
+      {"rank": 4, "what": "Official documentation on the maker's own site", "use_for": "Not used"},
+      {"rank": 5, "what": "Everything else", "use_for": "Leads only"}
+    ],
+    "official_sources": {"domains": {}, "files": {"inputs/context/swap-requests-sample.txt": 2,
+                                                  "inputs/context/steward-handbook-2098.txt": 2,
+                                                  "inputs/context/steward-handbook-2099.txt": 2}},
+    "confidence": {
+      "high": "A stored source of rank 2 or better with a word-for-word quote.",
+      "medium": "A reputable secondary source.",
+      "low": "Inferred or one weak source; never enough for a decision on its own."
+    },
+    "conflicts": ["The higher rank wins within its own area; newer beats older within a rank only when the newer source covers the point.",
+                  "The two handbooks disagree on the swap notice period: 48 hours in the 2098 handbook (S02), 24 hours in the 2099 handbook (S03). Both are rank 2; the 2099 handbook covers the 2099 season and is followed.",
+                  "A conflict the ranks do not settle is reported with both citations, never decided silently."],
+    "cites": ["[A:A01]", "[S:S02 §2 \"Swaps must be asked for at least 48 hours before kick-off.\"]",
+              "[S:S03 §2 \"Swaps must be asked for at least 24 hours before kick-off.\"]"]
+  },
+  "output": {
+    "description": "One row per swap request, approved or refused. A request that names no steward taking the shift is refused.",
+    "format": "Table, one row per request",
+    "fields": [
+      {"name": "request", "description": "The request line, quoted."},
+      {"name": "giving_up", "description": "The steward giving up the shift."},
+      {"name": "taking", "description": "The steward taking the shift."},
+      {"name": "match_date", "description": "ISO date of the match."},
+      {"name": "position", "description": "The shift's position, as the request names it."},
+      {"name": "decision", "description": "approve or refuse."},
+      {"name": "reason", "description": "One sentence."}
+    ],
+    "cites": ["[A:A01 \"A request that names no steward taking the shift is refused.\"]"]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {"id": "Q01", "statement": "No match is left with fewer than 12 stewards.", "severity": "blocker",
+       "cites": ["[A:A01 \"Q01 no match is left with fewer stewards than the handbook requires (blocker).\"]", "[S:S03 §1 \"Every league match needs 12 stewards.\"]"]},
+      {"id": "Q02", "statement": "A swap asked less than 24 hours before kick-off is refused.", "severity": "major",
+       "cites": ["[A:A01 \"Q02 a swap that breaks the handbook's notice period is refused (major).\"]", "[S:S03 §2 \"Swaps must be asked for at least 24 hours before kick-off.\"]"]},
+      {"id": "Q03", "statement": "Every row quotes its request.", "severity": "major",
+       "cites": ["[A:A01 \"Q03 every row quotes its request (major).\"]"]}
+    ]
+  },
+  "examples": {
+    "good": [
+      {"id": "E01", "text": "Sat 2099-08-15 | Gate B | Ravi to Lena | asked Thu 11:00 | approve | asked 52 hours before kick-off", "origin": "synthetic", "cites": ["[A:A01]"]},
+      {"id": "E02", "text": "Sat 2099-08-15 | Gate C | Omar to Jo | asked Sat 09:00 | refuse | asked 6 hours before kick-off", "origin": "synthetic", "cites": ["[A:A01]"]}
+    ],
+    "bad": [
+      {"id": "E03", "text": "Sat 2099-08-15 | Gate C | Omar to Jo | asked Sat 09:00 | approve", "why": "It was asked too late.",
+       "breaks": ["Q02"], "origin": "synthetic", "cites": ["[A:A01]"]},
+      {"id": "E04", "text": "Sat 2099-08-22 | Gate A | Mia to nobody | approve", "why": "The match is left one steward short.",
+       "breaks": ["Q01"], "origin": "synthetic", "cites": ["[A:A01]"]}
+    ]
+  },
+  "risk": {"reversibility": "partly", "blast_radius": "organisation",
+           "notes": "A wrong swap can be undone before the match, but not once it has started. A match short of stewards can mean a fine for the club and a delayed kick-off.",
+           "cites": ["[A:A01 \"Partly reversible\"]", "[A:A02 \"If a match starts short of stewards, the club can be fined and the kick-off delayed.\"]"]},
+  "systems": [
+    {"id": "swap-messages", "description": "The swap request messages, as text.", "access": "read", "cites": ["[A:A01]"]},
+    {"id": "rota-sheet", "description": "The steward rota sheet.", "access": "write", "cites": ["[A:A01 \"Writes to the steward rota sheet.\"]"]}
+  ],
+  "gates": [
+    {"id": "G1", "decision": "Approve the checked list of swaps before anything is written to the rota sheet (the brief's default gate, kept by the owner).",
+     "mode": "human", "approver_role": "approver", "before_write": ["rota-sheet"], "cites": ["[A:A01]"]}
+  ],
+  "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 25,
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01]"]},
+  "open_questions": [
+    {"id": "OQ01", "question": "Do cup matches use the same notice period?", "owner": "club-secretary"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC01", "criterion": "Every swap is decided correctly on a season's worth of made-up requests.", "check": "Evaluation report before go-live.",
+     "cites": ["[A:A02 \"It should get every swap right on a season's worth of made-up requests before I use it.\"]"]}
+  ]
+}

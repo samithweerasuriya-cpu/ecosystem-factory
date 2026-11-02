@@ -1,0 +1,11 @@
+{
+  "case": "K17",
+  "design_id": "C08",
+  "canary": "wexfenvor15",
+  "must_find": ["CH14"],
+  "must_not_find": ["CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH11", "CH12", "CH13", "CH15", "DR07"],
+  "verdict": "pass",
+  "locations": {"CH14": ["soft hold", "E02", "examples", "glossary"]},
+  "leak_terms": ["planted", "answer key", "near miss"],
+  "why": "Severity pair S1, minor half. 'Soft hold' is never defined and appears only in the story of good example E02; the output has no field for it. It breaks CH14 (minor) only, so the verdict is pass. Same term as P16, where it is an output field."
+}

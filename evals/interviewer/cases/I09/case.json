@@ -1,0 +1,9 @@
+{
+  "id": "I09",
+  "kind": "interview",
+  "slug": "hall-replies",
+  "goal": "Draft checked replies to village hall booking requests",
+  "brief": "brief.md",
+  "context": [{"file": "hall-requests.txt", "evidence_for": "the input format", "class": "synthetic"}],
+  "end_to_end": true
+}

@@ -1,0 +1,6 @@
+{
+  "_doc": "Evaluation suite for the interviewer (T2.5; case design in the T2.5 row of the build plan). Each case drives a real intake job in a temporary factory copy: a script persona answers each question by its field from the hidden key (evals/jobsim.py). Six personas (vague, expert, contradictory, minimal context, over-sharer, stage-0 stop), the cap case and four false-ready single calls, on synthetic, domain-neutral problems. Two persona jobs run end to end to the gate. A question asked under the wrong field can't be detected here; the T2.7 and T2.8 live runs are the check.",
+  "agent": ".claude/agents/interviewer.md",
+  "rulebook": "rules/interview-guide.md",
+  "kind": "interview"
+}

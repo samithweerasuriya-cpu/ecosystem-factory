@@ -1,0 +1,20 @@
+{
+  "case": "W2",
+  "design_id": "W2",
+  "canary": "drimfengry96",
+  "expect": "charter",
+  "fields": {
+    "users_and_stakeholders": {"accept": ["volunteer coordinator", "volunteer-coordinator"], "cites": ["A:A01", "A:A03"]},
+    "goal": {"accept": ["walker"], "cites": ["A:A01"]},
+    "scope": {"accept": ["14 days"], "cites": ["A:A01"]},
+    "risk": {"accept": ["partly"], "cites": ["A:A02"]},
+    "acceptance_criteria": {"accept": ["two weeks"], "cites": ["A:A02"]}
+  },
+  "invented_entries": [
+    {"field": "users_and_stakeholders", "match": {"role": "shift.?lead", "relation": "^approver$"}},
+    {"field": "users_and_stakeholders", "match": {"relation": "^approver$", "role": "^(?!.*volunteer.?coordinator)"}}
+  ],
+  "invented_markers": ["notice period", "hours' notice", "24 hours", "48 hours"],
+  "leak_terms": ["answer key", "hidden reference"],
+  "why": "A contradiction settled by a later answer. The brief names the shift lead as approver (A01); A02 calls the volunteer coordinator the one who approves every swap; A03 settles it: the coordinator approves, the shift lead only reads the list. The charter must follow A03 and disclose both (users_and_stakeholders cites A01 and A03). Invented content, read from the parsed charter (key order doesn't matter, Samith 2026-11-02): an approver entry for the shift lead, or any approver other than the volunteer coordinator (no source names another); and, in the free text, a notice period (no source states one)."
+}

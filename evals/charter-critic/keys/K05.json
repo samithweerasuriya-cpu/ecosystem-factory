@@ -1,0 +1,11 @@
+{
+  "case": "K05",
+  "design_id": "P16",
+  "canary": "lutegrynix51",
+  "must_find": ["CH11", "CH14"],
+  "must_not_find": ["CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH12", "CH13", "CH15", "DR07"],
+  "verdict": "fail",
+  "locations": {"CH11": ["hold_type", "output", "soft hold", "hard hold"], "CH14": ["hold_type", "soft hold", "hard hold", "glossary"]},
+  "leak_terms": ["planted", "answer key", "near miss"],
+  "why": "Severity pair S1, major half. The output field hold_type takes 'soft hold or hard hold', terms defined nowhere, so the output's fields are not exact (CH11, major). The undefined term in the output also breaks CH14 (minor), so both are expected and neither counts as a false finding. Twin: C08."
+}

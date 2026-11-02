@@ -1,0 +1,10 @@
+Made-up drop-off forms, typed up (synthetic test data).
+
+T-118 | hybrid | front wheel wobbles | dropped off 2099-06-06
+T-119 | road | chain skips under load | dropped off 2099-06-06
+T-120 | kids' bike | brake cable frayed | dropped off 2099-06-06
+T-121 | mountain | rear brake spongy | dropped off 2099-06-06
+T-122 | cargo | rear wheel buckled after a kerb, needs a rebuild | dropped off 2099-06-06
+T-123 | road | hub grinds when coasting | dropped off 2099-06-06
+T-124 | hybrid | gears won't shift to the big cog | dropped off 2099-06-06
+T-125 | town | creaks somewhere | dropped off 2099-06-06
