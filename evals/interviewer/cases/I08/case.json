@@ -1,0 +1,9 @@
+{
+  "id": "I08",
+  "kind": "single",
+  "slug": "school-returns",
+  "goal": "Sort each school day's returned library books into shelve, reserved shelf and repair tray",
+  "brief": "brief.md",
+  "context": [{"file": "returns-export.txt", "evidence_for": "the input format", "class": "synthetic"}],
+  "single_call": true
+}

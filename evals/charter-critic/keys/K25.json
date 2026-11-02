@@ -1,0 +1,34 @@
+{
+  "case": "K25",
+  "design_id": "C03",
+  "canary": "nixtovrint97",
+  "domain": "D4",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CH03: the outcome metric M03's threshold is in words ('no more than two a week'), which is a threshold. Twin of P05 (D1)."
+}

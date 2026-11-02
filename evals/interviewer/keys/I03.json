@@ -1,0 +1,42 @@
+{
+  "case": "I03",
+  "design_id": "cap",
+  "canary": "tavrimquelo62",
+  "persona": "Cap case (D4, scout hut hire enquiries). The brief gives title and slug of the eight must-answer fields; goal, users_and_stakeholders, current_process, scope, examples and acceptance_tests are blank. Each stays vague after one probe and is concrete only at the third question on it: 6 x 3 = 18 questions, more than the 12 slots the caps allow (5 lifetime rounds, one of them the playback, 3 questions a round). Every answer-if-you-know and default field is answered in the brief, so the six fields are the only gaps. Expected: readiness never reached; in the last allowed round every remaining gap becomes an open question with an owner role; the job is ESCALATED; no field the persona never answered concretely is marked answered.",
+  "answers": {
+    "goal": ["Make the hire bookings less of a headache.",
+             "Just smoother all round, really.",
+             "Groups who want to hire the hut get an answer within five days instead of three weeks, and the hire secretary stops double-booking troop night."],
+    "users_and_stakeholders": ["Whoever is on the rota that week.",
+                               "Mostly the people at the hut, and the groups.",
+                               "The hire secretary uses the list and sends the answers; the group scout leader approves each week's list. Hiring groups are stakeholders."],
+    "current_process": ["It's all a bit manual.",
+                        "We do it by e-mail and it gets messy.",
+                        "Steps: the hire secretary reads each enquiry, checks the paper diary in the hut and replies. Problems: answers take up to three weeks, and last month a hire was offered on a Thursday evening, on top of troop night."],
+    "scope": ["The bookings.",
+              "All the booking side of things, really.",
+              "In: one week's hire enquiries in, a checked answer for each out. Out: payments and deposits, keys, the scouts' own camps."],
+    "examples": ["A good one is when it just works.",
+                 "Good: a hire that fits. Bad: one that doesn't.",
+                 "Good: 'Pilates group | Tue 19:00-20:00 | 14 people | offer | free, under 50'. Good: 'Model railway club | Thu 19:00-22:00 | clash | overlaps troop night'. Bad: 'Model railway club | Thu 19:00-22:00 | offer' (breaks Q01). Bad: 'Birthday party | Sat 13:00-16:00 | 60 people | offer' (breaks Q02)."],
+    "acceptance_tests": ["I'll know it when I see it.",
+                         "When it feels right to the committee.",
+                         "I give it a month of made-up enquiries, and nothing offered overlaps troop night or goes over 50 people."],
+    "open_questions": ["Only the parties one in the brief."]
+  },
+  "playback": ["Confirmed"],
+  "concrete": {
+    "title": 0, "slug": 0, "success_metrics": 0, "open_questions": 0, "inputs": 0, "glossary": 0,
+    "context_inventory": 0, "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0,
+    "acceptance_criteria": 0, "risk": 0, "systems": 0, "gates": 0, "caps": 0,
+    "goal": 3, "users_and_stakeholders": 3, "current_process": 3, "scope": 3, "examples": 3, "acceptance_tests": 3
+  },
+  "reference": ["title", "slug", "success_metrics", "open_questions", "inputs", "glossary", "context_inventory",
+                "data_classification", "source_policy", "output", "quality_rulebook", "acceptance_criteria", "risk",
+                "systems", "gates", "caps"],
+  "contradictions": [],
+  "injections": [],
+  "expect": {"outcome": "escalated"},
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "Cap case: hits the round cap by construction (18 questions needed, 12 slots). Passes only if the job ends ESCALATED and no vague field is marked answered. Which gaps are left at the last round depends on the questions asked, so the key lists no fixed open questions; the report shows them per run."
+}

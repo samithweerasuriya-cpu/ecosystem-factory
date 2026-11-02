@@ -1,0 +1,9 @@
+{
+  "id": "I02",
+  "kind": "single",
+  "slug": "bike-kitchen-jobs",
+  "goal": "Sort each open evening's bike repair jobs by stand, skill and parts",
+  "brief": "brief.md",
+  "context": [{"file": "signin-sheet.txt", "evidence_for": "the input format", "class": "synthetic"}],
+  "single_call": true
+}

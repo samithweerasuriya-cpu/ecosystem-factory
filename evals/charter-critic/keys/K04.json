@@ -1,0 +1,45 @@
+{
+  "case": "K04",
+  "design_id": "P07",
+  "canary": "holsabjex71",
+  "domain": "D3",
+  "must_find": [
+    "CH04"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH04": "quality_rulebook.rules"
+  },
+  "locations": {
+    "CH04": [
+      "Q04",
+      "quality_rulebook",
+      "severity",
+      "minor",
+      "major"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH04 (major), subtle: the owner gave Q04 (bench minutes from the table, never a guess) the severity major (A01); the charter lists it as minor. Twin: C06, identical except this severity."
+}

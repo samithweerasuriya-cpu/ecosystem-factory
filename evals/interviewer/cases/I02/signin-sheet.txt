@@ -1,0 +1,8 @@
+Made-up sign-in sheet for one open evening (synthetic test data).
+
+first name | bike | problem in their words
+Ada | hybrid | back brake squeals and barely stops
+Tom | road | front tyre flat again
+Uma | kids' bike | chain keeps falling off
+Viv | folding | it just feels wrong
+Wes | mountain | gears jump on the big hill

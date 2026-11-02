@@ -1,0 +1,51 @@
+{
+  "case": "K12",
+  "design_id": "P17",
+  "canary": "braquotov52",
+  "domain": "D1",
+  "must_find": [
+    "CH03",
+    "CH15"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH03": "success_metrics.outcome",
+    "CH15": "success_metrics.outcome"
+  },
+  "locations": {
+    "CH03": [
+      "M04",
+      "success_metrics",
+      "quickly",
+      "outcome"
+    ],
+    "CH15": [
+      "M04",
+      "success_metrics",
+      "quickly",
+      "outcome"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S2, major half (subtle). The outcome metric M04's target is 'quickly': no number, threshold or test (CH03, major). The vague word also breaks CH15 (minor), so both are expected. Twin: C09, the same charter with 'quickly' moved into the background text and M04 given a real target."
+}

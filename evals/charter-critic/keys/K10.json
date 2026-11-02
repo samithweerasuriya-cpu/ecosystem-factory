@@ -1,0 +1,43 @@
+{
+  "case": "K10",
+  "design_id": "P10",
+  "canary": "grysabquo87",
+  "domain": "D2",
+  "must_find": [
+    "CH07"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH07": "data_classification"
+  },
+  "locations": {
+    "CH07": [
+      "data_classification",
+      "internal",
+      "class"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH07 (blocker), obvious: the charter's data classification is 'internal', which config/data-classes.json does not allow (synthetic and public only). Deviation from the design text ('no data classification'): the schema requires a class, so the plant is a class the factory refuses. Twin: C05, identical except the class and the owner's words for it."
+}

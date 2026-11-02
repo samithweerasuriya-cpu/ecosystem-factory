@@ -1,0 +1,34 @@
+{
+  "case": "K20",
+  "design_id": "C01",
+  "canary": "ulmzelgry23",
+  "domain": "D2",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CH01: exactly two good and two bad examples, and each bad one names the rule it breaks (E03 Q01, E04 Q02). Twin of P02 (identical except E04)."
+}

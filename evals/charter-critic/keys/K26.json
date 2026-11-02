@@ -1,0 +1,45 @@
+{
+  "case": "K26",
+  "design_id": "P13",
+  "canary": "veskgrytov41",
+  "domain": "D1",
+  "must_find": [
+    "CH11"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH11": "output.description"
+  },
+  "locations": {
+    "CH11": [
+      "output",
+      "refuse",
+      "refuses",
+      "refusal",
+      "description"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH11 (major), subtle: the output lists its fields and decisions but says nothing about what it refuses or what happens to a line with no barcode or a book that matches nothing. Twin: C04 (D1, long), which states its refusals."
+}

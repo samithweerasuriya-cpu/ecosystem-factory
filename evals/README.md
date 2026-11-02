@@ -12,7 +12,9 @@ evals/
   <suite>/cases/<id>/case.json    {"id", "kind": "planted" | "clean" | "expected", "inputs": [...], "artifact": ...}
   <suite>/cases/<id>/<inputs>     what the agent reviews or works from (synthetic)
   <suite>/keys/<id>.json          the answer (never shown to agents): must_find, must_not_find, verdict,
-                                  locations, leak_terms, design; or, for list agents, expected and leak_terms
+                                  locations, leak_terms, design; or, for list agents, expected and leak_terms.
+                                  Intake suites (T2.5) add design_id, canary, domain, anchors (rule -> dotted
+                                  path into the charter where the defect sits) and length ("long")
   thresholds.json                 thresholds and minimum case counts (machine-readable)
   reports/<time>-<suite>-<mode>.json   one report per run (tracked; numbers and IDs only)
   run_evals.py                    the runner

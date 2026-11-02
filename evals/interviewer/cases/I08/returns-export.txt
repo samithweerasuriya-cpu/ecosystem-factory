@@ -1,0 +1,9 @@
+Made-up returns export for one school day (synthetic test data).
+
+barcode | title | condition note | reservation
+0041 | Storm Island | fine | yes
+0187 | Moths of the Marsh | torn spine | no
+0203 | The Clockmaker's Map | fine | no
+0311 | Algebra Starts Here (class set 3 of 30) | fine | no
+     | Pond Life | pencil marks | no
+0452 | Winter at Gull Point | water stain on cover | yes

@@ -1,0 +1,7 @@
+Made-up hire enquiries for one week (synthetic test data).
+
+Pilates group | Tue 2099-05-12 | 19:00-20:00 | 14 people
+Model railway club | Thu 2099-05-14 | 19:00-22:00 | 20 people
+Birthday party | Sat 2099-05-16 | 13:00-16:00 | 60 people
+Choir | Sat 2099-05-16 | 15:00-17:00 | 30 people
+Craft swap | Sun 2099-05-17 | 10:00-12:00 | 25 people

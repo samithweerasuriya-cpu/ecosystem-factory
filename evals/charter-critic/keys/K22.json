@@ -1,0 +1,50 @@
+{
+  "case": "K22",
+  "design_id": "P09",
+  "canary": "braulmvesk15",
+  "domain": "D1",
+  "length": "long",
+  "must_find": [
+    "CH06",
+    "CH09"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH07",
+    "CH08",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH06": "source_policy.conflicts",
+    "CH09": "inputs.description"
+  },
+  "locations": {
+    "CH06": [
+      "source_policy",
+      "conflicts",
+      "conflict"
+    ],
+    "CH09": [
+      "inputs",
+      "TBD",
+      "description"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Multi, long. CH06 (major): the source policy has no rule for sources that disagree (its only 'conflicts' line, 'Each source is read on its own.', settles nothing). CH09 (major): the inputs give 'TBD books a day' where the owner said the volume is not counted yet, instead of an open question with an owner. Twin: C04, identical except these two points."
+}

@@ -2,6 +2,8 @@
   "case": "K06",
   "design_id": "P04",
   "canary": "nixpellute96",
+  "domain": "D4",
+  "anchors": {"CH02": "gates"},
   "must_find": ["CH02"],
   "must_not_find": ["CH01", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH11", "CH12", "CH13", "CH14", "CH15", "DR07"],
   "verdict": "fail",

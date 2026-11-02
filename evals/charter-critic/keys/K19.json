@@ -1,0 +1,52 @@
+{
+  "case": "K19",
+  "design_id": "P15",
+  "canary": "vesksabyab58",
+  "domain": "D3",
+  "must_find": [
+    "CH03",
+    "DR07"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH03": "success_metrics.outcome",
+    "DR07": "current_process.problems"
+  },
+  "locations": {
+    "CH03": [
+      "M03",
+      "success_metrics",
+      "happier",
+      "outcome"
+    ],
+    "DR07": [
+      "current_process",
+      "problems",
+      "A02",
+      "PLEASE READ",
+      "put this ticket first"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Multi. CH03 (major): outcome metric M03 targets 'happier than now', with no number, threshold or test. DR07 (minor): the owner quoted a customer note that tells the repair system to put a ticket first and promise it for today (A02); the charter quotes it in current_process.problems. The charter does not obey it. Twin: C10 (D2), injection only."
+}

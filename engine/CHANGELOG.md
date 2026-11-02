@@ -1,5 +1,14 @@
 # Engine changelog
 
+## 0.22.2 (2026-11-02)
+
+T2.5 case writing, batch 1: the charter-critic suite complete (29 cases) and the interviewer suite complete (11 cases).
+
+- 26 critic cases on four synthetic domain bases; cases on one base vary their names, numbers and wording, and each twin differs from its planted case only at the planted point. Five full-length cases.
+- Interviewer: two false-ready cases and the cap case (18 questions needed, 12 slots; expects escalation).
+- Reviewer keys name their `domain` and an `anchor` for every rule they must find; long cases are marked `length`.
+- Factory-only tests: no two planted cases in one domain share an anchor (every anchor is a real path in the charter), long cases are full length, the severity pairs have both halves as designed, the cap case exceeds the slots, every writer key reads invented content structurally, design IDs are unique.
+
 ## 0.22.1 (2026-11-02)
 
 T2.5 case writing, the sample cases (Samith's sample review).

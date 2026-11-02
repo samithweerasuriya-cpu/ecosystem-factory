@@ -1,0 +1,57 @@
+{
+  "case": "K24",
+  "design_id": "P12",
+  "canary": "kurveskmav29",
+  "domain": "D4",
+  "length": "long",
+  "must_find": [
+    "CH08",
+    "CH10",
+    "CH13"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH09",
+    "CH11",
+    "CH12",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH08": "acceptance_tests",
+    "CH10": "users_and_stakeholders",
+    "CH13": "caps"
+  },
+  "locations": {
+    "CH08": [
+      "T02",
+      "acceptance_tests",
+      "expected"
+    ],
+    "CH10": [
+      "users_and_stakeholders",
+      "Margery Holt",
+      "margery-holt",
+      "approver"
+    ],
+    "CH13": [
+      "caps",
+      "agent_calls_per_job",
+      "40"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Multi, long. CH08 (major): acceptance test T02 ('I give it a week of made-up requests and look at what comes out.') gives no expected result. CH10 (major): the approver is a person's name (Margery Holt, made up), not a role. CH13 (major): agent_calls_per_job is raised to 40, above the factory's 25, and the owner gave no reason (only the token cap was lowered, with a reason). Twin: C07, identical except these three points."
+}

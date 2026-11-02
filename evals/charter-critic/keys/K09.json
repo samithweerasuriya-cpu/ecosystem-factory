@@ -1,0 +1,34 @@
+{
+  "case": "K09",
+  "design_id": "C06",
+  "canary": "veskulmorn56",
+  "domain": "D3",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CH04, CH08 and CH09: every rule's severity is the owner's (Q04 major, as the owner wrote); the acceptance test gives an input and an expected result in the owner's words; both unknowns are open questions with owner roles. Twin of P07 (identical except Q04's severity)."
+}

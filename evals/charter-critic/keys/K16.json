@@ -1,0 +1,43 @@
+{
+  "case": "K16",
+  "design_id": "C09",
+  "canary": "quoathesab87",
+  "domain": "D1",
+  "must_find": [
+    "CH15"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {
+    "CH15": "current_process.problems"
+  },
+  "locations": {
+    "CH15": [
+      "current_process",
+      "quickly",
+      "problems"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S2, minor half. 'Quickly' appears only in the current process's problem ('not found quickly'), not in any metric; every metric has a target. Expects CH15 (minor) only, so the verdict is pass. Same word as P17, where it is a metric's target."
+}

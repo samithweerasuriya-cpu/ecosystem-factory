@@ -1,0 +1,44 @@
+{
+  "case": "K02",
+  "design_id": "P05",
+  "canary": "veskholgry41",
+  "domain": "D1",
+  "must_find": [
+    "CH03"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH03": "success_metrics.agent_checkable"
+  },
+  "locations": {
+    "CH03": [
+      "M02",
+      "success_metrics",
+      "faster triage",
+      "agent_checkable"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH03 (major), obvious: the agent-checkable metric M02 has the target 'faster triage', with no number, threshold or test. Twin: C03 (D4), whose threshold is in words."
+}

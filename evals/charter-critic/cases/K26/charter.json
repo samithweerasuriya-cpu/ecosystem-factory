@@ -1,0 +1,387 @@
+{
+  "schema_version": "1",
+  "slug": "morning-returns",
+  "title": "Morning returns list",
+  "goal": {
+    "text": "The volunteer shelvers get a sorted list before the doors open, so reserved books stop getting shelved by mistake.",
+    "cites": [
+      "[A:A01 \"so reserved books stop getting shelved by mistake\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Rows for books with a reservation flag that say shelve",
+        "target": "none",
+        "check": "A script compares each row's decision with the reservation flag in the export (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their barcode",
+        "target": "every row",
+        "check": "A script finds each quoted barcode in the export (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Readers told a book is waiting when it is not",
+        "target": "none in a month",
+        "cites": [
+          "[A:A01 \"No reader told a book is waiting when it is not, over a month.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Reserved books on the pick-up shelf at opening",
+        "target": "every one, the morning after it comes back",
+        "cites": [
+          "[A:A01 \"Every reserved book is on the pick-up shelf when the doors open.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "volunteer-shelvers",
+      "relation": "user",
+      "interest": "Empty the bin and shelve from the list.",
+      "cites": [
+        "[A:A01 \"Volunteer shelvers (users: empty the bin and shelve from the list).\"]"
+      ]
+    },
+    {
+      "role": "library-coordinator",
+      "relation": "approver",
+      "interest": "Reads the list and agrees it.",
+      "cites": [
+        "[A:A01 \"Library coordinator (approver: reads the list and agrees it).\"]"
+      ]
+    },
+    {
+      "role": "readers-with-reservations",
+      "relation": "stakeholder",
+      "interest": "Pick up reserved books the day they are told.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "A shelver empties the bin.",
+      "The shelver types each barcode into the loans screen.",
+      "The shelver checks for a reservation and a damage note.",
+      "The shelver shelves the book."
+    ],
+    "problems": [
+      "Readers are told a book is waiting when it has gone back on the shelves.",
+      "Books with loose pages go out again."
+    ],
+    "cites": [
+      "[A:A01 \"readers are told a book is waiting when it has gone back on the shelves\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The overnight bin's returns in.",
+      "A sorted list (shelve, pick-up shelf, fix-it tub) out."
+    ],
+    "out": [
+      "Membership cards",
+      "Late charges",
+      "The toy library"
+    ],
+    "cites": [
+      "[A:A01 \"Out: membership cards, late charges, the toy library.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "The returns export, around 45 a night.",
+    "format": "plain text, one book per line",
+    "constraints": [
+      "Barcode",
+      "Title",
+      "Damage note",
+      "Reservation flag"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up returns export."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "pick-up shelf",
+      "meaning": "The shelf by the door where readers collect what they reserved.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "fix-it tub",
+      "meaning": "The tub of books with loose pages or broken spines.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "reservation flag",
+      "meaning": "The export's yes or no for an open reservation.",
+      "cites": [
+        "[A:A01 \"Reservation flag: the export's yes or no for an open reservation.\"]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it ten made-up nights of the bin, and every reserved book is under pick-up shelf.",
+      "cites": [
+        "[A:A01 \"I give it ten made-up nights of the bin, and every reserved book is under pick-up shelf.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/bin-returns.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The library coordinator's own decisions",
+        "use_for": "Rules, scope, what counts as damage"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Export format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/bin-returns.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the barcode and the export line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row goes to 'check by hand' and is raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per returned book, with a decision: shelve, pick-up shelf or fix-it tub.",
+    "format": "List, one row per book",
+    "fields": [
+      {
+        "name": "barcode",
+        "description": "The barcode, quoted from the export."
+      },
+      {
+        "name": "title",
+        "description": "The title from the export."
+      },
+      {
+        "name": "decision",
+        "description": "shelve, pick-up shelf or fix-it tub."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"one row per returned book: barcode, title, decision\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "A book with a reservation flag never goes to shelve.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A damage note that mentions damage sends the book to the fix-it tub.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"sends the book to the fix-it tub (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the barcode from the export.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the barcode from the export (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Garden of Stones | none | shelve",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "The Last Lighthouse | reserved | pick-up shelf",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "The Last Lighthouse | reserved | shelve",
+        "why": "It is reserved.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Clay and Kiln | loose pages | shelve",
+        "why": "The note says loose pages.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "reversible",
+    "blast_radius": "external",
+    "notes": "The shelvers can move a book again the same day; nothing is written anywhere. Readers of this library are affected.",
+    "cites": [
+      "[A:A01 \"Reversible\"]",
+      "[A:A02 \"Our readers, about four hundred members.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "returns-export",
+      "description": "The day's returns export, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the returns export.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the sorted list before anyone acts on it.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I agree the list before the shelvers start.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should the fix-it tub list say what is wrong with each book?",
+      "owner": "library-coordinator"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every reserved book under pick-up shelf on ten made-up nights.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"On ten made-up nights it should put every reserved book under pick-up shelf.\"]"
+      ]
+    }
+  ]
+}

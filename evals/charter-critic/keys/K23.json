@@ -1,0 +1,44 @@
+{
+  "case": "K23",
+  "design_id": "P19",
+  "canary": "yaborndri12",
+  "domain": "D1",
+  "must_find": [
+    "CH10"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH10": "users_and_stakeholders"
+  },
+  "locations": {
+    "CH10": [
+      "users_and_stakeholders",
+      "Ruth Calloway",
+      "ruth-calloway",
+      "approver"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH10 (major), obvious: the approver in users_and_stakeholders is a person's name (Ruth Calloway, made up), with no role. Twin: C07 (D4), whose role titles only look like names."
+}

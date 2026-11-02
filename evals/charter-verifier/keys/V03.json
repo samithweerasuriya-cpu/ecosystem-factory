@@ -2,6 +2,8 @@
   "case": "V03",
   "design_id": "V-C06",
   "canary": "jebskolute92",
+  "domain": "D2",
+  "anchors": {},
   "must_find": [],
   "must_not_find": ["CV01", "CV02", "CV03", "CV04", "CV05", "CV06", "CV07", "CV08", "CV09", "DR07"],
   "verdict": "pass",

@@ -1,0 +1,12 @@
+{
+  "id": "K01",
+  "kind": "planted",
+  "goal": "Check each week's volunteer shift swap requests",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

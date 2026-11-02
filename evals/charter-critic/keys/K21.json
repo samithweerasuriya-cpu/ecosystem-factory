@@ -1,0 +1,45 @@
+{
+  "case": "K21",
+  "design_id": "P02",
+  "canary": "yabjexhol75",
+  "domain": "D2",
+  "must_find": [
+    "CH01"
+  ],
+  "must_not_find": [
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH01": "examples.bad"
+  },
+  "locations": {
+    "CH01": [
+      "E04",
+      "examples",
+      "bad",
+      "Q04",
+      "holiday"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH01 (major), subtle: bad example E04 (a swap to a volunteer on holiday) lists 'breaks: Q04', but Q04 is about the reason being one sentence; no quality rule covers holidays, and the owner named no rule for it. So a bad example names no rule it actually breaks. Twin: C01, identical except E04."
+}

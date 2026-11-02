@@ -1,0 +1,45 @@
+{
+  "case": "K18",
+  "design_id": "P08",
+  "canary": "mavjexpell96",
+  "domain": "D4",
+  "must_find": [
+    "CH05"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH05": "scope"
+  },
+  "locations": {
+    "CH05": [
+      "scope",
+      "private parties",
+      "birthday parties",
+      "in",
+      "out"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH05 (major), subtle: scope puts 'one-off family celebrations such as christenings and birthday parties' in, and 'private parties' out; a birthday party is both. Twin: C04 (D1), whose excluded sub-case only looks in scope."
+}

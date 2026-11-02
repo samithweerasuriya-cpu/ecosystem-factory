@@ -1,0 +1,393 @@
+{
+  "schema_version": "1",
+  "slug": "steward-swaps",
+  "title": "Gallery steward swaps",
+  "goal": {
+    "text": "The visitor services lead gets a checked list of duty swaps on Thursdays, so every gallery has a steward who knows its evacuation route.",
+    "cites": [
+      "[A:A01 \"so every gallery has a steward who knows its evacuation route\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Approved swaps whose taker lacks the duty's training",
+        "target": "none",
+        "check": "A script compares each approved row's taker with the training list (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a duty holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their swap message",
+        "target": "every row",
+        "check": "A script finds each quoted message word for word in the input (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Galleries covered by a steward without its fire walk",
+        "target": "none in a season",
+        "cites": [
+          "[A:A01 \"No gallery covered without its fire walk in a season.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Swap e-mails answered by the following Thursday",
+        "target": "every one",
+        "cites": [
+          "[A:A01 \"Every swap e-mail is answered by the Thursday after it arrives.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "gallery-stewards",
+      "relation": "user",
+      "interest": "Check which duties they now have.",
+      "cites": [
+        "[A:A01 \"Gallery stewards (users: check which duties they now have).\"]"
+      ]
+    },
+    {
+      "role": "visitor-services-lead",
+      "relation": "approver",
+      "interest": "Approves the list on thursdays.",
+      "cites": [
+        "[A:A01 \"Visitor services lead (approver: approves the list on Thursdays).\"]"
+      ]
+    },
+    {
+      "role": "museum-trustees",
+      "relation": "stakeholder",
+      "interest": "The galleries are covered safely.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "A steward e-mails the lead.",
+      "The lead checks the training table in the steward handbook.",
+      "The lead edits the weekend sheet."
+    ],
+    "problems": [
+      "One Sunday the upper gallery was covered by a steward who hadn't done its fire walk.",
+      "The training table in the handbook and the weekend sheet disagree about who is trained."
+    ],
+    "cites": [
+      "[A:A01 \"one Sunday the upper gallery was covered by a steward who hadn't done its fire walk\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The week's swap e-mails in.",
+      "A checked list of swaps out."
+    ],
+    "out": [
+      "School group bookings",
+      "Volunteer recruitment",
+      "The café rota"
+    ],
+    "cites": [
+      "[A:A01 \"Out: school group bookings, volunteer recruitment, the café rota.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Swap messages, about 10 a week.",
+    "format": "plain text, one swap per message",
+    "constraints": [
+      "Who gives up the duty",
+      "Which duty",
+      "Who takes it"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of swap messages."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "fire walk",
+      "meaning": "The walk-through of a gallery's evacuation route that a steward must do before covering it.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "duty",
+      "meaning": "One gallery for one half-day.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it a month of made-up swap e-mails, and no gallery ever goes to a steward without its fire walk.",
+      "cites": [
+        "[A:A01 \"I give it a month of made-up swap e-mails, and no gallery ever goes to a steward without its fire walk.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/swap-emails.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "id": "S02",
+      "path": "inputs/context/steward-handbook.txt",
+      "classification": "public",
+      "evidence_for": "the training needs"
+    }
+  ],
+  "data_classification": {
+    "class": "public",
+    "cites": [
+      "[A:A01 \"Public: the handbook is published on the museum's website\"]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The visitor services lead's own decisions",
+        "use_for": "Rules, roles, training needs"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Message format, training needs"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/swap-emails.txt": 2,
+        "inputs/context/steward-handbook.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the swap message and the training list entry that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a swap is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per swap message, with a decision: approve or refuse. An e-mail that names no gallery is refused as incomplete.",
+    "format": "Table, one row per swap message",
+    "fields": [
+      {
+        "name": "message",
+        "description": "The swap message, quoted."
+      },
+      {
+        "name": "duty",
+        "description": "The duty: day and gallery."
+      },
+      {
+        "name": "gives_up",
+        "description": "The volunteer giving it up."
+      },
+      {
+        "name": "takes",
+        "description": "The volunteer taking it."
+      },
+      {
+        "name": "decision",
+        "description": "approve or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"An e-mail that names no gallery is refused as incomplete.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "The volunteer taking a duty holds the training it needs.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a duty holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A swap is only between two volunteers in the same role.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a swap is only between two volunteers in the same role (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the swap message.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the swap message (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Sat am | Upper gallery | Ida to Jem | approve | Jem has done its fire walk",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Sun pm | Mill room | Kai to Lou | approve | Lou has done its fire walk",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Sun am | Upper gallery | Mo to Nat | approve",
+        "why": "Nat has not done the upper gallery fire walk.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Sat pm | Mill room | Oz (steward) to Pip (shop) | approve",
+        "why": "Pip works in the shop, not as a steward.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A wrong swap can be fixed before the weekend, not during an evacuation. Stewards and visitors are affected.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"About forty stewards, and visitors if there is ever an evacuation.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "swap-messages",
+      "description": "The swap messages, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the swap messages.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the checked list of swaps.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I approve the list on Thursday before the weekend sheet changes.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should a steward be able to cover two galleries at once on quiet days?",
+      "owner": "visitor-services-lead"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every fire walk check right on a month of made-up e-mails.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should get every fire walk check right on a month of made-up e-mails\"]"
+      ]
+    }
+  ]
+}

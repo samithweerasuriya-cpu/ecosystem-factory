@@ -1,0 +1,12 @@
+{
+  "id": "K07",
+  "kind": "planted",
+  "goal": "Build each day's bike repair queue with bench minutes and promised dates",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

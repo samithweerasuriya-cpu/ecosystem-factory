@@ -1,0 +1,34 @@
+{
+  "case": "K27",
+  "design_id": "C05",
+  "canary": "kurjexkur13",
+  "domain": "D2",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CH07: the charter is classed public (the owner's own words) and its context files are public and synthetic, none above it. Deviation from the design text ('synthetic charter with one public file'): public ranks above synthetic in config/data-classes.json, so that charter would break CH07; this twin keeps the intent (every file at or below the charter's class). Twin of P10."
+}

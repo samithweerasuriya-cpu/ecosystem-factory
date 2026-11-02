@@ -1,0 +1,8 @@
+{
+  "id": "I03",
+  "kind": "interview",
+  "slug": "hut-hire",
+  "goal": "Check each week's scout hut hire enquiries against troop night and other hires",
+  "brief": "brief.md",
+  "context": [{"file": "hire-enquiries.txt", "evidence_for": "the input format", "class": "synthetic"}]
+}

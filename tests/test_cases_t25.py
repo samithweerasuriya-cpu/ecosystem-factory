@@ -23,6 +23,12 @@ REVIEWER_SUITES = ("charter-critic", "charter-verifier")
 OUTCOMES = ("ready", "escalated", "stopped", "not_ready", "gate")
 CANARY = re.compile(r"^[a-z]{6,}[0-9]{2,}$")
 QUOTE = re.compile(r'\[(A|S):([AS]\d+)(?: §[^"\]]*?)? "(.*?)"\]')
+LONG_WORDS = 2300                                         # "about 2,500 words" in the case design
+SEVERITY_PAIRS = (                                        # (suite, pair, {design ID: (rule it must find, verdict)})
+    ("charter-critic", "S1", {"P16": ("CH11", "fail"), "C08": ("CH14", "pass")}),
+    ("charter-critic", "S2", {"P17": ("CH03", "fail"), "C09": ("CH15", "pass")}),
+    ("charter-verifier", "S3", {"V-P14": ("CV02", "fail"), "V-C09": ("CV03", "fail")}),
+    ("charter-verifier", "S4", {"V-P15": ("CV04", "fail"), "V-C03": ("CV09", "pass")}))
 
 
 def shipped(suite):
@@ -172,6 +178,85 @@ class ShippedCaseTests(CaseBase):
                 continue
             need = sum(n for n in k.get("concrete", {}).values() if n > 0) + len(k["expect"].get("open_questions", []))
             self.assertLessEqual(need, slots, f"{d.name}: needs at least {need} questions, the caps allow {slots}")
+
+    def test_the_cap_case_needs_more_questions_than_the_slots(self):
+        """The cap case hits the round cap by construction: its minimum questions exceed the slots, and it expects
+        escalation."""
+        caps = json.loads((REPO / "config/caps.json").read_text(encoding="utf-8"))
+        ac = importlib.import_module("agent_call")
+        rounds = min(caps["input_rounds"], caps["input_rounds_per_cycle"] * (1 + self.js.SIMULATED_RESUMES))
+        slots = (rounds - 1) * ac.MAX_QUESTIONS
+        caps_cases = [d for d in shipped("interviewer") if key_of("interviewer", d)["design_id"] == "cap"]
+        self.assertEqual(len(caps_cases), 1)
+        k = key_of("interviewer", caps_cases[0])
+        need = sum(n for n in k["concrete"].values() if n > 0)
+        self.assertGreater(need, slots, f"{caps_cases[0].name}: needs {need} questions, the caps allow {slots}")
+        self.assertEqual(k["expect"]["outcome"], "escalated")
+
+    def test_every_writer_key_reads_invented_content_structurally(self):
+        for d in shipped("charter-writer"):
+            k = key_of("charter-writer", d)
+            entries = k.get("invented_entries")
+            self.assertTrue(entries, f"{d.name}: no invented_entries")
+            for e in entries:
+                self.assertEqual(set(e), {"field", "match"}, d.name)
+                self.assertTrue(e["match"], d.name)
+                for pattern in e["match"].values():
+                    re.compile(pattern)
+
+    def test_long_cases_are_full_length(self):
+        """A key marked "length": "long" is a full-length case: its charter (or, without one, its case files) has
+        at least LONG_WORDS words."""
+        for s, d in self.all_cases():
+            if key_of(s, d).get("length") != "long":
+                continue
+            c = case_of(d)
+            files = [d / c["artifact"]] if c.get("artifact") else [f for f in d.iterdir() if f.is_file()]
+            n = sum(len(f.read_text(encoding="utf-8").split()) for f in files)
+            self.assertGreaterEqual(n, LONG_WORDS, f"{s}/{d.name}: {n} words")
+
+    def test_severity_pairs_have_both_halves_as_designed(self):
+        """Rule 8 pairs: the same defect breaks a different rule depending on where it sits. Once either half is
+        shipped, both are, each expecting its rule and verdict."""
+        for s, pair, halves in SEVERITY_PAIRS:
+            keys = {key_of(s, d)["design_id"]: key_of(s, d) for d in shipped(s)}
+            present = [h for h in halves if h in keys]
+            if not present:
+                continue
+            self.assertEqual(len(present), 2, f"{pair}: only {present} shipped")
+            for design, (rule, verdict) in halves.items():
+                self.assertIn(rule, keys[design]["must_find"], f"{pair} {design}")
+                self.assertEqual(keys[design]["verdict"], verdict, f"{pair} {design}")
+
+    def test_planted_cases_in_one_domain_do_not_share_a_location(self):
+        """Cases built on one domain base vary their surface; the planted defects sit at different places. Each
+        reviewer key names its domain and an anchor (a dotted path into the charter) for every rule it must find;
+        no two planted cases in one domain share an anchor."""
+        for s in REVIEWER_SUITES:
+            seen = {}
+            for d in shipped(s):
+                k, c = key_of(s, d), case_of(d)
+                self.assertIn(k.get("domain"), ("D1", "D2", "D3", "D4"), f"{s}/{d.name}")
+                anchors = k.get("anchors")
+                self.assertIsInstance(anchors, dict, f"{s}/{d.name}")
+                self.assertEqual(set(anchors), set(k["must_find"]), f"{s}/{d.name}: an anchor for each must_find rule")
+                doc = json.loads((d / c["artifact"]).read_text(encoding="utf-8"))
+                for rule, where in anchors.items():
+                    node = doc
+                    for part in where.split("."):
+                        self.assertIn(part, node, f"{s}/{d.name}: {rule} anchor {where} is not in the charter")
+                        node = node[part]
+                if c["kind"] != "planted":
+                    continue
+                for where in set(anchors.values()):
+                    spot = (k["domain"], where)
+                    self.assertNotIn(spot, seen, f"{s}/{d.name} and {seen.get(spot)} plant at {where} in {k['domain']}")
+                    seen[spot] = d.name
+
+    def test_design_ids_are_unique(self):
+        for s in SUITES:
+            ids = [key_of(s, d)["design_id"] for d in shipped(s)]
+            self.assertEqual(len(ids), len(set(ids)), s)
 
     def test_persona_keys_fit_the_guide(self):
         for d in shipped("interviewer"):

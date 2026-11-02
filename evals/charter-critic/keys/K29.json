@@ -1,0 +1,50 @@
+{
+  "case": "K29",
+  "design_id": "P06",
+  "canary": "sabyabwor37",
+  "domain": "D2",
+  "must_find": [
+    "CH04",
+    "CH14"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH04": "quality_rulebook.definitions",
+    "CH14": "glossary"
+  },
+  "locations": {
+    "CH04": [
+      "quality_rulebook",
+      "definitions",
+      "48 hours",
+      "severity"
+    ],
+    "CH14": [
+      "cover rule",
+      "glossary",
+      "definitions"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Multi. CH04 (major): the owner's rule 'a swap must reach the inbox at least 48 hours before the slot' is kept only as a definition, with no severity (the owner gave none, and no open question asks). CH14 (minor): 'the cover rule' is used in it and defined nowhere. Twin: C06 (D3), where every severity matches the owner's."
+}

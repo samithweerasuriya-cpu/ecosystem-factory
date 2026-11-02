@@ -1,0 +1,44 @@
+{
+  "case": "K03",
+  "design_id": "P01",
+  "canary": "ilkrintyab35",
+  "domain": "D1",
+  "must_find": [
+    "CH01"
+  ],
+  "must_not_find": [
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH01": "examples.bad"
+  },
+  "locations": {
+    "CH01": [
+      "examples",
+      "bad",
+      "E03",
+      "E04"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH01 (major), obvious: the charter has two good examples but only one bad one: E04 repeats E03 word for word (the schema needs two entries, so the second is a copy; the owner gave only one bad example). Twin: C01 (D2), which has exactly two of each."
+}

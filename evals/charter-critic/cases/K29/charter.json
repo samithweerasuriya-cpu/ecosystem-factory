@@ -1,0 +1,389 @@
+{
+  "schema_version": "1",
+  "slug": "studio-swaps",
+  "title": "Studio shift swaps",
+  "goal": {
+    "text": "The station coordinator gets a checked list of slot swaps each Monday, so no slot goes out with nobody trained on the desk.",
+    "cites": [
+      "[A:A01 \"so no slot goes out with nobody trained on the desk\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Approved swaps whose taker lacks the slot's training",
+        "target": "none",
+        "check": "A script compares each approved row's taker with the training list (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a slot holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their swap message",
+        "target": "every row",
+        "check": "A script finds each quoted message word for word in the input (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Dead air caused by a swap",
+        "target": "none in a quarter",
+        "cites": [
+          "[A:A01 \"No dead air caused by a swap in a quarter.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Swaps answered on the following Monday",
+        "target": "every one",
+        "cites": [
+          "[A:A01 \"Every swap is answered on the Monday after it arrives.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "presenters",
+      "relation": "user",
+      "interest": "Check the list for the slots they swapped.",
+      "cites": [
+        "[A:A01 \"Presenters (users: check the list for the slots they swapped).\"]"
+      ]
+    },
+    {
+      "role": "station-coordinator",
+      "relation": "approver",
+      "interest": "Signs off the swaps each monday.",
+      "cites": [
+        "[A:A01 \"Station coordinator (approver: signs off the swaps each Monday).\"]"
+      ]
+    },
+    {
+      "role": "listeners",
+      "relation": "stakeholder",
+      "interest": "No dead air.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "A presenter e-mails the shared inbox.",
+      "The coordinator reads it on Monday.",
+      "The coordinator updates the slot board."
+    ],
+    "problems": [
+      "Last month a breakfast slot went to a presenter not trained on the desk, and the station was silent for twenty minutes.",
+      "Swaps sent after Monday are not seen until the next week."
+    ],
+    "cites": [
+      "[A:A01 \"last month a breakfast slot went to a presenter not trained on the desk, and the station was silent for twenty minutes\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The week's swap e-mails in.",
+      "A checked list of swaps out."
+    ],
+    "out": [
+      "New presenter training",
+      "Programme ideas",
+      "The outside broadcast rota"
+    ],
+    "cites": [
+      "[A:A01 \"Out: new presenter training, programme ideas, the outside broadcast rota.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Swap messages, about 8 a week.",
+    "format": "plain text, one swap per message",
+    "constraints": [
+      "Who gives up the slot",
+      "Which slot",
+      "Who takes it"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of swap messages."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "desk trained",
+      "meaning": "Signed off on running the studio desk alone.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "slot",
+      "meaning": "One hour on air.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it a month of made-up swap e-mails, and no slot ever goes to someone who isn't desk trained.",
+      "cites": [
+        "[A:A01 \"I give it a month of made-up swap e-mails, and no slot ever goes to someone who isn't desk trained.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/inbox-swaps.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The station coordinator's own decisions",
+        "use_for": "Rules, roles, training needs"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Message format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/inbox-swaps.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the swap message and the training list entry that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a swap is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per swap message, with a decision: approve or refuse. A swap that names no slot is refused as incomplete.",
+    "format": "Table, one row per swap message",
+    "fields": [
+      {
+        "name": "message",
+        "description": "The swap message, quoted."
+      },
+      {
+        "name": "slot",
+        "description": "The slot: day and hour."
+      },
+      {
+        "name": "gives_up",
+        "description": "The volunteer giving it up."
+      },
+      {
+        "name": "takes",
+        "description": "The volunteer taking it."
+      },
+      {
+        "name": "decision",
+        "description": "approve or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"A swap that names no slot is refused as incomplete.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "The volunteer taking a slot holds the training it needs.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a slot holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A swap is only between two volunteers in the same role.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a swap is only between two volunteers in the same role (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the swap message.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the swap message (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ],
+    "definitions": [
+      "A swap must reach the inbox at least 48 hours before the slot, and the cover rule applies."
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Tue 07:00 | Ari to Bex | approve | Bex is desk trained",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Sun 18:00 | Cal to Dot | approve | Dot is desk trained",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Mon 07:00 | Eve to Fin | approve",
+        "why": "Fin is not desk trained.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Wed 12:00 | Gil (presenter) to Hal (producer) | approve",
+        "why": "Hal is a producer, not a presenter.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A wrong swap can be changed before the slot, but dead air can't be undone. Presenters and listeners are affected.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"Our thirty presenters, and anyone listening when it goes wrong.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "swap-messages",
+      "description": "The swap messages, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the swap messages.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the checked list of swaps.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I sign off the list on Monday before I touch the slot board.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should a presenter be able to swap a slot with a guest presenter?",
+      "owner": "station-coordinator"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every desk-training check right on a month of made-up swaps.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"It must get every desk-training check right on a month of made-up swaps.\"]"
+      ]
+    }
+  ]
+}

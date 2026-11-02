@@ -1,0 +1,15 @@
+{
+  "case": "I02",
+  "design_id": "F3",
+  "canary": "grisnolthwe48",
+  "persona": "False-ready (D3, community bike kitchen jobs). Single call. Every field looks answered, but scope has no 'out' list (its 'vague if' test) and current_process gives steps but names no failure (its 'vague if' test: no named failure).",
+  "answers": {},
+  "concrete": {"title": 0, "slug": 0, "goal": 0, "users_and_stakeholders": 0, "success_metrics": 0, "open_questions": 0, "inputs": 0, "glossary": 0, "context_inventory": 0, "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0, "examples": 0, "acceptance_tests": 0, "acceptance_criteria": 0, "risk": 0, "systems": 0, "gates": 0, "caps": 0},
+  "probe_fields": ["scope", "current_process"],
+  "reference": [],
+  "contradictions": [],
+  "injections": [],
+  "expect": {"outcome": "not_ready"},
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "False-ready case with two vague fields. Correct: needs_input with a question on scope or current_process (the scorer accepts a probe on either). A complete status, or either field marked answered, is false-ready (threshold 0)."
+}

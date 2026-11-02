@@ -1,0 +1,15 @@
+{
+  "case": "I08",
+  "design_id": "F1",
+  "canary": "plorvendak27",
+  "persona": "False-ready (D1, school library returns). Single call. Every field looks answered, but success_metrics is 'Make returns easier for everyone.': no number, threshold or observable test (its 'vague if' test).",
+  "answers": {},
+  "concrete": {"title": 0, "slug": 0, "goal": 0, "users_and_stakeholders": 0, "current_process": 0, "scope": 0, "open_questions": 0, "inputs": 0, "glossary": 0, "context_inventory": 0, "data_classification": 0, "source_policy": 0, "output": 0, "quality_rulebook": 0, "examples": 0, "acceptance_tests": 0, "acceptance_criteria": 0, "risk": 0, "systems": 0, "gates": 0, "caps": 0},
+  "probe_fields": ["success_metrics"],
+  "reference": [],
+  "contradictions": [],
+  "injections": [],
+  "expect": {"outcome": "not_ready"},
+  "leak_terms": ["hidden reference", "answer key", "persona"],
+  "why": "False-ready case. Correct: needs_input with a question on success_metrics. A complete status, or success_metrics marked answered, is false-ready (threshold 0)."
+}

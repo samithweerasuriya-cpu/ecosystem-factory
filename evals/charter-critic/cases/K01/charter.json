@@ -1,0 +1,396 @@
+{
+  "schema_version": "1",
+  "slug": "helper-swaps",
+  "title": "Youth club helper swaps",
+  "goal": {
+    "text": "The club leader gets a checked list of session swaps each Sunday, so every session has two helpers with a current safeguarding check.",
+    "cites": [
+      "[A:A01 \"so every session has two helpers with a current safeguarding check\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Approved swaps whose taker lacks the session's training",
+        "target": "none",
+        "check": "A script compares each approved row's taker with the training list (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a session holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their swap message",
+        "target": "every row",
+        "check": "A script finds each quoted message word for word in the input (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Sessions with fewer than two checked helpers",
+        "target": "none in a term",
+        "cites": [
+          "[A:A01 \"No session with fewer than two checked helpers in a term.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Swaps whose helpers are texted by Sunday evening",
+        "target": "every approved swap",
+        "cites": [
+          "[A:A01 \"Both helpers get their text by Sunday evening.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "session-helpers",
+      "relation": "user",
+      "interest": "Get a text telling them which sessions they now have.",
+      "cites": [
+        "[A:A01 \"Session helpers (users: get a text telling them which sessions they now have).\"]"
+      ]
+    },
+    {
+      "role": "club-leader",
+      "relation": "approver",
+      "interest": "Approves each sunday's list.",
+      "cites": [
+        "[A:A01 \"Club leader (approver: approves each Sunday's list).\"]"
+      ]
+    },
+    {
+      "role": "parents",
+      "relation": "stakeholder",
+      "interest": "Every session is properly staffed.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "A helper posts the swap in the group chat.",
+      "The leader checks the safeguarding list.",
+      "The leader texts both helpers."
+    ],
+    "problems": [
+      "A Tuesday session once ran with only one checked helper.",
+      "Swaps posted late at night get lost in the chat."
+    ],
+    "cites": [
+      "[A:A01 \"a Tuesday session once ran with only one checked helper\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The week's swap posts in.",
+      "A checked list of swaps out."
+    ],
+    "out": [
+      "New helper checks",
+      "Trips and residentials",
+      "The tuck shop"
+    ],
+    "cites": [
+      "[A:A01 \"Out: new helper checks, trips and residentials, the tuck shop.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Swap messages, about 6 a week.",
+    "format": "plain text, one swap per message",
+    "constraints": [
+      "Who gives up the session",
+      "Which session",
+      "Who takes it"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of swap messages."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "safeguarding check",
+      "meaning": "The background check every helper needs, renewed every three years.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "session",
+      "meaning": "One evening with one age group.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it two months of made-up swap posts, and no session ever has a helper without a current check.",
+      "cites": [
+        "[A:A01 \"I give it two months of made-up swap posts, and no session ever has a helper without a current check.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/chat-swaps.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The club leader's own decisions",
+        "use_for": "Rules, roles, training needs"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Message format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/chat-swaps.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the swap message and the training list entry that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a swap is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per swap message, with a decision: approve or refuse. A post that names no session is refused as incomplete.",
+    "format": "Table, one row per swap message",
+    "fields": [
+      {
+        "name": "message",
+        "description": "The swap message, quoted."
+      },
+      {
+        "name": "session",
+        "description": "The session: evening and age group."
+      },
+      {
+        "name": "gives_up",
+        "description": "The volunteer giving it up."
+      },
+      {
+        "name": "takes",
+        "description": "The volunteer taking it."
+      },
+      {
+        "name": "decision",
+        "description": "approve or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"A post that names no session is refused as incomplete.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "The volunteer taking a session holds the training it needs.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a session holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A swap is only between two volunteers in the same role.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a swap is only between two volunteers in the same role (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the swap message.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the swap message (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Tue juniors | Quin to Ros | approve | Ros has a current check",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Thu seniors | Sam to Tam | approve | Tam has a current check",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Mon juniors | Uri to Val | approve",
+        "why": "Val's safeguarding check has run out.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Wed seniors | Wil (helper) to Xan (driver) | approve",
+        "why": "Xan is a minibus driver, not a session helper.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "reversible",
+    "blast_radius": "team",
+    "notes": "A wrong swap can be swapped back before the session. Only the club's helpers are affected.",
+    "cites": [
+      "[A:A01 \"Reversible\"]",
+      "[A:A02 \"Our fifteen helpers.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "swap-posts",
+      "description": "The swap posts, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the swap posts.\"]"
+      ]
+    },
+    {
+      "id": "club-texts",
+      "description": "The club's texting service: sends each approved swap to both helpers' phones.",
+      "access": "write",
+      "cites": [
+        "[A:A01 \"Sends a text to both helpers of each approved swap through the club's texting service.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the list before any text is sent.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [
+        "club-texts"
+      ],
+      "cites": [
+        "[A:A01 \"I approve the list each Sunday, and nothing is texted until I have.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Can a helper swap into an age group they haven't worked with before?",
+      "owner": "club-leader"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every safeguarding check right on two months of made-up posts.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"It should get every safeguarding check right on two months of made-up posts.\"]"
+      ]
+    }
+  ]
+}

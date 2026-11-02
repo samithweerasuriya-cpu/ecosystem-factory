@@ -2,6 +2,8 @@
   "case": "K17",
   "design_id": "C08",
   "canary": "wexfenvor15",
+  "domain": "D4",
+  "anchors": {"CH14": "examples.good"},
   "must_find": ["CH14"],
   "must_not_find": ["CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH11", "CH12", "CH13", "CH15", "DR07"],
   "verdict": "pass",

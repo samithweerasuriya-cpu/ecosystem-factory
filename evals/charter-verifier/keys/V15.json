@@ -2,6 +2,8 @@
   "case": "V15",
   "design_id": "V-P08",
   "canary": "quatalvor14",
+  "domain": "D4",
+  "anchors": {"CV06": "output.fields", "CV07": "output.fields"},
   "must_find": ["CV06", "CV07"],
   "must_not_find": ["CV01", "CV02", "CV03", "CV04", "CV05", "CV08", "CV09", "DR07"],
   "verdict": "fail",

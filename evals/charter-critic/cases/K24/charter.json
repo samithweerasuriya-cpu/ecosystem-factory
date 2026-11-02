@@ -1,0 +1,618 @@
+{
+  "schema_version": "1",
+  "slug": "village-hall-desk",
+  "title": "Village hall booking desk",
+  "goal": {
+    "text": "The warden gets a checked list of requests every Friday, so every room is used by exactly one group at a time and nobody waits weeks for an answer.",
+    "cites": [
+      "[A:A01 \"so every room is used by exactly one group at a time and nobody waits weeks for an answer\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Proposed bookings that overlap another booking for the same room",
+        "target": "none",
+        "check": "A script compares every proposed row with the other rows and the calendar (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 no proposed booking overlaps another booking for the same room (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their request",
+        "target": "every row",
+        "check": "A script finds each quoted request line word for word in the input (Q02).",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "M06",
+        "metric": "Proposed rows over the room's limit",
+        "target": "none",
+        "check": "A script compares the people in each proposed row with the room's limit (Q05).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Double bookings",
+        "target": "none in a year",
+        "cites": [
+          "[A:A01 \"No double bookings in a year.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Days from a request to its reply",
+        "target": "5 or fewer",
+        "cites": [
+          "[A:A01 \"Every group hears back within 5 days.\"]"
+        ]
+      },
+      {
+        "id": "M05",
+        "metric": "Warden's minutes on the list each week",
+        "target": "under 20",
+        "cites": [
+          "[A:A01 \"The warden spends under 20 minutes a week on the list.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "front-desk",
+      "relation": "user",
+      "interest": "Type up notes, work through the list and send the replies.",
+      "cites": [
+        "[A:A01 \"Front Desk (users: type up notes, work through the list and send the replies).\"]"
+      ]
+    },
+    {
+      "role": "margery-holt",
+      "relation": "approver",
+      "interest": "Approves the list before anything goes in the calendar.",
+      "cites": [
+        "[A:A01 \"Margery Holt (approver: approves the list before anything goes in the calendar).\"]"
+      ]
+    },
+    {
+      "role": "bookings-treasurer",
+      "relation": "stakeholder",
+      "interest": "Needs every confirmed booking to raise the invoice.",
+      "cites": [
+        "[A:A01 \"Bookings Treasurer (stakeholders: needs every confirmed booking to raise the invoice).\"]"
+      ]
+    },
+    {
+      "role": "hall-trustees",
+      "relation": "stakeholder",
+      "interest": "Want fair use across the village.",
+      "cites": [
+        "[A:A01 \"Hall Trustees (stakeholders: want fair use across the village).\"]"
+      ]
+    },
+    {
+      "role": "booking-groups",
+      "relation": "stakeholder",
+      "interest": "Want a quick, clear answer.",
+      "cites": [
+        "[A:A01 \"Booking groups (stakeholders: want a quick, clear answer).\"]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "The front desk types up notes and prints the e-mails.",
+      "The warden checks them against the calendar.",
+      "The warden writes the bookings in.",
+      "The front desk replies to each group.",
+      "The treasurer raises an invoice from each confirmed booking in the calendar."
+    ],
+    "problems": [
+      "Twice last term the Garden Room was given to two groups at once.",
+      "Notes left at the front desk wait a week before anyone types them.",
+      "The treasurer invoices from the calendar, so a wrong booking becomes a wrong invoice."
+    ],
+    "cites": [
+      "[A:A01 \"twice last term the Garden Room was given to two groups at once\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "One week's requests, by e-mail or by note at the front desk.",
+      "A checked list of proposed bookings out.",
+      "Approved bookings written to the hall calendar."
+    ],
+    "out": [
+      "Invoices and payments",
+      "Keys and alarm codes",
+      "The annual village show",
+      "The playing field"
+    ],
+    "cites": [
+      "[A:A01 \"Out: invoices and payments, keys and alarm codes, the annual village show, the playing field.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "One week's requests, about 25 a week. Notes from the front desk are typed up first, so both arrive as the same plain text.",
+    "format": "plain text, one request per request",
+    "constraints": [
+      "Group name",
+      "Room",
+      "Date",
+      "Start and end time",
+      "Number of people"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of requests."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "great hall",
+      "meaning": "The main room with the stage, up to 120 people.",
+      "cites": [
+        "[A:A01 \"Great Hall: the main room with the stage, up to 120 people.\"]"
+      ]
+    },
+    {
+      "term": "garden room",
+      "meaning": "The room onto the garden, up to 30 people.",
+      "cites": [
+        "[A:A01 \"Garden Room: the room onto the garden, up to 30 people.\"]"
+      ]
+    },
+    {
+      "term": "snug",
+      "meaning": "The small meeting room, up to 10 people.",
+      "cites": [
+        "[A:A01 \"Snug: the small meeting room, up to 10 people.\"]"
+      ]
+    },
+    {
+      "term": "clash",
+      "meaning": "Two bookings for the same room that overlap in time.",
+      "cites": [
+        "[A:A01 \"Clash: two bookings for the same room that overlap in time.\"]"
+      ]
+    },
+    {
+      "term": "front desk",
+      "meaning": "The volunteer team at the entrance, not a person.",
+      "cites": [
+        "[A:A01 \"Front Desk: the volunteer team at the entrance, not a person.\"]"
+      ]
+    },
+    {
+      "term": "warden",
+      "meaning": "The trustee who runs bookings, a role that rotates each year.",
+      "cites": [
+        "[A:A01 \"Warden: the trustee who runs bookings, a role that rotates each year.\"]"
+      ]
+    },
+    {
+      "term": "setting-up time",
+      "meaning": "The half hour before a booking that counts as part of it.",
+      "cites": [
+        "[A:A01 \"Setting-up time: the half hour before a booking that counts as part of it.\"]"
+      ]
+    },
+    {
+      "term": "note",
+      "meaning": "A request written on paper and left at the front desk, typed up before it is checked.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "room limit",
+      "meaning": "The most people a room may hold, set by the hall's fire certificate.",
+      "cites": [
+        "[A:A01 \"Room limit: the most people a room may hold, set by the hall's fire certificate.\"]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it a week of made-up requests with three clashes, and all three are flagged.",
+      "cites": [
+        "[A:A01 \"I give it a week of made-up requests with three clashes, and all three are flagged.\"]"
+      ]
+    },
+    {
+      "id": "T02",
+      "words": "I give it a week of made-up requests and look at what comes out.",
+      "cites": [
+        "[A:A01 \"I give it a week of made-up requests and look at what comes out.\"]"
+      ]
+    },
+    {
+      "id": "T03",
+      "words": "I give it a note with no time on it, and it is refused as incomplete.",
+      "cites": [
+        "[A:A01 \"I give it a note with no time on it, and it is refused as incomplete.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/thornby-requests.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The warden's own decisions",
+        "use_for": "Rules, scope, opening hours"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Request format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/thornby-requests.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the request line that decided it, and the calendar entry it clashes with when there is one.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source, such as a note that gives a day but no date; such a row is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per request, with a decision: propose, clash or refuse. A request with no room or no time is refused as incomplete; a request for more people than the room holds is refused with the room's limit.",
+    "format": "Table, one row per request",
+    "fields": [
+      {
+        "name": "request",
+        "description": "The request line, quoted."
+      },
+      {
+        "name": "group",
+        "description": "The group name from the request."
+      },
+      {
+        "name": "room",
+        "description": "Great Hall, Garden Room or Snug."
+      },
+      {
+        "name": "date",
+        "description": "ISO date."
+      },
+      {
+        "name": "start",
+        "description": "Start time, 24-hour clock."
+      },
+      {
+        "name": "end",
+        "description": "End time, 24-hour clock."
+      },
+      {
+        "name": "decision",
+        "description": "propose, clash or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      },
+      {
+        "name": "people",
+        "description": "The number of people the request names."
+      },
+      {
+        "name": "room_limit",
+        "description": "The room's limit: 120, 30 or 10."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"a request for more people than the room holds is refused with the room's limit.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "No proposed booking overlaps another booking for the same room.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 no proposed booking overlaps another booking for the same room (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "Every row quotes the request it came from.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 every row quotes the request it came from (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "A request outside opening hours (08:00 to 23:00) is refused, with the reason.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 a request outside opening hours (08:00 to 23:00) is refused, with the reason (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      },
+      {
+        "id": "Q05",
+        "statement": "A request for more people than the room holds is refused with the room's limit.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q05 a request for more people than the room holds is refused with the room's limit (major).\"]"
+        ]
+      },
+      {
+        "id": "Q06",
+        "statement": "Setting-up time counts as part of the booking when checking clashes.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q06 setting-up time counts as part of the booking when checking clashes (major).\"]"
+        ]
+      },
+      {
+        "id": "Q07",
+        "statement": "A group's name is copied exactly as it wrote it.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q07 a group's name is copied exactly as it wrote it (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Mon 2099-11-02 | Snug | Parish walking group | 19:00-20:30 | propose | no clash",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Wed 2099-11-04 | Garden Room | Art class | 10:00-12:00 | clash | Garden Room booked 09:30-11:00 by the baby clinic",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E05",
+        "text": "Thu 2099-11-05 | Great Hall | Choral society | 19:30-21:30 | propose | no clash, 60 people fits",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E08",
+        "text": "Sun 2099-11-08 | Snug | Bridge club | 14:00-16:00 | 8 people | propose | no clash, 8 fits",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E09",
+        "text": "Sat 2099-11-07 | Garden Room | Toddler party | 10:00-12:00 | 35 people | refuse | the Garden Room holds 30",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Wed 2099-11-04 | Garden Room | Art class | 10:00-12:00 | propose",
+        "why": "It overlaps the baby clinic.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Sat 2099-11-07 | Great Hall | Barn dance | 20:00-23:45 | propose",
+        "why": "It runs past 23:00.",
+        "breaks": [
+          "Q03"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E06",
+        "text": "Tue 2099-11-03 | Garden Room | Yoga | 18:00-19:00 | propose",
+        "why": "The Garden Room is booked until 17:45 and setting-up time starts at 17:30.",
+        "breaks": [
+          "Q06"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E07",
+        "text": "Fri 2099-11-06 | Snug | Committee | 19:00-21:00 | 14 people | propose",
+        "why": "The Snug holds 10.",
+        "breaks": [
+          "Q05"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A wrong booking can be cancelled, but a group that turns up to a double-booked room has lost its evening. Outside groups are affected; the treasurer may also raise a wrong invoice from a wrong booking, which then has to be cancelled by hand. Nothing reaches the calendar before the warden approves. A request over a room's limit that slipped through would breach the fire certificate, which is why such requests are refused outright rather than proposed with a warning.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"Around fifty outside groups a year, plus the treasurer, who invoices from the calendar.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "request-requests",
+      "description": "The requests, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "id": "hall-calendar",
+      "description": "The hall's booking calendar, a shared spreadsheet with one tab per room; the treasurer also reads it to raise invoices.",
+      "access": "write",
+      "cites": [
+        "[A:A01 \"Writes to the hall's booking calendar.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the checked list, directly before any booking is written to the calendar.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [
+        "hall-calendar"
+      ],
+      "cites": [
+        "[A:A01 \"I approve the list every Friday, directly before anything is written to the calendar.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 40,
+    "usage_ceiling": {
+      "tokens": 200000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01 \"Lower the token limit to 200,000: we are a small charity and want the running cost kept low.\"]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should repeat weekly bookings be checked once a term instead of every week?",
+      "owner": "hall-trustees"
+    },
+    {
+      "id": "OQ02",
+      "question": "Does setting-up time count for the Snug?",
+      "owner": "margery-holt"
+    },
+    {
+      "id": "OQ03",
+      "question": "Should the barn dance licence hours override the 23:00 closing time?",
+      "owner": "hall-trustees"
+    },
+    {
+      "id": "OQ04",
+      "question": "Can the front desk approve Snug bookings alone when the warden is away?",
+      "owner": "margery-holt"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every clash flagged on four made-up weeks.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should flag every clash on four made-up weeks\"]"
+      ]
+    },
+    {
+      "id": "AC02",
+      "criterion": "Every over-limit request refused.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"refuse every over-limit request\"]"
+      ]
+    },
+    {
+      "id": "AC03",
+      "criterion": "The warden approves a week's list in under twenty minutes.",
+      "check": "Timed by the warden on a made-up week at the gate.",
+      "cites": [
+        "[A:A02 \"the warden should be able to approve each week's list in under twenty minutes\"]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "case": "K01",
+  "design_id": "P14",
+  "canary": "lomholpell10",
+  "domain": "D2",
+  "must_find": [
+    "CH12"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH12": "risk"
+  },
+  "locations": {
+    "CH12": [
+      "risk",
+      "reversible",
+      "reversibility",
+      "club-texts",
+      "text"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH12 (major), subtle: the risk says 'reversible' with a team blast radius, but the systems show club-texts sending each approved swap to helpers' phones, and a sent text can't be unsent. The gate before the write is correct (no CH02). Twin: C02 (D3), where irreversibility is stated correctly."
+}

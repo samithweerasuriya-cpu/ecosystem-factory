@@ -1,0 +1,35 @@
+{
+  "case": "K15",
+  "design_id": "C04",
+  "canary": "veskgryulm21",
+  "domain": "D1",
+  "length": "long",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean, long. Near miss for CH05, CH06 and CH11: other branches' books look like returns in scope, but sorting them beyond listing them for the courier crate is explicitly out, and the output says so; the source policy is complete with a conflict rule; the output states its refusals; the unknown daily volume is an open question with an owner. Twin of P09 (identical except P09's planted points)."
+}

@@ -1,0 +1,46 @@
+{
+  "case": "K07",
+  "design_id": "P18",
+  "canary": "rintnixrint39",
+  "domain": "D3",
+  "must_find": [
+    "CH12"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH12": "risk"
+  },
+  "locations": {
+    "CH12": [
+      "risk",
+      "reversible",
+      "reversibility",
+      "repair-queue-board",
+      "blast_radius",
+      "board"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH12 (major), subtle: the risk says 'reversible' and that only the co-op's mechanics are affected, but the systems show the board replacing its cards with no copy of the old ones, and customers are promised days from it. The gate before the write is correct (no CH02). Twin: C02, where the same kind of board is stated as not reversible."
+}

@@ -1,0 +1,35 @@
+{
+  "case": "K28",
+  "design_id": "C07",
+  "canary": "sabulmdri67",
+  "domain": "D4",
+  "length": "long",
+  "must_find": [],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "anchors": {},
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean, long. Near miss for CH10 and CH13: 'Front Desk', 'Warden' and 'Bookings Treasurer' look like names but are role titles (the glossary says so); the token cap is lowered to 200,000 with the owner's reason, quoted. Twin of P12 (identical except P12's three planted points)."
+}

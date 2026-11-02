@@ -1,0 +1,620 @@
+{
+  "schema_version": "1",
+  "slug": "branch-returns",
+  "title": "Branch returns sorter",
+  "goal": {
+    "text": "The library assistants get a sorted list at opening time, so reserved books stop getting shelved by mistake and other branches' books go back in the courier crate.",
+    "cites": [
+      "[A:A01 \"so reserved books stop getting shelved by mistake\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Rows for books with a reservation flag that say shelve",
+        "target": "none",
+        "check": "A script compares each row's decision with the reservation flag in the export (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their barcode",
+        "target": "every row",
+        "check": "A script finds each quoted barcode in the export (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "M05",
+        "metric": "Rows for another branch's books that are not listed for the courier crate",
+        "target": "none",
+        "check": "A script compares each barcode with the branch ranges (Q05).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Reserved books shelved by mistake",
+        "target": "none in a month",
+        "cites": [
+          "[A:A01 \"No reserved book on the open shelves in a month.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Time from return to the hold shelf for a reserved book",
+        "target": "before opening on the day after it comes back",
+        "cites": [
+          "[A:A01 \"Every reserved book is on the hold shelf before opening on the day after it comes back.\"]"
+        ]
+      },
+      {
+        "id": "M06",
+        "metric": "Other branches' books still here a week after they came back",
+        "target": "none",
+        "cites": [
+          "[A:A01 \"No other branch's book is still here a week after it came back.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "library-assistants",
+      "relation": "user",
+      "interest": "Sort the returns from the list.",
+      "cites": [
+        "[A:A01 \"Library assistants (users: sort the returns from the list).\"]"
+      ]
+    },
+    {
+      "role": "branch-manager",
+      "relation": "approver",
+      "interest": "Checks the list before opening.",
+      "cites": [
+        "[A:A01 \"Branch manager (approver: checks the list before opening).\"]"
+      ]
+    },
+    {
+      "role": "readers-with-reservations",
+      "relation": "stakeholder",
+      "interest": "Have their reserved book ready when they are told it is.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "role": "courier-driver",
+      "relation": "stakeholder",
+      "interest": "Gets the courier crate packed by closing time.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "An assistant scans each returned book.",
+      "The assistant checks the screen for reservations and home branch.",
+      "The assistant looks for damage.",
+      "The assistant puts it on a shelving trolley.",
+      "At closing time someone packs the courier crate if there is time.",
+      "When the trolley is full, the assistant shelves its books and starts the next one.",
+      "Reserved books go on the hold shelf, and the reader gets a card or a message."
+    ],
+    "problems": [
+      "Reserved books end up on the open shelves, so readers are told a book is ready that nobody can find.",
+      "Books from other branches sit here for weeks.",
+      "Group loans come back with copies missing and nobody notices until the next class asks."
+    ],
+    "cites": [
+      "[A:A01 \"reserved books end up on the open shelves, so readers are told a book is ready that nobody can find\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The overnight and morning returns in.",
+      "A sorted list (shelve, hold shelf, repair trolley) out."
+    ],
+    "out": [
+      "Fines",
+      "New purchases",
+      "The mobile library",
+      "Sorting another branch's books beyond listing them for the courier crate"
+    ],
+    "cites": [
+      "[A:A01 \"Out: fines, new purchases, the mobile library, sorting another branch's books beyond listing them for the courier crate.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "The returns export, volume not counted yet.",
+    "format": "plain text, one book per line",
+    "constraints": [
+      "Barcode",
+      "Title",
+      "Condition note",
+      "Reservation flag",
+      "Barcodes are six digits; each branch has its own range",
+      "A group loan shows 'set n of m' after the title"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up returns export."
+      },
+      {
+        "source": "S02",
+        "description": "Made-up barcode ranges for each branch."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]",
+      "[S:S02 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "hold shelf",
+      "meaning": "The shelf by the issue desk for reserved books, kept for 7 days.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "repair trolley",
+      "meaning": "The trolley of books going to the mending table.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "reservation flag",
+      "meaning": "The export's yes or no for an open reservation.",
+      "cites": [
+        "[A:A01 \"Reservation flag: the export's yes or no for an open reservation.\"]"
+      ]
+    },
+    {
+      "term": "courier crate",
+      "meaning": "The crate that goes to the central library each evening, for books that belong to another branch.",
+      "cites": [
+        "[A:A01 \"Courier crate: the crate that goes to the central library each evening\"]"
+      ]
+    },
+    {
+      "term": "group loan",
+      "meaning": "A set of copies lent to one school class or reading group.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "home branch",
+      "meaning": "The branch whose barcode range a book is in.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "issue desk",
+      "meaning": "The counter where loans and returns are scanned.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "barcode range",
+      "meaning": "The run of barcode numbers given to one branch.",
+      "cites": [
+        "[A:A01 \"Barcode range: the run of barcode numbers given to one branch.\"]"
+      ]
+    },
+    {
+      "term": "spine split",
+      "meaning": "The binding has cracked so pages can come loose.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it three made-up nights of returns, and no reserved book is on the shelve part of the list.",
+      "cites": [
+        "[A:A01 \"I give it three made-up nights of returns, and no reserved book is on the shelve part of the list.\"]"
+      ]
+    },
+    {
+      "id": "T02",
+      "words": "I give it a night of returns with five Eastfield books, and all five are listed for the courier crate.",
+      "cites": [
+        "[A:A01 \"I give it a night of returns with five Eastfield books, and all five are listed for the courier crate.\"]"
+      ]
+    },
+    {
+      "id": "T03",
+      "words": "I give it a class set with three copies missing, and it is flagged as an incomplete group loan, not shelved.",
+      "cites": [
+        "[A:A01 \"I give it a class set with three copies missing, and it is flagged as an incomplete group loan, not shelved.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/overnight-returns.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "id": "S02",
+      "path": "inputs/context/branch-ranges.txt",
+      "classification": "synthetic",
+      "evidence_for": "which barcodes belong to this branch"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The branch manager's own decisions",
+        "use_for": "Rules, scope, what counts as damage"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Export format, which branch a barcode belongs to"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/overnight-returns.txt": 2,
+        "inputs/context/branch-ranges.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the barcode and the export line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row goes to 'check by hand' and is raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "One row per returned book, with a decision: shelve, hold shelf or repair trolley. A book with no barcode is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan'; a barcode not in the export gets 'check by hand'.",
+    "format": "List, one row per book",
+    "fields": [
+      {
+        "name": "barcode",
+        "description": "The barcode, quoted from the export."
+      },
+      {
+        "name": "title",
+        "description": "The title from the export."
+      },
+      {
+        "name": "decision",
+        "description": "shelve, hold shelf or repair trolley."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      },
+      {
+        "name": "home_branch",
+        "description": "The branch the barcode belongs to, from the barcode ranges."
+      },
+      {
+        "name": "flags",
+        "description": "incomplete group loan, check by hand, or empty."
+      },
+      {
+        "name": "courier",
+        "description": "yes when the book goes in the courier crate, otherwise no."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"it refuses to decide anything for another branch's books beyond listing them for the courier crate\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "A book with a reservation flag never goes to shelve.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A condition note that mentions damage sends the book to the repair trolley.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"sends the book to the repair trolley (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the barcode from the export.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the barcode from the export (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      },
+      {
+        "id": "Q05",
+        "statement": "A book returned from another branch is listed for the courier crate, not shelved here.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q05 a book returned from another branch is listed for the courier crate, not shelved here (major).\"]"
+        ]
+      },
+      {
+        "id": "Q06",
+        "statement": "A book whose barcode is not in the export is listed as 'check by hand'.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q06 a book whose barcode is not in the export is listed as 'check by hand' (major).\"]"
+        ]
+      },
+      {
+        "id": "Q07",
+        "statement": "A class or group loan returned in part is flagged as incomplete.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q07 a class or group loan returned in part is flagged as incomplete (major).\"]"
+        ]
+      },
+      {
+        "id": "Q08",
+        "statement": "Titles are copied exactly, with no shortening.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q08 titles are copied exactly, with no shortening (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Lanterns at Dusk | no reservation, home branch, no damage | shelve",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "The Fox and the Ferry | reserved | hold shelf",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E05",
+        "text": "Moonlit Quarry | home branch Eastfield | courier crate",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E08",
+        "text": "Year 6 class set | 30 of 30 copies | shelve",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "The Fox and the Ferry | reserved | shelve",
+        "why": "Its reservation flag is set.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Copper Hill | spine split | shelve",
+        "why": "Its note says spine split.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E06",
+        "text": "Moonlit Quarry | home branch Eastfield | shelve",
+        "why": "It belongs to another branch.",
+        "breaks": [
+          "Q05"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E07",
+        "text": "Year 4 reading set | 22 of 30 copies | shelve",
+        "why": "A group loan came back in part and is not flagged.",
+        "breaks": [
+          "Q07"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A misplaced book can be found and moved, but a reader told their book is ready may make a wasted trip. Readers of this branch are affected, and other branches wait longer for their books. Nothing is written to any system, so every decision can be undone before the books are moved. The worst case is a reader told a book is ready that has gone back on the open shelves; the branch manager has to find it by hand. Other branches are affected only by delay, never by a lost book. Group loans that come back in part are the second risk: a class can lose copies for a term if nobody notices, so the list flags them rather than shelving them.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"Readers with reservations at this branch, about three hundred a month, and the other branches waiting for their books.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "returns-export",
+      "description": "The day's returns export, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the returns export and the branch barcode ranges\"]"
+      ]
+    },
+    {
+      "id": "branch-ranges",
+      "description": "The barcode ranges of each branch, as text, to tell this branch's books from the rest.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the returns export and the branch barcode ranges\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the sorted list before anyone acts on it.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I check the list before opening, before anyone touches the returns.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should a reserved book that belongs to another branch stay here for the reader or go back in the crate?",
+      "owner": "branch-manager"
+    },
+    {
+      "id": "OQ02",
+      "question": "Should the hold shelf keep books for 7 days or 10?",
+      "owner": "branch-manager"
+    },
+    {
+      "id": "OQ03",
+      "question": "Who packs the courier crate on a Saturday, when the branch closes at 13:00?",
+      "owner": "branch-manager"
+    },
+    {
+      "id": "OQ04",
+      "question": "Should damaged books that belong to another branch be mended here or sent back as they are?",
+      "owner": "branch-manager"
+    },
+    {
+      "id": "OQ05",
+      "question": "Does a reading group's set count as a group loan when only some members borrowed it?",
+      "owner": "library-assistants"
+    },
+    {
+      "id": "OQ06",
+      "question": "How many books come back on a typical day?",
+      "owner": "branch-manager"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "No reserved book under shelve on four made-up weeks of returns.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should sort four made-up weeks with no reserved book under shelve\"]"
+      ]
+    },
+    {
+      "id": "AC02",
+      "criterion": "Every other-branch book is listed for the courier crate.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should send every other-branch book to the courier crate\"]"
+      ]
+    },
+    {
+      "id": "AC03",
+      "criterion": "A partly returned group loan is flagged on every made-up night that has one.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"every partly returned group loan should be flagged, not shelved\"]"
+      ]
+    }
+  ]
+}

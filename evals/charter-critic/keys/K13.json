@@ -1,0 +1,45 @@
+{
+  "case": "K13",
+  "design_id": "P11",
+  "canary": "nixquovesk81",
+  "domain": "D3",
+  "must_find": [
+    "CH07"
+  ],
+  "must_not_find": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH08",
+    "CH09",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "anchors": {
+    "CH07": "context_inventory"
+  },
+  "locations": {
+    "CH07": [
+      "S03",
+      "torque-chart",
+      "context_inventory",
+      "public",
+      "data_classification"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CH07 (blocker), subtle: the charter is classed synthetic (default kept), but its context file S03, torque-chart.txt, is classed public, which is above the charter's class. Twin: C05 (D2), whose files are all at or below its class."
+}
