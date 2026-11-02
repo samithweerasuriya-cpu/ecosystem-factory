@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.21.1 (2026-11-02)
+
+T2.5 build work, items b, c and d (suite time, hook fix, timeout watch item).
+
+- `engine/run_tests.py` times every test and module and reports the run time and the 10 slowest of each, printed and kept in `logs/tests-last.json` / `logs/tests-last-fast.json`.
+- Guard hook (H2 extended, closes H5): the single literal `-m` message of a lone `git commit` is data. Every check sees the command with the message replaced by a stand-in, re-parsed to prove only the message changed, so the message may name protected paths and the gate command's file name. `$`, backticks, chaining, redirection, `-F`/`--file`, `--message`, clustered flags, a second `-m` and anything unparseable stay blocked. Closed a gap the new tests found: a `$(...)` or backtick inside a quoted `git` argument was not scanned for paths. Pin updated.
+- `evals/jobsim.py`: a step past its time limit stops the child and every process it started before collecting output (a grandchild holding the pipes could keep the run waiting past the limit), and the error names the step, the process, the case and the run (`SimTimeout`).
+
 ## 0.21.0 (2026-10-30)
 
 T2.5 build work, items 3, 4, 9 and 11.

@@ -122,6 +122,34 @@ class CopyTests(JobSimBase):
         finally:
             self.js.remove_copy(root)
 
+    def test_a_hung_step_with_a_grandchild_holding_its_output_stops_on_time_and_is_named(self):
+        """Watch item d: the grandchild keeps the output pipes open; the limit must still hold, and the report names
+        the step, the process, the case and the run."""
+        root = self.js.make_copy()
+        hang = ("import subprocess, sys, time\n"
+                "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(120)'])\ntime.sleep(120)\n")
+        try:
+            start = datetime.datetime.now()
+            with self.assertRaises(self.js.SimTimeout) as cm:
+                self.js.run_child([sys.executable, "-c", hang], root, 1, "state.py event")
+            self.assertLess((datetime.datetime.now() - start).total_seconds(), 40)
+            self.assertRegex(str(cm.exception), r"^state\.py event: no answer after 1 s .* \(process \d+: "
+                                                r"python(\.exe)? -c <engine snippet>\)$")
+        finally:
+            self.js.remove_copy(root)
+        real = self.js.new_job
+
+        def hung(root, case):
+            raise self.js.SimTimeout("state.py input: no answer after 60 s (process 1: python state.py input)")
+        self.js.new_job = hung
+        try:
+            case = {"id": "P1", "kind": "persona", "key": self.persona_key()}
+            with self.assertRaises(self.js.SimTimeout) as cm:
+                self.js.run_interview(case, 2)
+            self.assertTrue(str(cm.exception).startswith("case P1 (persona) run 2: state.py input: no answer"))
+        finally:
+            self.js.new_job = real
+
     def test_the_simulated_resume_acts_only_on_this_runs_copy(self):
         other = Path(tempfile.mkdtemp())
         try:

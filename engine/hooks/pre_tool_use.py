@@ -26,8 +26,10 @@ Rules
     allowed only if every part of it is on the read-only allow-list (nested bash -c, sh -c,
     powershell -Command, cmd /c and wsl are checked recursively); anything the parser can't
     follow is blocked. Always blocked: executing gate.py, git push, reading secret files,
-    eval / iex / Invoke-Expression / base64 decoding / encoded PowerShell commands (the one exception:
-    those words inside the single literal -m message of a lone `git commit`, T1.3 H2). Commands
+    eval / iex / Invoke-Expression / base64 decoding / encoded PowerShell commands. The one exception
+    (H2, T1.3; T2.5): the single literal -m message of a lone `git commit` is data, so every check here
+    sees the command with that message replaced by a stand-in (paths, gate.py and these words in it are
+    not read). Commands
     matching a `shell` entry in config/gated-actions.json need that entry's conditions.
  6. MCP: blocked unless an `mcp` entry in config/gated-actions.json allows the tool; entries may
     require roles (["main"]: only the main session, keyed on the absence of agent_id), job types,
@@ -98,6 +100,7 @@ OBFUSCATION = re.compile(r"(^|[\s;&|(`])(eval|iex|invoke-expression)(\s|$|\()|fr
                          r"\bbase64\b[^|;&]*\s(-d|--decode|-D)\b|\s-e(nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
                          re.IGNORECASE)
 SUBST = re.compile(r"\$\(|`")
+SUBST_BODY = re.compile(r"\$\(([^()`]*)\)|`([^`]*)`")   # nested or unbalanced: counts differ, whole text scanned
 BARE_STRING = re.compile(r"'[^'$`]*'|\"[^\"$`]*\"")   # a quoted literal with nothing to expand
 PATH_CHUNK = re.compile(r"[A-Za-z0-9_.~:/\\\-*?$%{}@+]+")
 
@@ -505,29 +508,44 @@ def executes_gate(words):
     return False
 
 
-def commit_message_only(cmd, ps):
-    """H2 (T1.3): True only if the command is one `git commit` whose obfuscation-pattern hits (e.g. the
-    word "eval") all sit inside its single literal -m argument. Fails closed: substitution anywhere,
-    a second segment, -F/--file, a redirection or anything unparseable gives False."""
+COMMIT_MESSAGE = re.compile(r"(?<!\S)-m\s+('[^'$`]*'|\"[^\"$`]*\")")   # an escaped quote fails the re-check
+MESSAGE_STANDIN = "'commit-message'"
+
+
+def without_commit_message(cmd, ps):
+    """H2 (T1.3, extended T2.5): the text of the single literal -m message of a lone `git commit` is data, not
+    paths or commands. Returns the command with that message replaced by a fixed stand-in, so every other check
+    sees the rest of the command only; or None when the command is not exactly that shape. Fails closed (None):
+    `$` or a backtick anywhere, a second segment (anything chained after the commit), a redirection, -F/--file,
+    --message, a clustered flag (-am), a second -m, an unquoted message, or anything unparseable."""
     if "$" in cmd or "`" in cmd:
-        return False
+        return None
     try:
         segs = tokenize(cmd, ps)
     except Unparseable:
-        return False
+        return None
     if len(segs) != 1 or segs[0][1]:
-        return False
+        return None
     words = segs[0][0]
     if len(words) < 4 or words[0] != "git" or words[1] != "commit":
-        return False
+        return None
     flags = [w for w in words[2:] if w.startswith("-")]
     if any(w.startswith("--file") or (w != "-m" and re.fullmatch(r"-[A-Za-z]*[mF].*", w)) for w in flags):
-        return False                             # -F, --file, -Fmsg, -am, -mmsg: only a bare -m is accepted
+        return None                              # -F, --file, -Fmsg, -am, -mmsg: only a bare -m is accepted
     m = [i for i, w in enumerate(words) if w == "-m" or w.startswith("--message")]
     if len(m) != 1 or words[m[0]] != "-m" or m[0] + 1 >= len(words):
-        return False
-    rest = words[:m[0]] + words[m[0] + 2:]
-    return not OBFUSCATION.search(" ".join(rest))
+        return None
+    found = list(COMMIT_MESSAGE.finditer(cmd))
+    if len(found) != 1:
+        return None
+    out = cmd[:found[0].start(1)] + MESSAGE_STANDIN + cmd[found[0].end(1):]
+    try:                                         # the stand-in must replace exactly the message, nothing else
+        again = tokenize(out, ps)
+    except Unparseable:
+        return None
+    standin = MESSAGE_STANDIN if ps else MESSAGE_STANDIN.strip("'")    # PowerShell words keep their quotes
+    expected = words[:m[0] + 1] + [standin] + words[m[0] + 2:]
+    return out if len(again) == 1 and not again[0][1] and again[0][0] == expected else None
 
 
 def inline_code(segs, cmd, ps):
@@ -556,7 +574,8 @@ def inline_code(segs, cmd, ps):
 def check_shell(ctx):
     cmd = ctx.ti.get("command", "") or ""
     ps = ctx.tool == "PowerShell"
-    if OBFUSCATION.search(cmd) and not commit_message_only(cmd, ps):
+    cmd = without_commit_message(cmd, ps) or cmd    # H2: a lone commit's literal message is data
+    if OBFUSCATION.search(cmd):
         raise Blocked("eval / iex / Invoke-Expression / base64 decoding and encoded commands are not allowed.")
     try:
         segs = list(walk_segments(cmd, powershell=ps))
@@ -583,7 +602,14 @@ def check_shell(ctx):
         if any(SECRET_NAME.match(base(w)) for w in words[1:]):
             raise Blocked("reading secrets (.env, master.key) is not allowed.")
     flags = set()
-    for p in shell_paths(cmd, ctx):
+    paths = shell_paths(cmd, ctx)
+    if SUBST.search(cmd):        # T2.5: substitution runs whatever it holds, even inside a quoted git argument
+        bodies = SUBST_BODY.findall(cmd)
+        whole = len(bodies) != cmd.count("$(") + cmd.count("`") / 2
+        held = cmd if whole else " ".join(a or b for a, b in bodies)
+        paths += [p for p in (resolve(c, ctx.cwd, ctx) for c in PATH_CHUNK.findall(held)
+                              if not re.fullmatch(r"[./\\]+", c)) if p]
+    for p in paths:
         flags |= classify(p, ctx)
     ctx.touches_private = "private" in flags
     if "secret" in flags and not parsed:

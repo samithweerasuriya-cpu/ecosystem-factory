@@ -183,6 +183,23 @@ class WatchdogTests(unittest.TestCase):
         self.assertEqual((code, self.last("full")), (0, rec))
         self.assertEqual(rec["tier"], "full")
 
+    def test_the_slowest_tests_and_modules_are_reported_and_recorded(self):
+        (self.tests / "test_planted_quick.py").write_text(PLANTED["pass"], encoding="utf-8")
+        code, rec, out = self.supervise("slow", fast=True)
+        self.assertEqual(code, 0)
+        names = [n for n, _ in rec["slowest"]]
+        self.assertEqual(len(names), 3)
+        self.assertTrue(names[0].startswith("test_planted_slow.Slow."), names)
+        self.assertGreaterEqual(rec["slowest"][0][1], 2.9)
+        self.assertEqual(rec["slowest_modules"][0][0], "test_planted_slow")
+        self.assertGreaterEqual(rec["slowest_modules"][0][1], 5.9)
+        self.assertEqual({n for n, _ in rec["slowest_modules"]}, {"test_planted_slow", "test_planted_quick"})
+        self.assertIn("Slowest 3 tests:", out)
+        self.assertIn("Slowest 2 modules:", out)
+        self.assertGreaterEqual(rec["seconds"], 6)
+        self.assertIn(f"Run time: {rec['seconds']} s", out)
+        self.assertEqual(self.last("fast"), rec)
+
     def test_failing_test_fails_the_run(self):
         code, rec, _ = self.supervise("fail", fast=True)
         self.assertEqual((code, rec["failures"]), (1, 1))

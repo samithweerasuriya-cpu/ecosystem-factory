@@ -19,7 +19,7 @@ a failed result and exits 2. It never hangs silently. Full suites run in the for
 After a run the counts are written for engine/report.py (T1.7): a full run to logs/tests-last.json, a
 fast run to logs/tests-last-fast.json (so a fast run never replaces the full record the export reads):
 engine version, tier, tests, failures, skipped, guard result, the UTC time and, after a timeout,
-timed_out (kind, test, limit). Both are written after the guard's second fingerprint, so they never fail
+timed_out (kind, test, limit), plus the run time and the 10 slowest tests and modules, also printed (T2.5). Both are written after the guard's second fingerprint, so they never fail
 the guard; both are untracked.
 """
 import datetime
@@ -40,6 +40,7 @@ GUARDED = ("logs", "jobs", ".lab")
 TEST_TIMEOUT = 600   # seconds one test may run (the slowest end-to-end test is far below this)
 RUN_TIMEOUT = 3600   # seconds the whole run may take (the longest full run so far: 22.6 min)
 POLL = 0.5
+SLOWEST = 10         # tests and modules reported as the slowest after a run (T2.5)
 LAST = {"full": "tests-last.json", "fast": "tests-last-fast.json"}
 
 
@@ -97,14 +98,15 @@ def _write_json(path, rec):
     tmp.replace(path)
 
 
-def write_last(counts, changed, repo=REPO, tier="full", timed_out=None):
+def write_last(counts, changed, repo=REPO, tier="full", timed_out=None, timing=None):
     """Record a run's counts: full runs in logs/tests-last.json (engine/report.py reads it), fast runs in
-    logs/tests-last-fast.json. counts: tests, failures, skipped."""
+    logs/tests-last-fast.json. counts: tests, failures, skipped. timing: the slowest tests and modules."""
     rec = {"engine_version": (ENGINE / "VERSION").read_text(encoding="utf-8").strip(), "tier": tier,
            "tests": counts["tests"], "failures": counts["failures"], "skipped": counts["skipped"],
            "guard_ok": not changed, "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
     if timed_out:
         rec["timed_out"] = timed_out
+    rec.update(timing or {})
     d = Path(repo) / "logs"
     d.mkdir(exist_ok=True)
     _write_json(d / LAST[tier], rec)
@@ -122,10 +124,29 @@ def close_stdin():
 # ---------- child: runs the suite and reports where it is ----------
 
 class HeartbeatResult(unittest.TextTestResult):
-    """Writes the test it is starting, and the counts so far, to the heartbeat file."""
+    """Writes the test it is starting, and the counts so far, to the heartbeat file. Also times every test (start to
+    stop) and every module (its first test's start to the next module's, so class set-up counts too; T2.5)."""
     heartbeat = None
 
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.durations, self.modules, self._module = {}, {}, None
+
+    def stopTest(self, test):
+        super().stopTest(test)
+        self.durations[test.id()] = time.time() - self._started
+
+    def close_module(self, now=None):
+        if self._module:
+            name, began = self._module
+            self.modules[name] = self.modules.get(name, 0) + (now or time.time()) - began
+
     def startTest(self, test):
+        self._started = time.time()
+        module = type(test).__module__
+        if not self._module or self._module[0] != module:
+            self.close_module(self._started)
+            self._module = (module, self._started)
         try:
             _write_json(self.heartbeat, {"test": test.id(), "started": time.time(), "done": self.testsRun,
                                          "failures": len(self.failures) + len(self.errors)
@@ -145,9 +166,16 @@ def child(argv):
     HeartbeatResult.heartbeat = heartbeat
     result = unittest.TextTestRunner(verbosity=2 if "-v" in argv else 1, stream=sys.stderr,
                                      resultclass=HeartbeatResult).run(suite)
+    result.close_module()
     _write_json(results, {"tests": result.testsRun, "skipped": len(result.skipped), "skipped_modules": skipped,
-                          "failures": len(result.failures) + len(result.errors) + len(result.unexpectedSuccesses)})
+                          "failures": len(result.failures) + len(result.errors) + len(result.unexpectedSuccesses),
+                          "slowest": slowest(result.durations), "slowest_modules": slowest(result.modules)})
     return 0
+
+
+def slowest(seconds, n=SLOWEST):
+    """The n largest of {name: seconds}, as [[name, seconds rounded to 0.1], ...], slowest first."""
+    return [[k, round(v, 1)] for k, v in sorted(seconds.items(), key=lambda kv: -kv[1])[:n]]
 
 
 # ---------- watcher: starts the child, enforces the limits ----------
@@ -205,7 +233,9 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
                 break
         return proc.returncode
 
+    began = time.time()
     code, changed, n = guarded(run, repo)
+    seconds = round(time.time() - began)
     res = None if timed_out else _read(results)
     shutil.rmtree(tmp, ignore_errors=True)
     tier = "fast" if fast else "full"
@@ -221,6 +251,12 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
         counts = {"tests": 0, "failures": 1, "skipped": 0}
     else:
         counts = res
+    for key, label in (("slowest", "tests"), ("slowest_modules", "modules")):
+        if (res or {}).get(key):
+            out(f"\nSlowest {len(res[key])} {label}:")
+            for name, s in res[key]:
+                out(f"  {s:8.1f} s  {name}")
+    out(f"\nRun time: {seconds} s")
     if fast:
         out(f"\nTier: FAST (for use during work; skipped full-tier modules: {', '.join((res or {}).get('skipped_modules') or []) or 'none'}). "
             "Run the full suite before every commit and in every Check.")
@@ -233,7 +269,8 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
             out(f"  - {c}")
     else:
         out("Guard OK: no real log, job or mode file changed.")
-    rec = write_last(counts, changed, repo, tier, timed_out)
+    rec = write_last({k: counts[k] for k in ("tests", "failures", "skipped")}, changed, repo, tier, timed_out,
+                     {"seconds": seconds, **{k: res[k] for k in ("slowest", "slowest_modules") if k in (res or {})}})
     if timed_out:
         return 2, rec
     return (0 if counts["failures"] == 0 and not changed else 1), rec

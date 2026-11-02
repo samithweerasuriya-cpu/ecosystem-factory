@@ -526,6 +526,30 @@ class HookTuningT13Tests(HookBase):
             self.assertTrue(self.hook.OBFUSCATION.search(cmd), f"{what}: the case must trip the pattern")
             self.assertBlocked(self.sh(cmd), what)
 
+    def test_H2_commit_message_text_is_data_not_paths_or_commands(self):
+        """T2.5 (extends H2, closes H5): the text of the single literal -m message names paths, gate.py and eval
+        freely; the rest of the command is checked as before."""
+        p = f"jobs/{J}/state.json"
+        msg = f"T2.5: state.py stops at {p}; readiness-override is human-only via engine/gate.py (no eval)"
+        for cmd, tool in ((f"git commit -m \"{msg}\"", "Bash"), (f"git commit -m '{msg}'", "Bash"),
+                          (f"git commit -m 'path jobs\\{J}\\state.json'", "Bash"),
+                          (f"git commit -m \"{msg}\"", "PowerShell")):
+            self.assertAllowed(self.sh(cmd, tool=tool), f"{tool}: {cmd}")
+        self.assertBlocked(self.sh(f"git commit -m \"ok\" -- {p}"), "a protected path outside the message")
+
+    def test_H2_commit_message_with_dollar_substitution_stays_blocked(self):
+        self.assertBlocked(self.sh(f"git commit -m \"x $(touch jobs/{J}/state.json)\""))
+
+    def test_H2_commit_message_with_backticks_stays_blocked(self):
+        self.assertBlocked(self.sh(f"git commit -m \"x `touch jobs/{J}/state.json`\""))
+        self.assertAllowed(self.sh("git log -1 --format=\"`git rev-parse HEAD`\""))   # nothing protected inside
+
+    def test_H2_anything_chained_after_the_commit_stays_blocked(self):
+        self.assertBlocked(self.sh(f"git commit -m \"jobs/{J}/state.json\" && touch jobs/{J}/state.json"))
+
+    def test_H2_an_unparseable_commit_stays_blocked(self):
+        self.assertBlocked(self.sh(f"git commit -m \"x jobs/{J}/state.json"))
+
     def test_H3_only_the_exact_file_name_gate_py_is_human_only(self):
         for cmd in (f"python Gate.PY approve {J}", f"python .\\gate.py approve {J}", f"python engine\\..\\gate.py approve {J}",
                     f"py -3 C:\\x\\engine\\gate.py approve {J}", f"python ENGINE/GATE.py approve {J}",

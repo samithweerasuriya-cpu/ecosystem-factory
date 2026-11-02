@@ -49,6 +49,11 @@ class SimError(lc.LabError):
     pass
 
 
+class SimTimeout(SimError):
+    """A step in the copy ran past its limit: the message names the step, the process and, once the run adds
+    them, the case and run number (watch item d: stop and investigate before continuing)."""
+
+
 class LeakStop(Exception):
     pass
 
@@ -134,12 +139,54 @@ SNIPPET = ("import json, sys\nsys.path.insert(0, sys.argv[1])\nimport labcore as
 
 def run_child(argv, root, timeout, what):
     """One child process in the copy, with no keyboard input and a time limit: a step that hangs stops the run
-    with its name instead of waiting forever."""
+    with its name and its process instead of waiting forever. The child and every process it started are stopped
+    before its output is collected: a grandchild still holding the output pipes would otherwise keep the run
+    waiting past the limit (T2.5 watch item d)."""
+    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                            errors="replace", env=child_env(root), stdin=subprocess.DEVNULL,
+                            start_new_session=sys.platform != "win32")
     try:
-        return subprocess.run(argv, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                              env=child_env(root), stdin=subprocess.DEVNULL, timeout=timeout)
+        out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        raise SimError(f"{what}: no answer after {timeout} s in the evaluation copy {root}") from None
+        kill_tree(proc)
+        raise SimTimeout(f"{what}: no answer after {timeout} s in the evaluation copy {root} "
+                         f"(process {proc.pid}: {describe(argv)})") from None
+    return subprocess.CompletedProcess(argv, proc.returncode, out, err)
+
+
+def kill_tree(proc):
+    """Stop a child and every process it started, then close its pipes without waiting on them."""
+    if sys.platform == "win32":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        try:
+            import os
+            os.killpg(proc.pid, 9)
+        except OSError:
+            pass
+    try:
+        proc.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+    for pipe in (proc.stdout, proc.stderr):
+        if pipe:
+            pipe.close()
+
+
+def describe(argv):
+    """A child's command line for a timeout report: the program and script, an inline snippet shortened."""
+    words = [Path(argv[0]).name]
+    i = 1
+    while i < len(argv):
+        if argv[i] == "-c" and i + 1 < len(argv):
+            words.append("-c <engine snippet>")
+            i += 2
+            continue
+        a = str(argv[i])
+        words.append(Path(a).name if Path(a).is_absolute() else a)
+        i += 1
+    return " ".join(words)
 
 
 def snippet(root, body, *args, timeout=None, what="engine call"):
@@ -381,8 +428,14 @@ def run_interview(case, n, cmd=None):
         rec["usage"], rec["models"] = usage_record(st)
         rec["status"] = "done"
         return rec
+    except SimTimeout as e:
+        raise timed_out(case, n, e) from None
     finally:
         remove_copy(root)
+
+
+def timed_out(case, n, e):
+    return SimTimeout(f"case {case['id']} ({case.get('kind', 'case')}) run {n}: {e}")
 
 
 def names_any(text, words):
@@ -603,6 +656,8 @@ def run_charter(case, n, cmd=None, keep=False):
             rec["_copy"], rec["_job"], rec["_output"] = root, job, r.get("output")
             root = None
         return rec
+    except SimTimeout as e:
+        raise timed_out(case, n, e) from None
     finally:
         if root is not None:
             remove_copy(root)
@@ -625,6 +680,8 @@ def first_pass(rec, key, cmd=None):
         return {"accepted": st["state"] == "GATE" and st["counters"].get("lifetime_revisions", 0) == 0,
                 "state": st["state"] if outcome == "until" else outcome, "verdicts": verdicts,
                 "tokens": job_usage(st)[0] - before}
+    except SimTimeout as e:
+        raise timed_out({"id": rec["case"], "kind": "first-pass acceptance"}, rec["run"], e) from None
     finally:
         remove_copy(root)
 
