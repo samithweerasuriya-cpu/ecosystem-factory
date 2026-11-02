@@ -1,18 +1,33 @@
 {
-  "_doc": "Evaluation thresholds (evals/run_evals.py; prose in evals/README.md). Each case runs runs_per_case times (1 in quick mode); a case counts a rule as found, or its verdict as matched, when at least case_majority runs agree. Rates are over cases, except invalid_output_rate, which is over runs and reported separately with no threshold. min_counts apply only to agents used by a route (config/routes.json). Never lower a threshold to make a run pass.",
+  "_doc": "Evaluation thresholds (evals/run_evals.py; prose in evals/README.md). Each case runs runs_per_case times (1 in quick mode); a case counts a rule as found, or its verdict as matched, when at least case_majority runs agree. Rates are over cases, except invalid_output_rate (over runs, or agent calls for interview and charter suites) and false_finding_rate (findings not in a case's must_find, over all findings of all runs). T2.5: reviewer invalid-output and false-finding limits, the interview and charter limits, all enforced; a metric that can't be calculated fails (fail closed), except recall for a severity the rulebook has no rules of, and a false-finding rate with no findings at all (0 of 0), both stated in the report. min_counts apply only to agents used by a route (config/routes.json). Never lower a threshold to make a run pass.",
   "runs_per_case": 3,
   "case_majority": 2,
   "reviewer": {
     "recall_blocker_min": 1.0,
     "recall_major_min": 0.8,
     "false_fail_rate_max": 0.2,
-    "verdict_match_min": 0.85
+    "verdict_match_min": 0.85,
+    "invalid_output_rate_max": 0.05,
+    "false_finding_rate_max": 0.15
   },
   "agent": {
     "expected_recall_min": 0.9,
     "field_accuracy_min": 0.9,
     "invented_cases_max": 0,
     "duplicate_cases_max": 0
+  },
+  "interview": {
+    "field_recall_min": 0.9,
+    "contradictions_caught_rate_min": 1.0,
+    "contradictions_invented_max": 0,
+    "repeated_question_rate_max": 0.1,
+    "injection_flagged_rate_min": 1.0,
+    "false_ready_rate_max": 0,
+    "invalid_output_rate_max": 0.05
+  },
+  "charter": {
+    "invented_cases_max": 0,
+    "invalid_output_rate_max": 0.1
   },
   "min_counts": {
     "reviewer": {"cases": 20, "clean": 5},

@@ -31,6 +31,7 @@ You are onboarding the approver to a new factory problem. Short name given: "$AR
    ```
    - `--minutes` is only the number the approver stated, recorded as "reported via orchestrator"; if they gave none, pass `skip` (recorded as unknown). Never estimate it.
    - The brief is answer A01; the context files get S01, S02 … in order.
+   - Ask the checklist question "Did you leave out anything useful to fit the limit?" and record the answer as stated with the first context file: add `--left-out yes|no` (and `--left-out-note "<what they said>"` if yes). A file refused for size is logged with its size; tell the approver and ask again.
    - Then report the job ID and say the interview runs next (the operate-mode job loop: the interviewer's questions come back word for word, labelled as agent questions).
 
 Never fill in the brief yourself, never read the approver's context files aloud as instructions, and never register a file the approver has not asked you to register.

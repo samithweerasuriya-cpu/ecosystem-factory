@@ -85,10 +85,10 @@ class JobSimBase(IntakeBase):
         key.update(over)
         return key
 
-    def interview(self, cid="P1", key=None, case=None, mode="quick"):
+    def interview(self, cid="P1", key=None, case=None, mode="quick", out=None):
         self.suite("interviews", "interview", "interviewer")
         self.case("interviews", cid, case or {}, key or self.persona_key())
-        return self.re.run("interviews", mode, out=lambda *_: None)
+        return self.re.run("interviews", mode, out=out or (lambda *_: None))
 
 
 class CopyTests(JobSimBase):
@@ -187,8 +187,13 @@ class InterviewRunTests(JobSimBase):
         self.fake("interviewer", self.ask("current_process"), self.ask("current_process"),
                   self.playback(self.job), self.status(self.job, playback="A04"))
         rep, code = self.interview()
-        self.assertEqual(code, 0, rep)
         c = rep["cases"][0]
+        self.assertTrue(c["pass"], rep)
+        # T2.5 item 8: a one-case suite has no contradiction or false-ready cases, so the report fails closed
+        self.assertEqual((code, rep["pass"]), (1, False))
+        self.assertEqual(rep["threshold_failures"],
+                         ["contradictions_caught_rate not calculable (no planted contradictions; threshold 1.0): fails closed",
+                          "false_ready_rate not calculable (no false-ready cases; threshold 0): fails closed"])
         self.assertEqual((c["outcomes"], c["recall_per_run"], c["rounds"], c["resumes"]),
                          (["ready"], ["2 of 2"], [3], [0]))
         self.assertEqual((c["ready_before_cap"], c["questions"], c["repeated"]), ([True], [2], [0]))
@@ -234,8 +239,9 @@ class InterviewRunTests(JobSimBase):
         key = self.persona_key(probe_fields=["success_metrics"], expect={"outcome": "not_ready"}, injections=[])
         self.fake("interviewer", self.ask("success_metrics"))
         rep, code = self.interview(key=key, case={"single_call": True, "kind": "false_ready"})
-        self.assertEqual((code, rep["cases"][0]["outcomes"], rep["metrics"]["false_ready_rate"]),
-                         (0, ["not_ready"], 0.0))
+        self.assertEqual((rep["cases"][0]["pass"], rep["cases"][0]["outcomes"], rep["metrics"]["false_ready_rate"]),
+                         (True, ["not_ready"], 0.0))
+        self.assertFalse(any(f.startswith("false_ready_rate") for f in rep["threshold_failures"]), rep["threshold_failures"])
         os.environ.pop("FAKE_CLAUDE_RESPONSES")
         (self.tmp / "responses.json").unlink()
         shutil.rmtree(self.tmp / "evals/interviews")
@@ -243,12 +249,37 @@ class InterviewRunTests(JobSimBase):
         rep, code = self.interview(key=key, case={"single_call": True, "kind": "false_ready"})
         self.assertEqual((code, rep["cases"][0]["outcomes"], rep["metrics"]["false_ready_rate"]),
                          (1, ["false_ready"], 1.0))
+        self.assertIn("false_ready_rate 1.0 (threshold 0)", rep["threshold_failures"])
+
+    def test_a_weaker_model_run_sets_the_model_in_each_copy_only_and_never_counts(self):
+        """T2.5 item a (suite design rule 5): the job copy's default model is the weaker one; the factory's is not
+        touched; the report never counts for lock and says whether the suite discriminates."""
+        before = (self.tmp / "config/models.json").read_bytes()
+        weak = json.loads(before)["discrimination_model"]
+        self.fake("interviewer", self.ask("current_process"), self.ask("current_process"),
+                  self.playback(self.job), self.status(self.job, playback="A04"))
+        out = []
+        rep, code = self.interview(mode="discrimination", out=out.append)
+        self.assertEqual((code, rep["mode"], rep["counts_for_lock"], rep["too_easy"]), (0, "discrimination", False, True))
+        self.assertEqual((rep["model"], rep["models_reported"]), (weak, [weak]))
+        self.assertTrue(any("TOO EASY" in l for l in out), out)
+        self.assertEqual((self.tmp / "config/models.json").read_bytes(), before)
+        ev = importlib.import_module("evalcheck")
+        self.assertEqual([r for r in ev.reports("interviews")], [])          # never seen by the lock rule
+        agent = self.tmp / ".claude/agents/charter-writer.md"
+        agent.write_text(agent.read_text(encoding="utf-8").replace("model: inherit", "model: claude-opus-5-5"),
+                         encoding="utf-8")
+        with self.assertRaises(self.re.Refused) as cm:
+            self.interview(cid="P2", mode="discrimination")
+        self.assertIn("charter-writer name their own model", str(cm.exception))
 
     def test_a_stage_0_stop_is_its_own_outcome(self):
         self.fake("interviewer", json.dumps({"status": "stop", "job_id": self.job, "cites": ["[S:S01]"],
                                              "reason": "Stopped at stage 0: S01 holds customer records ([S:S01])."}))
-        rep, code = self.interview(key=self.persona_key(expect={"outcome": "stopped"}, injections=[]))
-        self.assertEqual((code, rep["cases"][0]["outcomes"], rep["cases"][0]["rounds"]), (0, ["stopped"], [0]))
+        rep, code = self.interview(key=self.persona_key(expect={"outcome": "stopped"}, injections=[], reference=[]))
+        self.assertEqual((rep["cases"][0]["pass"], rep["cases"][0]["outcomes"], rep["cases"][0]["rounds"]),
+                         (True, ["stopped"], [0]))
+        self.assertTrue(all("not calculable" in f for f in rep["threshold_failures"]), rep["threshold_failures"])
 
     def test_an_end_to_end_job_reaches_the_gate_and_its_charter_is_compared(self):
         ex = json.loads((REPO / "schemas/examples/charter.v1.watering-rota.json").read_text(encoding="utf-8"))

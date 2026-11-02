@@ -4,6 +4,9 @@
   python evals/run_evals.py run <suite> [--quick | --smoke | --discrimination] [--estimate-only] [--no-cache]
                                 [--cases E001,E002]
   python evals/run_evals.py stale          # every reason gate.py lock would refuse now (exit 1 if any)
+  python evals/run_evals.py spend          # the running token total against the ceiling (T2.5 item 7)
+  python evals/run_evals.py spend-start --since YYYY-MM-DD --ceiling TOKENS --name NAME [--recreate]
+                                           # the approver's step, in their own terminal: the spend log's start line
 
 A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/evalcheck.py.
 - Every call goes through engine/agent_call.py: a tool-less agent in a fresh empty folder, safe mode,
@@ -41,6 +44,13 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   (or contains) one of the expected item's accepted sentences; an item matching nothing is invented, a
   second item matching the same expected item is a duplicate. Expected-item recall, field accuracy on
   matched items, cases with invented or duplicate items (majority of runs), invalid-output rate.
+- Spend log (T2.5 item 7, when config/caps.json "evals" has "spend_log": "required"): cache/evals/spend.jsonl
+  starts with one start line (date, name, ceiling, starting total = tokens of the run records written since a
+  date), written by the approver; every agent call, job run, acceptance and model check appends its tokens at
+  once. A run whose estimate passes what is left is refused, and a run stops at what is left. A missing log, a
+  log without its start line, or an unreadable line refuses every run: a missing log never counts as zero.
+- Suite fingerprint (T2.5 item 10): every report records the hashes of suite.json, every case file and key,
+  evals/thresholds.json and the scoring code; engine/evalcheck.py treats a full report as stale when any changed.
 - Reports: evals/reports/<time>-<suite>-<mode>.json (tracked; "-2", "-3" ... when that name exists, so a
   report is never overwritten): IDs, rule IDs, verdicts and numbers
   only, never the agent's text (it can name local paths, T0.13 probe T13-5).
@@ -435,25 +445,70 @@ def aggregate(s, cases, results, th):
     return per_case, metrics
 
 
+AT_LEAST, AT_MOST = (lambda v, x: v >= x), (lambda v, x: v <= x)
 CHECKS = {
-    "reviewer": (("recall_blocker", "recall_blocker_min", lambda v, x: v >= x),
-                 ("recall_major", "recall_major_min", lambda v, x: v >= x),
-                 ("false_fail_rate", "false_fail_rate_max", lambda v, x: v <= x),
-                 ("verdict_match", "verdict_match_min", lambda v, x: v >= x)),
-    "agent": (("expected_recall", "expected_recall_min", lambda v, x: v >= x),
-              ("field_accuracy", "field_accuracy_min", lambda v, x: v >= x),
-              ("invented_cases", "invented_cases_max", lambda v, x: v <= x),
-              ("duplicate_cases", "duplicate_cases_max", lambda v, x: v <= x)),
+    "reviewer": (("recall_blocker", "recall_blocker_min", AT_LEAST),
+                 ("recall_major", "recall_major_min", AT_LEAST),
+                 ("false_fail_rate", "false_fail_rate_max", AT_MOST),
+                 ("verdict_match", "verdict_match_min", AT_LEAST),
+                 ("invalid_output_rate", "invalid_output_rate_max", AT_MOST),
+                 ("false_finding_rate", "false_finding_rate_max", AT_MOST)),
+    "agent": (("expected_recall", "expected_recall_min", AT_LEAST),
+              ("field_accuracy", "field_accuracy_min", AT_LEAST),
+              ("invented_cases", "invented_cases_max", AT_MOST),
+              ("duplicate_cases", "duplicate_cases_max", AT_MOST)),
+    "interview": (("field_recall", "field_recall_min", AT_LEAST),
+                  ("contradictions_caught_rate", "contradictions_caught_rate_min", AT_LEAST),
+                  ("contradictions_invented", "contradictions_invented_max", AT_MOST),
+                  ("repeated_question_rate", "repeated_question_rate_max", AT_MOST),
+                  ("injection_flagged_rate", "injection_flagged_rate_min", AT_LEAST),
+                  ("false_ready_rate", "false_ready_rate_max", AT_MOST),
+                  ("invalid_output_rate", "invalid_output_rate_max", AT_MOST)),
+    "charter": (("invented_cases", "invented_cases_max", AT_MOST),
+                ("invalid_output_rate", "invalid_output_rate_max", AT_MOST)),
+}
+NOT_CALCULABLE = {
+    "recall_blocker": "no planted blocker cases", "recall_major": "no planted major cases",
+    "false_fail_rate": "no clean cases", "verdict_match": "no cases", "invalid_output_rate": "no runs or agent calls",
+    "field_recall": "no reference fields", "contradictions_caught_rate": "no planted contradictions",
+    "repeated_question_rate": "no questions asked", "injection_flagged_rate": "no injection cases",
+    "false_ready_rate": "no false-ready cases",
 }
 
 
-def check_thresholds(metrics, th, kind="reviewer"):
-    t, fails = th[kind], []
+def check_thresholds(metrics, th, kind="reviewer", severities=None, smoke=False):
+    """(failures, skipped notes). T2.5 item 8, fail closed: for reviewer, interview and charter suites a metric
+    that can't be calculated fails. Skipped only: a reviewer's recall for a severity its rulebook has no rules of,
+    a false-finding rate when no run returned any finding (0 of 0), and in a smoke run (one case: it only proves
+    the framework files run and never stands in for a suite's full report). Agent suites keep their earlier rule
+    (a metric with nothing to measure is not checked)."""
+    t, fails, skipped = th[kind], [], []
+    present = set((severities or {}).values())
     for name, key, ok in CHECKS[kind]:
         v = metrics[name]
-        if v is not None and not ok(v, t[key]):
+        if v is None:
+            sev = {"recall_blocker": "blocker", "recall_major": "major"}.get(name)
+            if kind == "agent":
+                continue
+            if smoke:
+                skipped.append(f"{name}: not calculable in a smoke run ({NOT_CALCULABLE.get(name, 'one case')})")
+            elif sev and sev not in present:
+                skipped.append(f"{name}: the rulebook has no {sev} rules")
+            elif name == "false_finding_rate" and metrics.get("findings_all_runs") == 0:
+                skipped.append("false_finding_rate: no findings in any run (0 of 0)")
+            else:
+                fails.append(f"{name} not calculable ({NOT_CALCULABLE.get(name, 'nothing to measure')}; "
+                             f"threshold {t[key]}): fails closed")
+        elif not ok(v, t[key]):
             fails.append(f"{name} {v} (threshold {t[key]})")
-    return fails
+    return fails, skipped
+
+
+def report_limits(fails, skipped, out):
+    for f_ in fails:
+        out(f"  below threshold: {f_}")
+    for s_ in skipped:
+        out(f"  not checked: {s_}")
 
 
 def min_counts(s, metrics, th):
@@ -486,6 +541,106 @@ def save_run_record(suite, rec):
     return rid
 
 
+# ---------- spend log (T2.5 item 7) ----------
+
+SPEND_LOG = "cache/evals/spend.jsonl"
+
+
+def spend_required():
+    return eval_caps().get("spend_log") == "required"
+
+
+def spend_path():
+    return lc.ROOT / SPEND_LOG
+
+
+def spend_state():
+    """(start line, running total) from the spend log. A missing log, a log without its start line, or any
+    unreadable line is refused: a missing log never counts as zero."""
+    f = spend_path()
+    if not f.is_file():
+        raise Refused(f"{SPEND_LOG} is missing, so the running token total is unknown (never counted as zero). The "
+                      "approver writes its start line once, in their own terminal: python evals/run_evals.py "
+                      "spend-start --since YYYY-MM-DD --ceiling TOKENS --name NAME")
+    try:
+        lines = [json.loads(ln) for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    except ValueError:
+        raise Refused(f"{SPEND_LOG}: a line is not JSON; nothing runs until it is repaired") from None
+    start = lines[0] if lines else None
+    if not (isinstance(start, dict) and start.get("kind") == "start"
+            and all(isinstance(start.get(k), int) for k in ("ceiling_tokens", "starting_total"))):
+        raise Refused(f"{SPEND_LOG} has no start line (date, ceiling, starting total); nothing runs")
+    total = start["starting_total"]
+    for ln in lines[1:]:
+        if not (isinstance(ln, dict) and ln.get("kind") == "spend" and isinstance(ln.get("tokens"), int)):
+            raise Refused(f"{SPEND_LOG}: an unreadable spend line; nothing runs until it is repaired")
+        total += ln["tokens"]
+    return start, total
+
+
+def spend_budget(estimate, out):
+    """Tokens this invocation may still spend (None when the log is not required). Refused when the estimate
+    would pass the ceiling."""
+    if not spend_required():
+        return None
+    start, total = spend_state()
+    left = start["ceiling_tokens"] - total
+    out(f"Spend ({start.get('name')}): {total:,} of {start['ceiling_tokens']:,} tokens used; {max(left, 0):,} left.")
+    if left <= 0:
+        raise Refused(f"the {start.get('name')} ceiling ({start['ceiling_tokens']:,} tokens) is reached; stop and "
+                      "report (only the approver raises it)")
+    if estimate > left:
+        raise Refused(f"the estimate ({estimate:,} tokens) is above what is left of the {start.get('name')} ceiling "
+                      f"({left:,}); stop and report")
+    return left
+
+
+def spend_add(suite, mode, what, tokens):
+    """Append one spend line as soon as tokens are spent (a later crash can't lose them)."""
+    if not tokens or not spend_required():
+        return
+    spend_state()                                              # refuses a log that went missing mid-run
+    with spend_path().open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps({"kind": "spend", "ts": lc.now(), "suite": suite, "mode": mode, "what": what,
+                             "tokens": int(tokens)}) + "\n")
+
+
+def records_since(since):
+    """(tokens, records) over every suite's run records written on or after the date (file time, UTC)."""
+    day = datetime.datetime.strptime(since, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc)
+    tokens = n = 0
+    for f in sorted((lc.ROOT / "cache" / "evals").glob("*/runs/*.json")):
+        if datetime.datetime.fromtimestamp(f.stat().st_mtime, datetime.timezone.utc) >= day:
+            tokens += ((lc.load_json(f).get("usage") or {}).get("total") or 0)
+            n += 1
+    return tokens, n
+
+
+def spend_start(since, ceiling, name, recreate=False, out=print):
+    """Write the spend log's start line: the approver's deliberate step, in their own terminal. The starting total
+    is the tokens of the run records written since the date. An existing log is kept (renamed) only with
+    --recreate; the build log records why."""
+    import gate
+    if not gate.interactive_terminal():
+        raise Refused("spend-start is the approver's step: run it in your own terminal")
+    f = spend_path()
+    if f.exists() and not recreate:
+        raise Refused(f"{SPEND_LOG} already exists; re-creating its start line is deliberate: add --recreate "
+                      "(the old log is kept) and record it in the build log")
+    if ceiling <= 0:
+        raise Refused("the ceiling must be more than 0 tokens")
+    tokens, n = records_since(since)
+    f.parent.mkdir(parents=True, exist_ok=True)
+    if f.exists():
+        stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        f.rename(f.with_name(f"spend-{stamp}.jsonl"))
+    start = {"kind": "start", "date": datetime.date.today().isoformat(), "name": name, "since": since,
+             "ceiling_tokens": ceiling, "starting_total": tokens, "records": n}
+    f.write_text(json.dumps(start) + "\n", encoding="utf-8")
+    out(f"Started {SPEND_LOG}: {name}, ceiling {ceiling:,} tokens, {tokens:,} already spent ({n} run record(s) "
+        f"since {since}).")
+
+
 def confirm_estimate(tokens):
     import gate
     if not gate.interactive_terminal():
@@ -499,11 +654,13 @@ def confirm_estimate(tokens):
         raise Refused("not confirmed")
 
 
-def confirm_model(model, cmd=None):
-    """One tiny call on `model`; refused unless the CLI accepts it and reports running exactly it."""
+def confirm_model(model, cmd=None, suite=None):
+    """One tiny call on `model`; refused unless the CLI accepts it and reports running exactly it. Its tokens go
+    to the spend log."""
     probe = {"name": "model-check", "tools": [], "model": model, "sha256": "-",
              "body": "Reply with exactly {} and nothing else."}
     res = agent_call.call(probe, "Reply with exactly {}.", cmd=cmd, model=model)
+    spend_add(suite, "discrimination", "model check", (res.get("usage") or {}).get("total"))
     if res["status"] != "done":
         raise Refused(f"the CLI did not run model {model!r} ({res['status']}: {res.get('error')}); "
                       "set the exact model ID in config/models.json discrimination_model")
@@ -516,6 +673,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     """Run a suite. Returns (report or None, exit code)."""
     th = thresholds()
     s = load_suite(name)
+    s["fingerprint"] = evalcheck.suite_fingerprint(s)          # T2.5 item 10: taken before any call
     cases = load_cases(s, only)
     if mode == "smoke":
         cases, use_cache = cases[:1], False                            # coverage must come from real calls
@@ -533,9 +691,11 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     n_runs = 1 if mode in ("quick", "discrimination") else th["runs_per_case"]
     framework = evalcheck.framework_hashes()
     if s["kind"] in JOB_KINDS:
-        if discrimination:
-            raise Refused(f"suite {name}: a {s['kind']} suite has no discrimination mode yet (its agent calls run "
-                          "in the job's own engine, on the agent's pinned model)")
+        if discrimination:                    # T2.5 item a: the copy's default model is the weaker one
+            problem = jobsim.model_problem()
+            if problem:
+                raise Refused(f"suite {name}: a weaker-model run sets the model through the job copy's default, "
+                              f"but {problem}")
         return run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only)
     plan, est_tokens, est_seconds = [], 0, 0
     for c in cases:
@@ -555,8 +715,9 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         f"(model {model}, CLI {cli}).")
     if estimate_only:
         return None, 0
+    left = spend_budget(est_tokens, out) if todo else None
     if discrimination and todo:
-        confirm_model(model, cmd)
+        confirm_model(model, cmd, name)
         out(f"Model check: the CLI ran exactly {model}.")
     if todo > caps.get("max_runs_per_invocation", 120):
         raise Refused(f"{todo} calls is above max_runs_per_invocation ({caps.get('max_runs_per_invocation')}); use --cases")
@@ -564,15 +725,22 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
     if est_tokens > caps.get("confirm_above_tokens", 1_000_000):
         confirm_estimate(est_tokens)
         ceiling = max(ceiling, int(est_tokens * 1.5))
+    if left is not None:
+        ceiling = min(ceiling, left)                                   # T2.5 item 7: never past the overall ceiling
     schema = lc.load_json(lc.ROOT / (s["output_schema"] if s["kind"] == "agent" else "schemas/findings.schema.json"))
     results, spent, stopped, run_records = {c["id"]: [] for c in cases}, 0, None, []
+
+    def call():
+        r = agent_call.call(s["agent_spec"], prompt, cmd=cmd, model=model)
+        spend_add(name, mode, f"{c['id']} run {n}", (r.get("usage") or {}).get("total"))
+        return r
     for c, n, prompt, f, cached in plan:
         if cached is None:
             if stopped:
                 continue
-            res = agent_call.call(s["agent_spec"], prompt, cmd=cmd, model=model)
+            res = call()
             if res["status"] == "infra_error":                       # one retry: the failure was not the agent's
-                res = agent_call.call(s["agent_spec"], prompt, cmd=cmd, model=model)
+                res = call()
             if res["status"] == "infra_error":
                 stopped = f"infrastructure error on case {c['id']} run {n}: {res['error']}"
                 continue
@@ -598,7 +766,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         out(f"STOPPED: {stopped}. No report written; cached runs are kept, so a re-run continues from here.")
         return None, 3
     per_case, metrics = aggregate(s, cases, results, th)
-    fails = check_thresholds(metrics, th, s["kind"])
+    fails, skipped = check_thresholds(metrics, th, s["kind"], s.get("severities"), smoke=mode == "smoke")
     mc = min_counts(s, metrics, th)
     usage_runs = [r for rs in results.values() for r in rs]
     if only and mode != "quick":
@@ -609,7 +777,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         "models_reported": sorted({m for r in usage_runs for m in r.get("models") or []}),
         "agent": {"path": s["agent"], "sha256": s["agent_spec"]["sha256"]},
         "rulebook": {"path": s["rulebook"], "sha256": lc.sha256_path(lc.ROOT / s["rulebook"])},
-        "thresholds": th[s["kind"]], "threshold_failures": fails, "min_counts": mc,
+        "thresholds": th[s["kind"]], "threshold_failures": fails, "threshold_skipped": skipped, "min_counts": mc,
         "pass": not fails and metrics["runs"] > 0, "metrics": metrics, "cases": per_case,
         "usage": {"calls": len(usage_runs), "cached": sum(1 for r in usage_runs if r.get("cached")),
                   "tokens_new": spent,
@@ -618,7 +786,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
                                                      for r in usage_runs), 4),
                   "estimate_tokens": est_tokens},
         "run_records": run_records,
-        "framework": framework,
+        "framework": framework, "suite_fingerprint": s["fingerprint"],
     }
     if discrimination:
         report["counts_for_lock"] = False
@@ -639,8 +807,7 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
             f"false findings {m['false_findings_all_runs']} of {m['findings_all_runs']} ({m['false_finding_rate']})")
     out(f"  cases passed {m['cases_passed']} of {m['cases']}; tokens {report['usage']['tokens_all']:,} "
         f"({spent:,} new); minimum counts: {'met' if mc['met'] else 'not met' if mc['applies'] else 'not applicable (no route uses this agent)'}")
-    for f_ in fails:
-        out(f"  below threshold: {f_}")
+    report_limits(fails, skipped, out)
     if mode == "quick" or mode.endswith("-partial"):
         out(f"  {mode} mode: for drafting only; never counts for lock.")
     if discrimination:
@@ -666,8 +833,8 @@ def save_report(name, mode, report):
 
 def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only):
     """An interview or charter suite (T2.5, evals/jobsim.py): every run drives a real job in its own temporary
-    factory copy; no cache (a run is many calls). Thresholds for these kinds are enforced from build item 5; until
-    then a report passes only when every case passes."""
+    factory copy; no cache (a run is many calls). A report passes only when every case passes and the kind's limits
+    in evals/thresholds.json hold (T2.5 item 5; a metric that can't be calculated fails, item 8)."""
     est_calls = {"interview": 8, "charter": 1}[s["kind"]]
     est_tokens = est_seconds = 0
     for c in cases:
@@ -683,10 +850,17 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
     if estimate_only:
         return None, 0
     caps = eval_caps()
+    left = spend_budget(est_tokens, out)
     ceiling = caps.get("tokens_per_invocation", 1_000_000)
     if est_tokens > caps.get("confirm_above_tokens", 1_000_000):
         confirm_estimate(est_tokens)
         ceiling = max(ceiling, int(est_tokens * 1.5))
+    if left is not None:
+        ceiling = min(ceiling, left)                                   # T2.5 item 7: never past the overall ceiling
+    weaker = model if mode == "discrimination" else None               # T2.5 item a: set in each job copy only
+    if weaker:
+        confirm_model(weaker, cmd, name)
+        out(f"Model check: the CLI ran exactly {weaker}; each job copy's default model is set to it.")
     results, spent, stopped, run_records = {c["id"]: [] for c in cases}, 0, None, []
     acceptance = {}
     maj = th["case_majority"] if n_runs > 1 else 1
@@ -696,10 +870,11 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
                 if stopped:
                     break
                 if s["kind"] == "interview":
-                    rec = jobsim.run_interview(c, n, cmd=cmd)
+                    rec = jobsim.run_interview(c, n, cmd=cmd, model=weaker)
                 else:
-                    rec = jobsim.run_charter(c, n, cmd=cmd, keep=True)
+                    rec = jobsim.run_charter(c, n, cmd=cmd, keep=True, model=weaker)
                 spent += rec["usage"]["total"]
+                spend_add(name, mode, f"{c['id']} run {n}", rec["usage"]["total"])
                 sc = rec["score"]
                 out(f"  {c['id']} run {n}: {sc['outcome']} {'pass' if sc['pass'] else 'FAIL'} "
                     f"tokens={rec['usage']['total']}")
@@ -714,6 +889,7 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
                 acceptance[c["id"]] = jobsim.first_pass(draft, c["key"], cmd=cmd) if draft else \
                     {"accepted": False, "state": "no draft", "verdicts": [], "tokens": 0}
                 spent += acceptance[c["id"]]["tokens"]
+                spend_add(name, mode, f"{c['id']} first-pass acceptance", acceptance[c["id"]]["tokens"])
                 out(f"  {c['id']} first-pass acceptance: {'accepted' if acceptance[c['id']]['accepted'] else 'not accepted'} "
                     f"({acceptance[c['id']]['state']})")
     except jobsim.LeakStop as e:
@@ -738,6 +914,8 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
         if p["case"] in acceptance:
             p["first_pass_acceptance"] = acceptance[p["case"]]
     mc = min_counts(s, metrics, th)
+    fails, skipped = check_thresholds(metrics, th, s["kind"], smoke=mode == "smoke")   # T2.5 item 5, on top of
+                                                                                         # every case passing
     usage_runs = [r for rs in results.values() for r in rs]
     if only and mode != "quick":
         mode = f"{mode}-partial"
@@ -747,24 +925,36 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
         "models_reported": sorted({m for r in usage_runs for m in r.get("models") or []}),
         "agent": {"path": s["agent"], "sha256": s["agent_spec"]["sha256"]},
         "rulebook": {"path": s["rulebook"], "sha256": lc.sha256_path(lc.ROOT / s["rulebook"])},
-        "thresholds": th.get(s["kind"], {}), "threshold_failures": [], "min_counts": mc,
-        "pass": metrics["runs"] > 0 and metrics["cases_passed"] == metrics["cases"],
+        "thresholds": th[s["kind"]], "threshold_failures": fails, "threshold_skipped": skipped, "min_counts": mc,
+        "pass": not fails and metrics["runs"] > 0 and metrics["cases_passed"] == metrics["cases"],
         "metrics": metrics, "cases": per_case,
         "usage": {"calls": len(usage_runs), "cached": 0, "tokens_new": sum(r["usage"]["total"] for r in usage_runs),
                   "tokens_all": sum(r["usage"]["total"] for r in usage_runs),
                   "tokens_acceptance": sum(a["tokens"] for a in acceptance.values()), "estimate_tokens": est_tokens},
         "run_records": run_records,
-        "framework": framework,
+        "framework": framework, "suite_fingerprint": s["fingerprint"],
     }
+    if weaker:
+        report["counts_for_lock"] = False
+        report["too_easy"] = metrics["cases"] > 0 and metrics["cases_passed"] == metrics["cases"]
     path = save_report(name, mode, report)
     out(f"Report {lc.rel(path)}: {'PASS' if report['pass'] else 'FAIL'} (cases passed {metrics['cases_passed']} of "
         f"{metrics['cases']}; tokens {spent:,})")
     for k in ("field_recall", "field_accuracy", "contradictions_caught_rate", "contradictions_invented",
-              "repeated_question_rate", "false_ready_rate", "invented_cases", "invalid_output_rate"):
+              "repeated_question_rate", "injection_flagged_rate", "false_ready_rate", "invented_cases",
+              "invalid_output_rate"):
         if k in metrics:
             out(f"  {k} {metrics[k]}")
+    report_limits(fails, skipped, out)
     if mode == "quick" or mode.endswith("-partial"):
         out(f"  {mode} mode: for drafting only; never counts for lock.")
+    if weaker:
+        out(f"  discrimination only ({weaker}): never counts for lock. "
+            + ("TOO EASY: the weaker model passed every case; the suite needs harder cases before it counts "
+               "(suite design rule 5)." if report["too_easy"] else
+               f"The weaker model failed {metrics['cases'] - metrics['cases_passed']} of {metrics['cases']} case(s): "
+               "the suite discriminates."))
+        return report, 0
     return report, 0 if report["pass"] else 1
 
 
@@ -782,8 +972,23 @@ def main(argv=None):
     r.add_argument("--no-cache", action="store_true")
     r.add_argument("--cases")
     sub.add_parser("stale")
+    sub.add_parser("spend")
+    st = sub.add_parser("spend-start")
+    st.add_argument("--since", required=True)
+    st.add_argument("--ceiling", required=True, type=int)
+    st.add_argument("--name", required=True)
+    st.add_argument("--recreate", action="store_true")
     args = ap.parse_args(argv)
     try:
+        if args.cmd == "spend":
+            start, total = spend_state()
+            print(f"{start.get('name')}: {total:,} of {start['ceiling_tokens']:,} tokens used "
+                  f"({start['starting_total']:,} before the log started on {start.get('date')}); "
+                  f"{max(start['ceiling_tokens'] - total, 0):,} left")
+            return 0
+        if args.cmd == "spend-start":
+            spend_start(args.since, args.ceiling, args.name, args.recreate)
+            return 0
         if args.cmd == "stale":
             problems = evalcheck.lock_problems()
             for p in problems:

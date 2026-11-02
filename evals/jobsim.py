@@ -60,9 +60,18 @@ class LeakStop(Exception):
 
 # ---------- the copy ----------
 
-def make_copy(route="intake"):
+def model_problem(route="intake"):
+    """Why a weaker-model run can't set the route's model through the copy's default, or None: every route agent
+    must use the default model ("inherit" or none), so the copy's config/models.json decides it (T2.5 item a)."""
+    own = sorted(n for n in route_agents(lc.routes()[route])
+                 if agent_call.parse_agent(lc.ROOT / ".claude" / "agents" / f"{n}.md").get("model") not in (None, "inherit"))
+    return f"route agent(s) {', '.join(own)} name their own model" if own else None
+
+
+def make_copy(route="intake", model=None):
     """A new temporary factory copy for one run: COPY_DIRS (no tests, caches or *.local.json), the route's agent
-    files, an empty jobs/ and inbox/, and a marker that makes it a copy this process may resume in."""
+    files, an empty jobs/ and inbox/, and a marker that makes it a copy this process may resume in. With model
+    (a weaker-model run, T2.5 item a), the copy's own config/models.json default is that model: only the copy."""
     root = Path(tempfile.mkdtemp(prefix="factory-eval-")).resolve()
     skip = shutil.ignore_patterns("__pycache__", "tests", "*.local.json", *FORBIDDEN)
     for d in COPY_DIRS:
@@ -74,6 +83,15 @@ def make_copy(route="intake"):
         shutil.copy(lc.ROOT / ".claude" / "agents" / f"{name}.md", root / ".claude" / "agents" / f"{name}.md")
     (root / "jobs").mkdir()
     (root / "inbox").mkdir()
+    if model:
+        problem = model_problem(route)
+        if problem:
+            shutil.rmtree(root, ignore_errors=True)
+            raise SimError(f"a weaker-model run is refused: {problem}")
+        cfg = root / "config" / "models.json"
+        models = lc.load_json(cfg)
+        models["default"] = model
+        lc.save_json(cfg, models)
     token = secrets.token_hex(16)
     (root / MARKER).write_text(token, encoding="utf-8")
     _COPIES[str(root)] = token
@@ -403,11 +421,12 @@ def usage_record(st):
 
 # ---------- interview suites ----------
 
-def run_interview(case, n, cmd=None):
+def run_interview(case, n, cmd=None, model=None):
     """One persona run: the job from the brief to readiness (the charter-writer's turn), or to the job's stop.
     A false-ready case ("single_call") stops after the interviewer's first call. With "end_to_end" the job goes on
-    through the charter-writer, the critic and the verifier to the gate. Returns the run record."""
-    key, root = case["key"], make_copy()
+    through the charter-writer, the critic and the verifier to the gate. With model, every call in the copy runs on
+    that model (a weaker-model run). Returns the run record."""
+    key, root = case["key"], make_copy(model=model)
     try:
         job = new_job(root, case)
         persona = Persona(key)
@@ -542,6 +561,7 @@ def aggregate_interview(cases, results, maj):
         "repeated_question_rate": round(t["repeated"] / t["questions"], 3) if t["questions"] else None,
         "wasted_questions": t["wasted"],
         "injection_cases_flagged": f"{t['inj_ok']} of {t['inj']}",
+        "injection_flagged_rate": round(t["inj_ok"] / t["inj"], 3) if t["inj"] else None,
         "false_ready_rate": round(false_ready_runs / false_ready_total, 3) if false_ready_total else None,
         "false_ready_runs": f"{false_ready_runs} of {false_ready_total}",
         "invalid_output_rate": round(t["invalid"] / t["calls"], 3) if t["calls"] else None,
@@ -637,9 +657,10 @@ def end_to_end(root, st, key):
             "fields": len(key.get("reference_charter", {})), "invented": sc["invented"]}
 
 
-def run_charter(case, n, cmd=None, keep=False):
-    """One writer run on a seeded job. With keep, the copy stays (first-pass acceptance continues it)."""
-    key, root = case["key"], make_copy()
+def run_charter(case, n, cmd=None, keep=False, model=None):
+    """One writer run on a seeded job. With keep, the copy stays (first-pass acceptance continues it). With model,
+    the copy runs on that model (a weaker-model run)."""
+    key, root = case["key"], make_copy(model=model)
     try:
         job = seed_charter_job(root, case)
         leak_check(prompt_for(root, job, "charter-writer"), key)

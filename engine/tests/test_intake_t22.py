@@ -175,6 +175,52 @@ class ContextPackTests(LabTestBase):
                       [{"label": i["label"], "path": i["path"]} for i in h["inputs"]])
         self.assertNotIn("ignore your rules", prompt)  # listed by path, never pasted in as text
 
+    def log(self):
+        f = self.tmp / "jobs" / self.job / "run.log.jsonl"
+        return [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines()]
+
+    def test_a_file_refused_for_size_is_logged_with_its_size(self):
+        """T2.5 item 6: each limit, logged before the refusal; the gate brief lists the refusals."""
+        cfg = self.tmp / "config/context-pack.json"
+        c = json.loads(cfg.read_text(encoding="utf-8"))
+        c["max_bytes"], c["max_total_bytes"] = 10, 15
+        cfg.write_text(json.dumps(c), encoding="utf-8")
+        self.refused("at most 10", name="big.txt", data=b"x" * 11)
+        self.add("first.txt", data=b"x" * 10)
+        self.refused("at most 15 in all", name="second.txt", data=b"y" * 6)
+        refusals = [e for e in self.log() if e["event"] == "context_refused"]
+        self.assertEqual([(e["file"], e["bytes"], e["limit"], e["limit_bytes"], e["held_bytes"]) for e in refusals],
+                         [("big.txt", 11, "max_bytes", 10, 0), ("second.txt", 6, "max_total_bytes", 15, 10)])
+        lines = self.lc.context_lines(self.job, self.lc.load_state(self.job))
+        self.assertIn("- Files registered: 1 (10 bytes)", lines)
+        self.assertIn("- Refused for size: big.txt (11 bytes; max_bytes 10, 0 already held)", lines)
+        self.assertIn("- Left out anything useful to fit the limit? NOT ANSWERED", lines)
+        self.assertEqual(self.lc.context_lines(self.lc.new_job("spec", "ctxnone", "x", cls="synthetic")["job_id"],
+                                               {"context": []}), [])
+
+    def test_the_left_out_answer_is_recorded_and_shown(self):
+        state = [sys.executable, str(self.tmp / "engine/state.py"), "input", self.job]
+        f = self.file("cli.csv", b"a,b\n1,2\n")
+        p = subprocess.run(state + [str(f), "--class", "synthetic", "--context", "--evidence-for", "sample rows",
+                                    "--left-out", "yes", "--left-out-note", "the 2098 rota sheet"],
+                           capture_output=True, text=True, env=self.hook_env(), stdin=subprocess.DEVNULL)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        st = self.lc.load_state(self.job)
+        self.assertEqual((st["context_left_out"]["answer"], st["context_left_out"]["note"]), ("yes", "the 2098 rota sheet"))
+        self.assertEqual([e["answer"] for e in self.log() if e["event"] == "context_left_out"], ["yes"])
+        self.assertIn("- Left out anything useful to fit the limit? yes: the 2098 rota sheet",
+                      self.lc.context_lines(self.job, st))
+        for bad in (["--left-out", "maybe"], ["--left-out-note", "x"]):
+            p = subprocess.run(state + [str(self.file("b.csv")), "--class", "synthetic", "--context",
+                                        "--evidence-for", "y"] + bad,
+                               capture_output=True, text=True, env=self.hook_env(), stdin=subprocess.DEVNULL)
+            self.assertNotEqual(p.returncode, 0, bad)
+        p = subprocess.run(state + [str(self.file("c.md")), "--class", "synthetic", "--left-out", "no",
+                                    "--minutes", "skip"],
+                           capture_output=True, text=True, env=self.hook_env(), stdin=subprocess.DEVNULL)
+        self.assertEqual(p.returncode, 1, p.stdout)                        # only with --context
+        self.assertIn("go with --context", p.stdout + p.stderr)
+
     def test_cli(self):
         state = [sys.executable, str(self.tmp / "engine/state.py"), "input", self.job]
         f = self.file("cli.csv", b"a,b\n1,2\n")

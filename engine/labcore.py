@@ -1014,14 +1014,21 @@ def record_context(job_id, source, cls, evidence_for, note=None):
     raw = src.read_bytes()
     if not raw:
         raise LabError(f"{src.name} is empty")
-    if len(raw) > pack["max_bytes"]:
-        raise LabError(f"{src.name} is {len(raw)} bytes; the context pack takes at most {pack['max_bytes']}")
     if not isinstance(pack.get("max_total_bytes"), int):
         raise LabError("config/context-pack.json has no max_total_bytes; nothing was recorded")
     held = sum((ROOT / c["path"]).stat().st_size for c in st.get("context", []))
+
+    def refused(limit_name, limit, msg):          # T2.5 item 6: a size refusal is logged with its size first
+        log(job_id, {"event": "context_refused", "file": src.name, "bytes": len(raw), "held_bytes": held,
+                     "limit": limit_name, "limit_bytes": limit, "actor": "orchestrator"})
+        return LabError(msg)
+    if len(raw) > pack["max_bytes"]:
+        raise refused("max_bytes", pack["max_bytes"],
+                      f"{src.name} is {len(raw)} bytes; the context pack takes at most {pack['max_bytes']}")
     if held + len(raw) > pack["max_total_bytes"]:   # T2.4: every call that gets the pack carries all of it
-        raise LabError(f"{src.name} would bring the context pack to {held + len(raw)} bytes; at most "
-                       f"{pack['max_total_bytes']} in all (config/context-pack.json max_total_bytes)")
+        raise refused("max_total_bytes", pack["max_total_bytes"],
+                      f"{src.name} would bring the context pack to {held + len(raw)} bytes; at most "
+                      f"{pack['max_total_bytes']} in all (config/context-pack.json max_total_bytes)")
     try:
         raw.decode("utf-8")
     except UnicodeDecodeError:
@@ -1042,6 +1049,39 @@ def record_context(job_id, source, cls, evidence_for, note=None):
     _save(job_id, st, {"event": "context", "source": rec["id"], "class": cls, "path": rec["path"],
                        "sha256": rec["sha256"], "actor": "orchestrator"})
     return st, rec
+
+
+def record_left_out(job_id, answer, note=None):
+    """T2.5 item 6: the approver's answer to the preparation checklist's "Did you leave out anything useful to fit
+    the limit?" (yes or no, an optional note), as stated. The latest answer counts; every answer is logged."""
+    if answer not in ("yes", "no"):
+        raise LabError("--left-out takes yes or no")
+    st = load_state(job_id)
+    if st["state"] in TERMINAL:
+        raise LabError(f"{job_id} is terminal ({st['state']})")
+    st["context_left_out"] = {"answer": answer, "note": (note or "").strip() or None, "recorded": now()}
+    _save(job_id, st, {"event": "context_left_out", "answer": answer, "actor": "orchestrator"})
+    return st
+
+
+def context_lines(job_id, st):
+    """The gate brief's context-pack lines (T2.5 item 6): files held, refusals for size with their sizes, and the
+    left-out answer. Empty for a job with none of these."""
+    f = job_dir(job_id) / "run.log.jsonl"
+    refusals = [e for e in (json.loads(ln) for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip())
+                if e.get("event") == "context_refused"] if f.exists() else []
+    held, lo = st.get("context", []), st.get("context_left_out")
+    if not (held or refusals or lo):
+        return []
+    total = sum((ROOT / c["path"]).stat().st_size for c in held if (ROOT / c["path"]).exists())
+    L = ["## Context pack", "", f"- Files registered: {len(held)} ({total} bytes)"]
+    L += [f"- Refused for size: {e['file']} ({e['bytes']} bytes; {e['limit']} {e['limit_bytes']}, "
+          f"{e['held_bytes']} already held)" for e in refusals]
+    if lo:
+        L.append(f"- Left out anything useful to fit the limit? {lo['answer']}" + (f": {lo['note']}" if lo["note"] else ""))
+    else:
+        L.append("- Left out anything useful to fit the limit? NOT ANSWERED")
+    return L + [""]
 
 
 # ---------- fan-out ----------

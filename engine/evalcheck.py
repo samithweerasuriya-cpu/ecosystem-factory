@@ -10,8 +10,10 @@ A report counts for locking when it passed, ran 3 times per case ("full" or "smo
 installed, and it was made with the current handoff format (labcore.HANDOFF_FORMAT, T1.5; a report
 without one is format 1). `gate.py lock` refuses unless:
   1. every agent file in .claude/agents/ has a suite;
-  2. every suite has a counting "full" report made with the current agent and rulebook files, and,
-     for an agent used by a route, that report met the minimum case counts (evals/thresholds.json);
+  2. every suite has a counting "full" report made with the current agent and rulebook files and the suite
+     fingerprint it recorded still holds (T2.5 item 10: suite.json, every case file and key, the thresholds and
+     the scoring code), and, for an agent used by a route, that report met the minimum case counts
+     (evals/thresholds.json);
   3. every framework file (.claude/agents/, rules/, schemas/, config/ except *.local.json) has the
      hash recorded in at least one counting report ("full" or "smoke"), so any change needs a run;
   4. at least one counting report exists (no evaluations, no lock).
@@ -188,6 +190,32 @@ def counts(report, fp):
             and report.get("handoff_format") == lc.HANDOFF_FORMAT)
 
 
+SCORING_FILES = ("evals/thresholds.json", "evals/run_evals.py", "evals/jobsim.py", "evals/replay_cli.py")
+
+
+def suite_fingerprint(s):
+    """T2.5 item 10: {path: sha256 or None} for what a suite's result depends on besides the agent and rulebook:
+    its suite.json, every case file, every key, the thresholds and the scoring code. A report records it; a change
+    to any of them makes the report stale."""
+    out = {lc.rel(s["dir"] / "suite.json"): file_hash(lc.rel(s["dir"] / "suite.json"))}
+    for sub in ("cases", "keys"):
+        base = s["dir"] / sub
+        for f in sorted(base.rglob("*")) if base.is_dir() else []:
+            if f.is_file() and "__pycache__" not in f.parts:
+                out[lc.rel(f)] = lc.sha256_path(f)
+    for p in SCORING_FILES:
+        out[p] = file_hash(p)
+    return out
+
+
+def fingerprint_changes(report, s):
+    """The paths whose hash differs from the report's suite fingerprint (all of them if it has none)."""
+    then, now = report.get("suite_fingerprint"), suite_fingerprint(s)
+    if not isinstance(then, dict):
+        return sorted(now)
+    return sorted(p for p in then.keys() | now.keys() if then.get(p) != now.get(p))
+
+
 def suite_problem(s, fp, routed):
     """Why this suite has no counting full report for its current files, or None."""
     agent_sha, rb_sha = file_hash(s["agent"]), file_hash(s.get("rulebook"))
@@ -198,6 +226,14 @@ def suite_problem(s, fp, routed):
     if not cur:
         return (f"suite {s['name']}: {s['agent']} or its rulebook changed since its last passing full report; "
                 f"re-run: python evals/run_evals.py run {s['name']}")
+    bound = [r for r in cur if not fingerprint_changes(r, s)]
+    if not bound:
+        changed = fingerprint_changes(cur[-1], s)
+        why = ("it records no suite fingerprint (made before T2.5)" if "suite_fingerprint" not in cur[-1] else
+               f"{len(changed)} file(s) changed since: " + ", ".join(changed[:6]) + (" ..." if len(changed) > 6 else ""))
+        return (f"suite {s['name']}: its passing full report is stale: {why}; "
+                f"re-run: python evals/run_evals.py run {s['name']}")
+    cur = bound
     ok = [r for r in cur if counts(r, fp)]
     if not ok and not any(r.get("handoff_format") == lc.HANDOFF_FORMAT for r in cur):
         return (f"suite {s['name']}: its passing report was made with handoff format "

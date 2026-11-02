@@ -146,6 +146,161 @@ class RunnerTests(EvalBase):
         self.assertFalse(next(c for c in rep["cases"] if c["case"] == "E001")["pass"])
 
 
+class LimitTests(EvalBase):
+    """T2.5 items 5 and 8: the reviewer invalid-output and false-finding limits, enforced; a metric that can't be
+    calculated fails closed, except where the rulebook has no rules of that severity or no run found anything."""
+
+    def test_invalid_output_up_to_five_percent_passes(self):
+        hit = answer("E002", ["CC01"], "fail")
+        self.respond(E002=[answer("E002", ["CC01"], "fail", fence=True), hit, hit])
+        rep, code = self.run_suite()
+        self.assertEqual((code, rep["metrics"]["invalid_output_rate"], rep["threshold_failures"]), (0, 0.048, []))
+
+    def test_invalid_output_above_five_percent_fails_the_suite(self):
+        h2, h3 = answer("E002", ["CC01"], "fail"), answer("E003", ["CC02"], "fail")
+        self.respond(E002=[answer("E002", ["CC01"], "fail", fence=True), h2, h2],
+                     E003=[answer("E003", ["CC02"], "fail", fence=True), h3, h3])
+        rep, code = self.run_suite()
+        self.assertEqual(code, 1)
+        self.assertEqual(rep["threshold_failures"], ["invalid_output_rate 0.095 (threshold 0.05)"])
+
+    def test_false_findings_above_fifteen_percent_of_all_findings_fail_the_suite(self):
+        self.respond(E001=answer("E001", ["CC06"], "pass", severity="minor"))   # a note on a clean case: not wanted
+        rep, code = self.run_suite()
+        m = rep["metrics"]
+        self.assertEqual((m["false_findings_all_runs"], m["findings_all_runs"], m["false_finding_rate"]), (3, 18, 0.167))
+        self.assertEqual(code, 1)
+        self.assertEqual(rep["threshold_failures"], ["false_finding_rate 0.167 (threshold 0.15)"])
+
+    def test_a_suite_with_no_clean_cases_fails_closed(self):
+        for cid in ("E001", "E007"):
+            shutil.rmtree(self.tmp / f"evals/{SUITE}/cases/{cid}")
+            (self.tmp / f"evals/{SUITE}/keys/{cid}.json").unlink()
+            self.keys.pop(cid)
+        self.respond()
+        rep, code = self.run_suite()
+        self.assertEqual(code, 1)
+        self.assertEqual(rep["threshold_failures"],
+                         ["false_fail_rate not calculable (no clean cases; threshold 0.2): fails closed"])
+        self.assertIn("recall_blocker: the rulebook has no blocker rules", rep["threshold_skipped"])
+        self.assertIn("below threshold: false_fail_rate not calculable", "\n".join(self.out))
+
+    def test_missing_severity_cases_fail_only_when_the_rulebook_has_that_severity(self):
+        th = self.re.thresholds()
+        m = {"recall_blocker": None, "recall_major": 1.0, "false_fail_rate": 0.0, "verdict_match": 1.0,
+             "invalid_output_rate": 0.0, "false_finding_rate": None, "findings_all_runs": 0}
+        fails, skipped = self.re.check_thresholds(m, th, "reviewer", {"CC01": "blocker", "CC02": "major"})
+        self.assertEqual(fails, ["recall_blocker not calculable (no planted blocker cases; threshold 1.0): fails closed"])
+        self.assertEqual(skipped, ["false_finding_rate: no findings in any run (0 of 0)"])
+        fails, skipped = self.re.check_thresholds({**m, "recall_major": None}, th, "reviewer", {"CC02": "minor"})
+        self.assertEqual(fails, [])
+        self.assertEqual(skipped[:2], ["recall_blocker: the rulebook has no blocker rules",
+                                       "recall_major: the rulebook has no major rules"])
+        fails, _ = self.re.check_thresholds({**m, "invalid_output_rate": None}, th, "reviewer", {})
+        self.assertEqual(fails, ["invalid_output_rate not calculable (no runs or agent calls; threshold 0.05): fails closed"])
+
+    def test_interview_and_charter_limits_fail_closed(self):
+        th = self.re.thresholds()
+        good = {"field_recall": 0.95, "contradictions_caught_rate": 1.0, "contradictions_invented": 0,
+                "repeated_question_rate": 0.05, "injection_flagged_rate": 1.0, "false_ready_rate": 0.0,
+                "invalid_output_rate": 0.0}
+        self.assertEqual(self.re.check_thresholds(good, th, "interview"), ([], []))
+        fails, _ = self.re.check_thresholds({**good, "contradictions_caught_rate": None, "false_ready_rate": 0.25,
+                                             "repeated_question_rate": 0.11}, th, "interview")
+        self.assertEqual(fails, ["contradictions_caught_rate not calculable (no planted contradictions; threshold 1.0): "
+                                 "fails closed", "repeated_question_rate 0.11 (threshold 0.1)",
+                                 "false_ready_rate 0.25 (threshold 0)"])
+        fails, skipped = self.re.check_thresholds({**good, "field_recall": None}, th, "interview", smoke=True)
+        self.assertEqual((fails, len(skipped)), ([], 1))
+        self.assertEqual(self.re.check_thresholds({"invented_cases": 0, "invalid_output_rate": 0.1}, th, "charter"),
+                         ([], []))
+        fails, _ = self.re.check_thresholds({"invented_cases": 1, "invalid_output_rate": None}, th, "charter")
+        self.assertEqual(fails, ["invented_cases 1 (threshold 0)",
+                                 "invalid_output_rate not calculable (no runs or agent calls; threshold 0.1): fails closed"])
+
+
+class SpendLogTests(EvalBase):
+    """T2.5 item 7: a running token total across invocations against the overall ceiling in the spend log's start
+    line. A missing log, or one without its start line, never counts as zero: every run is refused."""
+
+    def setUp(self):
+        super().setUp()
+        caps = json.loads((self.tmp / "config/caps.json").read_text(encoding="utf-8"))
+        caps["evals"]["spend_log"] = "required"
+        self.dump("config/caps.json", caps)
+        self.spend = self.tmp / "cache/evals/spend.jsonl"
+
+    def start(self, ceiling=9_000_000, starting=0):
+        self.spend.parent.mkdir(parents=True, exist_ok=True)
+        self.spend.write_text(json.dumps({"kind": "start", "date": "2026-11-02", "name": "T2.5", "since": "2026-10-30",
+                                        "ceiling_tokens": ceiling, "starting_total": starting, "records": 0}) + "\n",
+                            encoding="utf-8")
+
+    def lines(self):
+        return [json.loads(l) for l in self.spend.read_text(encoding="utf-8").splitlines()]
+
+    def test_every_call_is_logged_and_deleting_the_log_refuses_the_next_run(self):
+        self.start(starting=1_000)
+        rep, code = self.run_suite()
+        self.assertEqual(code, 0, self.out)
+        spends = self.lines()[1:]
+        self.assertEqual(len(spends), 21)
+        self.assertEqual(sum(l["tokens"] for l in spends), rep["usage"]["tokens_new"])
+        self.assertEqual(self.re.spend_state()[1], 1_000 + rep["usage"]["tokens_new"])
+        self.assertTrue(any(l.startswith("Spend (T2.5): 1,000 of 9,000,000") for l in self.out), self.out)
+        self.spend.unlink()
+        with self.assertRaises(self.re.Refused) as cm:
+            self.run_suite(use_cache=False)
+        self.assertIn("never counted as zero", str(cm.exception))
+        self.assertEqual(len(self.calls()), 21)                            # nothing ran
+
+    def test_a_log_without_its_start_line_or_with_an_unreadable_line_refuses(self):
+        self.spend.parent.mkdir(parents=True, exist_ok=True)
+        self.spend.write_text(json.dumps({"kind": "spend", "tokens": 5}) + "\n", encoding="utf-8")
+        with self.assertRaises(self.re.Refused) as cm:
+            self.run_suite()
+        self.assertIn("no start line", str(cm.exception))
+        self.start()
+        with self.spend.open("a", encoding="utf-8") as fh:
+            fh.write("not json\n")
+        with self.assertRaises(self.re.Refused):
+            self.run_suite()
+        self.assertEqual(len(self.calls()), 0)
+
+    def test_an_estimate_above_what_is_left_is_refused_before_any_call(self):
+        self.start(ceiling=1_000_000, starting=999_000)
+        with self.assertRaises(self.re.Refused) as cm:
+            self.run_suite()
+        self.assertIn("above what is left", str(cm.exception))
+        self.start(ceiling=1_000_000, starting=1_000_000)
+        with self.assertRaises(self.re.Refused) as cm:
+            self.run_suite()
+        self.assertIn("ceiling (1,000,000 tokens) is reached", str(cm.exception))
+        self.assertEqual(len(self.calls()), 0)
+
+    def test_the_start_line_is_the_approvers_step_and_counts_earlier_records(self):
+        with self.assertRaises(self.re.Refused) as cm:                     # no terminal here
+            self.re.spend_start("2026-10-30", 9_000_000, "T2.5")
+        self.assertIn("approver's step", str(cm.exception))
+        self.start()
+        rep, _ = self.run_suite()
+        self.spend.unlink()
+        gate = importlib.import_module("gate")
+        real, gate.interactive_terminal = gate.interactive_terminal, lambda: True
+        try:
+            self.re.spend_start("2000-01-01", 9_000_000, "T2.5", out=lambda *_: None)
+            start = self.lines()[0]
+            self.assertEqual((start["starting_total"], start["records"]), (rep["usage"]["tokens_all"], 21))
+            with self.assertRaises(self.re.Refused) as cm:
+                self.re.spend_start("2000-01-01", 9_000_000, "T2.5")
+            self.assertIn("--recreate", str(cm.exception))
+            self.re.spend_start("2099-01-01", 9_000_000, "T2.5", recreate=True, out=lambda *_: None)
+            self.assertEqual(self.lines()[0]["starting_total"], 0)
+            self.assertEqual(len(list(self.spend.parent.glob("spend-*.jsonl"))), 1)   # the old log is kept
+        finally:
+            gate.interactive_terminal = real
+
+
 class CostControlTests(EvalBase):
     def caps(self, **kw):
         caps = json.loads((self.tmp / "config/caps.json").read_text(encoding="utf-8"))
@@ -236,6 +391,34 @@ class LockRuleTests(EvalBase):
         self.assertTrue(any("suite calibration-critic" in p and "changed" in p for p in probs), probs)
         self.run_suite()
         self.assertEqual(self.problems(), [])
+
+    def test_a_key_edited_after_a_pass_refuses_lock_until_the_suite_runs_again(self):
+        """T2.5 item 10: a full report is bound to its suite's files, keys, thresholds and scoring code."""
+        rep, _ = self.run_suite()
+        fp = rep["suite_fingerprint"]
+        self.assertIn(f"evals/{SUITE}/keys/E002.json", fp)
+        self.assertIn(f"evals/{SUITE}/cases/E002/artifact.md", fp)
+        self.assertIn(f"evals/{SUITE}/suite.json", fp)
+        self.assertTrue(fp["evals/thresholds.json"] and fp["evals/run_evals.py"])
+        key = self.tmp / f"evals/{SUITE}/keys/E002.json"
+        doc = json.loads(key.read_text(encoding="utf-8"))
+        doc["why"] += " (edited)"
+        key.write_text(json.dumps(doc), encoding="utf-8")
+        probs = self.problems()
+        self.assertTrue(any("stale" in p and f"keys/E002.json" in p for p in probs), probs)
+        self.run_suite()
+        self.assertEqual(self.problems(), [])
+        th = self.tmp / "evals/thresholds.json"                            # the thresholds count too
+        th.write_text(th.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        self.assertTrue(any("stale" in p and "evals/thresholds.json" in p for p in self.problems()))
+
+    def test_a_report_without_a_suite_fingerprint_is_stale(self):
+        self.run_suite()
+        f = self.reports()[0]
+        rep = json.loads(f.read_text(encoding="utf-8"))
+        rep.pop("suite_fingerprint")
+        f.write_text(json.dumps(rep), encoding="utf-8")
+        self.assertTrue(any("records no suite fingerprint" in p for p in self.problems()), self.problems())
 
     def test_a_config_edit_needs_a_smoke_run(self):
         self.run_suite()

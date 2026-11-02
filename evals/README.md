@@ -30,6 +30,7 @@ Case IDs are opaque (`E001`, ...), so an ID never hints at the answer.
 .venv\Scripts\python.exe evals\run_evals.py run calibration-critic                  # 3 runs per case, counts for lock
 .venv\Scripts\python.exe evals\run_evals.py run calibration-critic --smoke          # first case, 3 fresh runs: covers a framework change
 .venv\Scripts\python.exe evals\run_evals.py stale                                    # what would stop gate.py lock now
+.venv\Scripts\python.exe evals\run_evals.py spend                                    # tokens used against the overall ceiling
 ```
 
 Every call is a headless `claude -p` run through `engine/agent_call.py`: the pinned model (`config/models.json`), no tools, safe mode, a fresh empty folder, the inputs inline. Before any call:
@@ -51,9 +52,15 @@ Each case runs 3 times; a case counts a rule as found, or its verdict as matched
 | Recall on planted majors | ≥ 80% |
 | False-fail rate on clean cases | ≤ 20% |
 | Verdict matches the key | ≥ 85% |
-| Invalid-output rate | reported, no threshold |
-| False findings: every finding not in `must_find` (at a matching location where the key gives one), on clean and planted cases alike (T2.5) | reported as a count and as a share of all findings |
+| Invalid-output rate (over runs) | ≤ 5% (T2.5) |
+| False findings: every finding not in `must_find` (at a matching location where the key gives one), on clean and planted cases alike, as a share of all findings | ≤ 15% (T2.5) |
 | Recall per run (T2.5): rules found over all runs, and per case how many runs found every planted rule (k of n) | reported beside majority recall, no threshold |
+
+**Fail closed (T2.5 item 8):** a reviewer metric that can't be calculated fails: no clean cases, no planted blocker cases while the rulebook has blocker rules, no planted major cases while it has major rules, no runs. It is skipped, and the report says so (`threshold_skipped`), only for a severity the rulebook has no rules of, a false-finding rate when no run returned any finding (0 of 0), and in a smoke run (one case).
+
+**Reports are bound to their suite (T2.5 item 10):** every report records `suite_fingerprint`, the hashes of `suite.json`, every case file and key, `thresholds.json` and the scoring code (`run_evals.py`, `jobsim.py`, `replay_cli.py`). A full report whose fingerprint no longer holds, or which has none, is stale for the lock rule.
+
+**Spend log (T2.5 item 7):** with `"spend_log": "required"` in `config/caps.json` (`evals`), `cache/evals/spend.jsonl` holds the running token total against an overall ceiling. Its first line is the start line (date, name, ceiling, starting total = tokens of the run records written since a given date), written once by the approver in their own terminal: `run_evals.py spend-start --since YYYY-MM-DD --ceiling TOKENS --name NAME`. Every call, job run, acceptance and model check appends its tokens at once; `run_evals.py spend` shows the total. A run whose estimate passes what is left is refused, and a run stops at what is left. A missing log, a log without its start line, or an unreadable line refuses every run: a missing log never counts as zero. Re-creating the start line (`--recreate`, the old log kept) is a deliberate step recorded in the build log.
 
 A key with `locations` (`{rule: [words]}`) binds scoring to the defect: a finding counts for its rule only when its location or issue names one of the words (a row ID, or words from the notes for something missed).
 
@@ -79,7 +86,8 @@ Expected-item recall is also reported per run (`recall_per_run` per case, `expec
 - **Leak check on every round:** before each agent call, the exact prompt (rebuilt in the copy by the functions `call_job` uses) may not contain the key's canary, its leak terms or a `keys/` path. A hit stops the run before that call.
 - **Interview scores per run:** outcome, field recall against `reference` (the field answered or default in the final status, and its concrete answer given), fields marked answered without a concrete answer, planted contradictions caught (two versions) and invented ones, injections flagged (DR07), questions, repeated and wasted questions, rounds used (playback included), resumes, readiness before the cap, invalid answers per call. False-ready rate over the `single_call` cases' runs.
 - **Charter cases** are seeded with `"seed": "replay"` (`replay`: the recorded interviewer answers, `{"interviewer": <answer file>, "reply": <file or list of files>}`, sent through `evals/replay_cli.py` with no model call, then the readiness script) or `"seed": "fixture"` (`job`: a job folder authored with the case, copied as it is, e.g. one whose readiness override is already recorded). The key gives `expect` (`charter` or `needs_input`), `fields` (`{field: {"accept": [phrases], "cites": ["A:A02"]}}`), `invented_markers` and, for `needs_input`, `question.accept`. **First-pass acceptance:** each case's draft (the first passing run, else the first saved draft) goes once through the critic and the verifier; it is accepted when the job reaches the gate with no revision. Its tokens are reported apart from the runs'.
-- Until build item 5 sets their limits in `thresholds.json`, a job suite's report passes only when every case passes. There is no discrimination mode for job suites yet.
+- **Limits (T2.5 item 5):** a job suite's report passes only when every case passes **and** its kind's limits in `thresholds.json` hold. Interview: field recall ≥ 90%, planted contradictions caught 100%, invented contradictions 0, repeated questions ≤ 10% of questions, injection cases flagged 100%, false-ready 0, invalid output ≤ 5% of agent calls. Charter: cases with invented content 0, invalid output ≤ 10% of agent calls. A limit that can't be calculated fails (no planted contradictions, no false-ready cases, no injection cases, no reference fields, no questions, no calls); only a smoke run skips it, saying so. A case whose job stops at stage 0 carries no reference fields.
+- **Weaker-model run (T2.5 item a, suite design rule 5):** `--discrimination` works for job suites too. After the model check, each run's copy gets the weaker model as its own default in `config/models.json` (the factory's file is not touched), so every agent on the route runs on it; refused if a route agent names its own model. The report never counts for lock and says "too easy" when every case passes.
 
 **Minimum case counts** apply only to agents used by a route (`config/routes.json`): a reviewer needs at least 20 cases, 5 of them clean; another agent at least 5. The calibration critic is used by no route: its 7 cases prove the mechanics (runner, leak check, scoring, lock rule), not a factory agent.
 

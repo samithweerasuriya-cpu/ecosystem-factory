@@ -30,4 +30,6 @@ have is much quicker.
 ## Ready to hand over
 
 - [ ] Every file in the context pack is registered with its classification (synthetic or public).
+- [ ] **Did you leave out anything useful to fit the limit?** Yes or no, and if yes, what. Your answer is recorded
+      with the job and shown at the gate.
 - [ ] The brief's "you must answer" sections have an answer or "don't know yet".

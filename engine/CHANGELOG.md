@@ -1,5 +1,15 @@
 # Engine changelog
 
+## 0.22.0 (2026-11-02)
+
+T2.5 build work, items 5, 6, 7, 8, 10 and a.
+
+- Limits enforced (`evals/thresholds.json`): reviewers invalid output ≤ 5% and false findings ≤ 15% of all findings; interview and charter limits as approved, on top of every case passing. A metric that can't be calculated fails closed; skipped (and stated) only for a severity the rulebook lacks, a false-finding rate of 0 of 0, and smoke runs.
+- Reports record `suite_fingerprint` (suite.json, every case file and key, thresholds, scoring code); the lock rule treats a changed or missing fingerprint as stale.
+- Spend log `cache/evals/spend.jsonl` (`config/caps.json` `evals.spend_log: "required"`): a start line written by the approver (`run_evals.py spend-start`, own terminal), every spend appended at once, runs refused or stopped at the overall ceiling; a missing log or start line refuses every run. `run_evals.py spend` shows the total.
+- Context pack: a file refused for size is logged with its size (`context_refused`); `state.py input --context --left-out yes|no [--left-out-note]` records the checklist answer; the gate brief shows a "Context pack" section. Checklist question added; `/onboard` asks it.
+- Weaker-model runs for interview and charter suites: each job copy's default model is the discrimination model; refused if a route agent names its own model; never counts for lock.
+
 ## 0.21.1 (2026-11-02)
 
 T2.5 build work, items b, c and d (suite time, hook fix, timeout watch item).

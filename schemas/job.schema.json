@@ -448,6 +448,31 @@
         }
       }
     },
+    "context_left_out": {
+      "type": "object",
+      "required": [
+        "answer",
+        "note",
+        "recorded"
+      ],
+      "properties": {
+        "answer": {
+          "enum": [
+            "yes",
+            "no"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recorded": {
+          "type": "string"
+        }
+      }
+    },
     "awaiting": {
       "type": [
         "object",

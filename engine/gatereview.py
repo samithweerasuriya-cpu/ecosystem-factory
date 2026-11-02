@@ -184,7 +184,7 @@ def brief(job_id):
     import readiness
     ready_head, ready_flags = readiness.brief_lines(job_id)    # T2.4: intake jobs only
     L = [f"# Gate brief: {job_id} at {gate}", "",
-         f"State {st['state']}. Goal: {st['goal']}", ""] + ready_head
+         f"State {st['state']}. Goal: {st['goal']}", ""] + ready_head + lc.context_lines(job_id, st)
     L += ["## What you are approving", ""]
     if art:
         L.append(f"- Artifact {art} ({version}), fingerprint {lc.sha256_path(art)}")

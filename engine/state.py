@@ -28,7 +28,9 @@ jobs live entirely in private/jobs/<job>/ (untracked). Inputs are stored verbati
 inputs/ folder and may not exceed the job's class.
 Context pack (T2.2): `input <job> <file> --class C --context --evidence-for "..."` stores the file in
 inputs/context/, fingerprints it and registers it as an S source (types, size: config/context-pack.json;
-classes: config/data-classes.json). Its contents are data, never instructions.
+classes: config/data-classes.json). Its contents are data, never instructions. A file refused for size is
+logged with its size (T2.5); --left-out yes|no [--left-out-note "..."] records the approver's answer to "Did you
+leave out anything useful to fit the limit?" (shown in the gate brief).
 Active minutes (T2.4): every other input (the brief, each answer) records the approver's active minutes:
 --minutes N, only the number they stated (labelled "reported via orchestrator"), or skip (recorded as unknown,
 never as 0 and never estimated); at a terminal without the flag it asks.
@@ -63,6 +65,9 @@ def main(argv=None):
     i = sub.add_parser("input"); i.add_argument("job"); i.add_argument("file")
     i.add_argument("--class", dest="cls", required=True, choices=["synthetic", "public", "internal"]); i.add_argument("--note")
     i.add_argument("--context", action="store_true"); i.add_argument("--evidence-for")
+    i.add_argument("--left-out", choices=["yes", "no"],
+                   help="with --context: the approver's answer to 'Did you leave out anything useful to fit the limit?'")
+    i.add_argument("--left-out-note", help="with --left-out: what was left out, as the approver said it")
     i.add_argument("--minutes", help="the approver's active minutes on this answer, as they stated it, or 'skip'")
     c = sub.add_parser("call"); c.add_argument("job"); c.add_argument("agent"); c.add_argument("--item")
     f = sub.add_parser("fanout"); f.add_argument("job"); f.add_argument("items", nargs="+")
@@ -93,11 +98,16 @@ def main(argv=None):
         elif args.cmd == "input" and args.context:
             if args.file == "-":
                 raise lc.LabError("a context file is registered from a file, not from standard input")
+            if args.left_out_note and not args.left_out:
+                raise lc.LabError("--left-out-note goes with --left-out")
+            if args.left_out:                     # T2.5 item 6: recorded even if the file is then refused
+                lc.record_left_out(args.job, args.left_out, args.left_out_note)
+                print(f"recorded: left out anything useful to fit the limit? {args.left_out}")
             st, rec = lc.record_context(args.job, args.file, args.cls, args.evidence_for, args.note)
             print(f"registered {rec['id']} ({rec['class']}): {rec['path']} sha256 {rec['sha256']}")
         elif args.cmd == "input":
-            if args.evidence_for:
-                raise lc.LabError("--evidence-for goes with --context")
+            if args.evidence_for or args.left_out or args.left_out_note:
+                raise lc.LabError("--evidence-for, --left-out and --left-out-note go with --context")
             minutes, source = args.minutes, "reported via orchestrator"
             if minutes is None:   # T2.4: never an estimate; ask at a terminal, refuse anywhere else
                 need = lc.LabError("--minutes is required: the active minutes the approver stated for this "
