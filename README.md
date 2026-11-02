@@ -1,16 +1,109 @@
 # Ecosystem Factory
 
-Verified agent-system generation: an agent ecosystem that builds agent ecosystems. It interviews its owner about a problem, designs a fit-for-purpose ecosystem of agents, generates it on a fixed and tested engine, and proves it works before it goes live.
+**Verified agent-system generation.**
 
-```
-Interview → problem charter ─G0─► blueprint ─G1─► generated ecosystem + bootstrap check ─G2─► live
-```
+![The factory's flow: brief, interview, charter, gate G0, blueprint, gate G1, generate, evaluate, gate G2](docs/images/factory-flow.png)
 
-Every step between those gates is done by agents; every gate is a person approving the exact files, in their own terminal.
+"It seems to work" is not acceptance, yet that is how most agent systems go live. The factory interviews its owner about one problem, designs a small agent system for it, generates that system on a fixed, tested engine, and proves it against calibrated test suites before go-live. A person approves every step that matters, in their own terminal, and agents can't approve anything.
+
+> Read the story behind it: *(article link to follow)*
+
+## How it works
+
+1. **Interview:** an interviewer agent reads your problem brief and asks only about the gaps, a few questions per round.
+2. **Charter:** a writer turns the answers into a charter where every line cites its source; a critic and a verifier check it. **G0:** you approve the charter.
+3. **Blueprint:** the factory designs the agents, their rules, routes and limits. **G1:** you approve the blueprint.
+4. **Generate and prove:** the system is generated on the fixed engine and must pass its evaluation suites. **G2:** you approve go-live.
+
+Each gate approval is bound to the exact files you approved; any later edit voids it.
+
+## What's proven so far
+
+Phase 1 ran a generated agent system on a real job, end to end:
+
+- The job went through its route and was **approved at its human gate** after one review cycle.
+- At the gate, the reviewer's one finding was marked **valid**, and **no missed issue** was recorded (one job: a first data point, not yet a rate).
+- The whole job used **about 24,000 tokens** in 4 agent calls.
+
+Before that job could run, its reviewer had to pass its evaluation suite. It failed the first time, was fixed once, and passed. Thresholds were never lowered:
+
+![The critic's evaluation suite: 12 of 20 cases on the first run, 20 of 21 after one fix, 7 of 21 on a weaker model](docs/images/evaluation-before-after.png)
+
+The weaker model scoring far lower shows the suite tells good reviewers from poor ones. Every guardrail was also drilled live in a real session, including fail-closed behaviour when the guard hook itself is broken ([docs/drills.md](docs/drills.md)).
+
+## What makes it different
+
+- **Small, fixed routes.** Each generated system is a few agents on a route you can read: author, reviewers, a gate. Every loop has hard caps that the engine enforces, not the agents.
+- **Calibrated reviewers.** A reviewer is used only after it passes a test suite with planted defects, near-miss clean twins, hidden answer keys and 3 runs per case. The suite must also beat a weaker model, or it is too easy to count.
+- **Bound to exact versions.** Approvals and evaluation passes each record the fingerprints of the files they cover. Change an approved file and its approval is void; change an agent, a rule, a test case or an answer key, and the earlier evaluation pass no longer counts.
+- **Claims checked against sources.** Charter lines cite the owner's answers or registered files; quotes must match word for word.
+- **Humans decide.** Gate commands are human-only and run in the owner's own terminal; the agents' guard blocks them.
+
+More detail in [docs/overview.md](docs/overview.md).
 
 ## Status
 
-**Phases 0 and 1 have passed; Phase 2 (intake) is in progress.** A generated ecosystem has run a real job end to end: its agents met their evaluation thresholds, one human gate approved the result, and usage was measured. Phase 2 has its charter schema (v1); the interview agents come next. 520 automated tests pass (latest full run). See [docs/roadmap.md](docs/roadmap.md).
+| Phase | Status |
+|---|---|
+| 0. Foundation | Phase accepted |
+| 1. Thin end-to-end version | Phase accepted |
+| 2. Intake | In progress: the intake agents, their route and the evaluation machinery are tested; their evaluation cases and live runs are next |
+| 3. Design | Planned |
+| 4. Generation and lifecycle | Planned |
+| 5. Autonomy, on evidence | Planned |
+
+As of 2 November 2026:
+
+- **Unit and end-to-end tests:** 616 automated tests pass (no model calls; agents are simulated).
+- **Model evaluations:** Phase 1's reviewer passed 20 of 21 cases and its writer 5 of 5 (3 runs per case). The Phase 2 suites are designed; they have not been run yet.
+
+Labels and details: [docs/roadmap.md](docs/roadmap.md).
+
+## How it was built
+
+Samith, a product manager who does not write code, specified, reviewed and decided every step. Claude Code wrote, ran and tested all of the code. The working rules, in brief:
+
+- **One task at a time:** plan, approval, build, a check run in front of Samith, a build-log row, a commit.
+- **Tests before every commit** that touches the engine or its rules.
+- **Never weaken a test or a threshold** to make it pass; report the failure instead.
+- **No secrets, no real work data:** synthetic or public material only. A publish check blocks commits that break this.
+- **Only Samith approves gates and publishes.** The guard blocks the agents from both.
+
+Mistakes found along the way are kept as lessons: [docs/lessons.md](docs/lessons.md). The engine and method are derived from the author's earlier private labs; the role catalogue credit is in [NOTICE.md](NOTICE.md).
+
+## Try it
+
+Requirements: Windows with Python 3.13 (via `uv`) and the `py` launcher, Git, and Claude Code on a claude.ai subscription. No API key is needed: every agent call stays on the subscription.
+
+Set up the environment:
+
+```bash
+uv venv --python 3.13 .venv
+```
+
+```bash
+uv pip install --python .venv jsonschema
+```
+
+Check the whole setup:
+
+```bash
+.venv\Scripts\python.exe engine\doctor.py
+```
+
+Run the tests (the fast tier takes 10 to 25 minutes, depending on the machine):
+
+```bash
+.venv\Scripts\python.exe engine\run_tests.py --fast
+```
+
+Then open the folder in Claude Code (manual permission mode only) and start an intake:
+
+```
+/onboard
+```
+
+Gate actions (`engine/gate.py`) run only in your own terminal.
 
 ## What this is, and what it isn't
 
@@ -25,44 +118,11 @@ It **isn't** a dependency-graph tool or a general agent swarm. Each generated sy
 - **Not** enterprise isolation, multi-tenant security or compliance tooling.
 - **Not** a multi-repository code generator: it generates small agent ecosystems, each in its own folder.
 
-## How it was built
+## More
 
-Samith, a product manager who does not write code, specified, reviewed and decided every step. Claude Code wrote, ran and tested all the code, one planned task at a time: plan, approval, build, a Check run in front of Samith, a build-log row, a commit. Mistakes found along the way are kept as lessons in [docs/lessons.md](docs/lessons.md). The engine and method are derived from the author's earlier private labs; the role catalogue credit is in [NOTICE.md](NOTICE.md).
-
-## What makes it different
-
-Five guarantees, each enforced by a script that can't be talked round, an agent where judgement is needed, and a person at a gate:
-
-1. **Structured intake:** problems arrive as charters with a schema and a readiness score, not one-line goals.
-2. **Calibrated reviewers:** every reviewer is evaluated on planted-defect and clean cases (3 runs per case, hidden answer keys, leak check) before it may be used.
-3. **Claims checked against sources:** citations must resolve to pages fetched and stored by script, quotes must match verbatim, and source rank must fit the claim.
-4. **Approvals tied to the exact files approved:** gate tokens bind content fingerprints and the approval chain; any later edit voids them.
-5. **Evals before anything goes live:** operate mode can't be locked unless passing evaluation reports cover every agent, rule, schema and config file.
-
-More in [docs/overview.md](docs/overview.md).
-
-## Evidence so far
-
-- 520 automated tests (unit and end-to-end), with a guard that proves no test touched the real logs or jobs, and a watchdog that stops any test that hangs.
-- A first generated ecosystem that ran a real job end to end: evaluations to thresholds, one human gate, measured usage.
-- Live drills of every guardrail in a real Claude Code session, including fail-closed behaviour when the hook itself is broken ([docs/drills.md](docs/drills.md)).
-- Live evaluation runs of a calibration reviewer: every planted defect found, no false fails, no invalid output.
-- A doctor that checks the whole setup before work starts ([docs/doctor.md](docs/doctor.md)).
-- A first reviewer baseline from an earlier lab ([docs/baselines.md](docs/baselines.md)).
-
-## Running it
-
-Requirements: Windows with Python 3.13 (via `uv`) and the `py` launcher, Git, and Claude Code on a claude.ai subscription (no API key: every agent call stays on the subscription).
-
-```
-uv venv --python 3.13 .venv
-uv pip install --python .venv jsonschema
-.venv\Scripts\python.exe engine\doctor.py
-.venv\Scripts\python.exe engine\run_tests.py --fast
-.venv\Scripts\python.exe engine\publish_check.py install
-```
-
-Then open the folder in Claude Code (manual permission mode only). Gate actions (`engine/gate.py`) run only in your own terminal.
+- [Roadmap](docs/roadmap.md): phases and their status
+- [Overview](docs/overview.md): the architecture and the guarantees
+- [Lessons](docs/lessons.md): what broke, and what changed because of it
 
 ## Licence
 
