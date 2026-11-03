@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.22.3 (2026-11-03)
+
+Privacy fix before the first live run: job records name no machine path.
+
+- Script-stage records (`scripts/NN-<script>-N.json`, e.g. the readiness score) save the command with the interpreter as its basename and `{job_dir}` / `{root}` as repo-relative paths; the command itself still runs with the real ones.
+- Saved script output shows the root as `.`, the home folder as `~` (any home folder, including the short 8.3 name in temp paths) and the interpreter as its basename.
+- Test: a script that prints the interpreter, its folders and the home folder leaves nothing in a fresh job folder that publish_check's home-path pattern finds.
+
 ## 0.22.2 (2026-11-02)
 
 T2.5 case writing, batch 1: the charter-critic suite complete (29 cases) and the interviewer suite complete (11 cases).

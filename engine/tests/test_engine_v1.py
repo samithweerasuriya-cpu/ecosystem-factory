@@ -196,6 +196,25 @@ class ScriptStageTests(LabTestBase):
         self.assertIn("stdout", saved)
         self.assertIn("argv", saved)
 
+    def test_job_folder_names_no_home_path(self):
+        # 0.22.3: the record holds no interpreter path, absolute folder or home path, even when the script prints them
+        import publish_check
+        if not publish_check.HOME_PATH.search(str(self.tmp.resolve())):
+            self.skipTest("the temp folder is not under a home folder here, so a leak would not show")
+        code = ("import os, sys; from pathlib import Path; print(sys.executable, sys.argv[1:], os.getcwd()); "
+                "print(Path.home(), str(Path.home()).replace(os.sep, '/'), file=sys.stderr)")
+        self.dump("config/scripts.json", {"scripts": {**TEST_SCRIPTS["scripts"], "check": {
+            "argv": ["{python}", "-c", code, "{job_dir}", "{root}", "{job_path}"], "timeout": 30}}})
+        j = self.to_script()
+        st, rec = self.lc.run_script(j)
+        self.assertEqual(rec["exit_code"], 0, rec["stderr"])
+        self.assertEqual(rec["argv"][0], __import__("pathlib").Path(sys.executable).name)
+        self.assertEqual(rec["argv"][-3:], [f"jobs/{j}", ".", f"jobs/{j}"])
+        leaks = [(f.name, publish_check.HOME_PATH.search(f.read_text(encoding="utf-8")).group(0))
+                 for f in (self.tmp / "jobs" / j).rglob("*") if f.is_file()
+                 and publish_check.HOME_PATH.search(f.read_text(encoding="utf-8"))]
+        self.assertEqual(leaks, [])
+
     def test_failure_goes_to_fix_with_then_back_to_the_script(self):
         lc = self.lc
         j = self.to_script()

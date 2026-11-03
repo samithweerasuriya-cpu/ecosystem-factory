@@ -1550,6 +1550,22 @@ def usage_summary(job_id):
 
 # ---------- script stages ----------
 
+HOME_DIR = re.compile(r"(?i)\b[a-z]:(?:\\\\|[\\/])users(?:\\\\|[\\/])(?!public\b|default\b)[a-z0-9][^\\/\s'\"`<>|]*"
+                      r"|/(?:mnt/)?c/users/(?!public\b)[a-z0-9][^/\s'\"`<>|]*")
+
+def scrub_paths(text):
+    """Text with the root shown as "." and the home folder as "~" (either slash style, any case),
+    the interpreter as its basename, so script output saved in a job folder names no machine path."""
+    if not text:
+        return text
+    pairs = [(str(Path(sys.executable)), Path(sys.executable).name), (str(ROOT.resolve()), "."), (str(ROOT), "."),
+             (str(Path.home()), "~")]
+    for old, new in pairs:
+        for form in {old, old.replace("\\", "/"), old.replace("\\", "\\\\")}:
+            text = re.sub(re.escape(form), lambda m: new, text, flags=re.IGNORECASE)
+    return HOME_DIR.sub("~", text)      # any other home folder, e.g. the short 8.3 name in temp paths
+
+
 def run_script(job_id):
     """Run the current script stage's allow-listed command and record the result.
 
@@ -1566,15 +1582,20 @@ def run_script(job_id):
         raise LabError(f"script {name!r} is not in config/scripts.json")
     d = job_dir(job_id)
     subst = {"{job}": job_id, "{job_dir}": str(d), "{job_path}": rel(d), "{root}": str(ROOT)}
-    argv = []
+    # The record never holds an absolute or home-folder path (the job folder may be published):
+    # it names the interpreter by basename and folders relative to the root.
+    shown = {"{job}": job_id, "{job_dir}": rel(d), "{job_path}": rel(d), "{root}": "."}
+    argv, rec_argv = [], []
     for a in spec["argv"]:
-        for k, v in subst.items():
-            a = a.replace(k, v)
+        r = a
+        for k in subst:
+            a, r = a.replace(k, subst[k]), r.replace(k, shown[k])
         argv.append(sys.executable if a == "{python}" else a)
+        rec_argv.append(Path(sys.executable).name if r == "{python}" else r)
     out_dir = d / "scripts"
     out_dir.mkdir(exist_ok=True)
     attempt = len(list(out_dir.glob(f"{st['stage_index']:02d}-{name}-*.json"))) + 1
-    rec = {"script": name, "argv": argv, "timeout_s": spec["timeout"], "started": now()}
+    rec = {"script": name, "argv": rec_argv, "timeout_s": spec["timeout"], "started": now()}
     t0 = time.monotonic()
     try:
         p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=spec["timeout"])
@@ -1586,6 +1607,8 @@ def run_script(job_id):
     except OSError as e:
         rec.update(exit_code=None, timed_out=False, stdout="", stderr=f"could not start: {e}")
     rec["duration_s"] = round(time.monotonic() - t0, 3)
+    for k in ("stdout", "stderr"):
+        rec[k] = scrub_paths(rec[k])
     out = out_dir / f"{st['stage_index']:02d}-{name}-{attempt}.json"
     save_json(out, rec)
     note = rel(out)
