@@ -1,0 +1,7 @@
+{
+  "id": "W3",
+  "kind": "charter",
+  "seed": "fixture",
+  "job": "job",
+  "goal": "Build each evening's bike repair queue with bench minutes and promised dates"
+}

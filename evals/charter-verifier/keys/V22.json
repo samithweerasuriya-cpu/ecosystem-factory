@@ -1,0 +1,28 @@
+{
+  "case": "V22",
+  "design_id": "V-C04",
+  "canary": "jextovnix92",
+  "domain": "D4",
+  "anchors": {},
+  "must_find": [],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean twin for CV05 (V-P05). S02 is registered as evidence for good examples; it is cited only by the good examples E01 and E02, which it states word for word. No rule, field or fact cites it."
+}

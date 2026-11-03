@@ -1,0 +1,15 @@
+Made-up swap messages for one week (synthetic test data).
+
+Mon 09:12 Asha: can't do Tuesday packing, Ben says he'll take it.
+Mon 17:40 Cora: swapping my Wednesday distribution with Dev, he has his certificate.
+Tue 08:05 Eli: Wednesday evening run, Fern will drive instead of me.
+Tue 21:30 Gus: does anyone want my Saturday sorting?
+Wed 13:15 Hana: Thursday distribution to Ivo please, I asked him at lunch.
+Thu 18:02 Jai: Friday packing with Kit, swap agreed.
+Thu 22:47 Lou: sorry, Friday distribution tomorrow, Max can do it.
+Fri 07:30 Nia: I'm ill today, can't come to sorting.
+Fri 10:20 Olu: Monday collection run in ten days, Pia is happy to drive if that's all right.
+Fri 12:05 Quin: can Rosa take my packing shift on the 28th? That's next month, I know.
+Fri 15:45 Sam: swapping Tuesday sorting with Tia, both of us on sorting anyway.
+Fri 19:10 Uma: Wednesday distribution, Vic will come instead, not sure about his certificate.
+Sat 11:00 Wes: Monday packing to Xan, agreed with her this morning at the warehouse.

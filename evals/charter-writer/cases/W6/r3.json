@@ -1,0 +1,221 @@
+{
+ "job_id": "{{JOB}}",
+ "status": "complete",
+ "stage0": {
+  "passed": true,
+  "cites": [
+   "[A:A01]"
+  ]
+ },
+ "fields": {
+  "title": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "slug": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "goal": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "success_metrics": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "users_and_stakeholders": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "current_process": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "scope": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "open_questions": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "inputs": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "glossary": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "context_inventory": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]",
+    "[S:S01]",
+    "[S:S02]"
+   ]
+  },
+  "data_classification": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "source_policy": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "output": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "quality_rulebook": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "examples": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "acceptance_tests": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "acceptance_criteria": {
+   "state": "answered",
+   "cites": [
+    "[A:A02]"
+   ]
+  },
+  "risk": {
+   "state": "answered",
+   "cites": [
+    "[A:A02]"
+   ]
+  },
+  "systems": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "gates": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "caps": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  }
+ },
+ "examples": {
+  "good": [
+   {
+    "id": "E01",
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E02",
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E03",
+    "cites": [
+     "[A:A01]"
+    ]
+   }
+  ],
+  "bad": [
+   {
+    "id": "E04",
+    "breaks": [
+     "Q01"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E05",
+    "breaks": [
+     "Q02"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E06",
+    "breaks": [
+     "Q03"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E07",
+    "breaks": [
+     "Q04"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   }
+  ]
+ },
+ "contradictions": [
+  {
+   "field": "quality_rulebook",
+   "versions": [
+    "Q03 a swap asked for less than 24 hours before the shift is refused (major). [A:A01]",
+    "Swaps must be asked for at least 72 hours before the shift starts. [S:S02]"
+   ],
+   "resolved_by": "A01"
+  }
+ ],
+ "playback": {
+  "answer": "A03"
+ },
+ "flags": [],
+ "summary": "Every field answered or kept at its default; risk and acceptance criteria answered in A02; the notice period differs between the brief (24 hours, A01) and the handbook (72 hours, S02), settled by the source ranking (the owner's decisions rank 1); playback confirmed in A03."
+}

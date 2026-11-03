@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-weekend-swaps/inputs/context/weekend-texts.txt",
+      "title": "weekend-texts.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:13+00:00",
+      "sha256": "bad7a3beaeca7f601e5bd4bd3202c7c5e1a6219187bba9b6635d3bc7a53ba29b",
+      "status": "stored",
+      "reason": null,
+      "bytes": 252
+    }
+  ]
+}

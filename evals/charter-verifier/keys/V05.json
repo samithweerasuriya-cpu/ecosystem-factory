@@ -1,0 +1,40 @@
+{
+  "case": "V05",
+  "design_id": "V-P10",
+  "canary": "gryholathe78",
+  "domain": "D2",
+  "anchors": {
+    "CV08": "context_inventory"
+  },
+  "must_find": [
+    "CV08"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV08": [
+      "context_inventory",
+      "S02",
+      "training-list",
+      "S03",
+      "public",
+      "synthetic"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV08 (major), multi: three context files are registered (S01 swap texts and S02 training list, synthetic; S03 opening hours, public). The charter's context inventory leaves out S02 and lists S03 as synthetic instead of public. The charter's own fields are consistent with its inventory, so only the registry shows both faults. Twin: V-C07 (D3)."
+}

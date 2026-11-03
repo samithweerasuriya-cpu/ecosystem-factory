@@ -1,0 +1,21 @@
+Made-up requests for one week (synthetic test data).
+
+From: Choral society
+Room: Great Hall
+Date: Thu 2099-11-05
+Time: 19:30-21:30
+
+From: Yoga
+Room: Garden Room
+Date: Tue 2099-11-03
+Time: 18:00-19:00
+
+From: Bridge club
+Room: Snug
+Date: Sun 2099-11-08
+Time: 14:00-16:00
+
+From: Committee
+Room: Snug
+Date: Fri 2099-11-06
+Time: 19:00-21:00

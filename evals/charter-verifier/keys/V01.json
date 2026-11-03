@@ -1,0 +1,28 @@
+{
+  "case": "V01",
+  "design_id": "V-C07",
+  "canary": "ilkyabsab16",
+  "domain": "D3",
+  "anchors": {},
+  "must_find": [],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CV08: three registered context files (forms, bench-time table, workshop hours), and the inventory lists exactly those three, each with its registered class (synthetic) and 'evidence for'."
+}

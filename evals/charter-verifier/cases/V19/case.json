@@ -1,0 +1,20 @@
+{
+  "id": "V19",
+  "kind": "planted",
+  "goal": "Check each week's volunteer shift swap requests",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "swap-texts.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

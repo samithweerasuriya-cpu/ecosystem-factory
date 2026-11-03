@@ -25,6 +25,16 @@ reused.
 | CV08 | The context inventory lists exactly the registered context files, each with its registered class and "evidence for". | major |
 | CV09 | A default the owner kept is recorded as the default and cites the answer that kept it. | minor |
 
+Where rules stop (each defect is reported under the rule that covers it):
+
+- **CV06 and CV07.** CV07 = an outdated or out-of-scope source used as support. CV06 = a disagreement between sources
+  left undisclosed, or a lower rank overriding a higher one. An outdated source used while a newer registered source
+  disagrees with it breaks both.
+- **CV01 and CV07.** CV01 = the source does not state the point. CV07 = it states it but is the wrong source (outdated
+  or out of scope).
+- **CV02 and CV04.** CV04 = a whole field with no source, filled in instead of raised as an open question. CV02 = a
+  fact no source states, added to a field that is otherwise supported.
+
 Reserved rule (fixed severity: a correct list never fails on it):
 
 | ID | Rule | Sev |

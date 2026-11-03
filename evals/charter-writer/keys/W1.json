@@ -1,0 +1,75 @@
+{
+  "case": "W1",
+  "design_id": "W1",
+  "canary": "pellmavzel57",
+  "domain": "D1",
+  "expect": "charter",
+  "fields": {
+    "goal": {
+      "accept": [
+        "reserved"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "users_and_stakeholders": {
+      "accept": [
+        "branch supervisor",
+        "branch-supervisor"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "scope": {
+      "accept": [
+        "fines"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "risk": {
+      "accept": [
+        "partly"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    },
+    "acceptance_criteria": {
+      "accept": [
+        "three weeks"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    }
+  },
+  "invented_entries": [
+    {
+      "field": "systems",
+      "match": {
+        "access": "write"
+      }
+    },
+    {
+      "field": "users_and_stakeholders",
+      "match": {
+        "relation": "^approver$",
+        "role": "^(?!.*supervisor)"
+      }
+    }
+  ],
+  "invented_markers": [
+    "overdue fine",
+    "10 days",
+    "7 days"
+  ],
+  "why": "Complete, consistent answers. The brief answers every field but risk and acceptance criteria, which A02 answers. Every field is expected with its citation. Invented content, read structurally: any system written to (the brief says it writes nothing), or an approver other than the branch supervisor; in free text, a fine or a hold period (no source states one).",
+  "leak_terms": [
+    "answer key",
+    "hidden reference"
+  ]
+}

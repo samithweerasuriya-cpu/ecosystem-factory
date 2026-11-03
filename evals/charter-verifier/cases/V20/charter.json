@@ -1,0 +1,624 @@
+{
+  "schema_version": "1",
+  "slug": "hillside-intake",
+  "title": "Hillside repair intake",
+  "goal": {
+    "text": "The project coordinator gets a repair queue each Saturday afternoon, so nobody is promised a bike back before the work can be done.",
+    "cites": [
+      "[A:A01 \"so nobody is promised a bike back before the work can be done\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Promised dates earlier than the queue's bench time allows",
+        "target": "none",
+        "check": "A script adds up bench minutes in queue order and compares each promised date (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 a promised date is never earlier than the queue's bench time allows (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Brake or steering jobs behind another kind of job",
+        "target": "none",
+        "check": "A script checks the queue order (Q02).",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "M05",
+        "metric": "Jobs over 90 bench minutes given a single day",
+        "target": "none",
+        "check": "A script checks every job over 90 bench minutes is split over two days (Q07).",
+        "cites": [
+          "[A:A01 \"No split job is promised for one day.\"]"
+        ]
+      },
+      {
+        "id": "M06",
+        "metric": "Waiting-for-parts rows with a promised date",
+        "target": "none",
+        "check": "A script finds every row marked waiting for parts and checks its date is empty (Q06).",
+        "cites": [
+          "[A:A01 \"Every waiting-for-parts bike has no date until its part arrives.\"]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Bikes promised back earlier than the work allows",
+        "target": "none in a term",
+        "cites": [
+          "[A:A01 \"No bike promised back earlier than the work allows, over a term.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Steering jobs done the same Saturday",
+        "target": "every one",
+        "cites": [
+          "[A:A01 \"Every steering job is done the same Saturday.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "repair-volunteers",
+      "relation": "user",
+      "interest": "Work through the queue in order.",
+      "cites": [
+        "[A:A01 \"Repair volunteers (users: work through the queue in order).\"]"
+      ]
+    },
+    {
+      "role": "project-coordinator",
+      "relation": "approver",
+      "interest": "Signs off the queue each Saturday afternoon.",
+      "cites": [
+        "[A:A01 \"Project coordinator (approver: signs off the queue each Saturday afternoon).\"]"
+      ]
+    },
+    {
+      "role": "customers",
+      "relation": "stakeholder",
+      "interest": "Their bike back on the date they were given.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "role": "parts-volunteer",
+      "relation": "stakeholder",
+      "interest": "Orders parts on Mondays and needs to know what is waiting.",
+      "cites": [
+        "[A:A01 \"Parts volunteer (stakeholder: orders parts on Mondays and needs to know what is waiting).\"]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "The coordinator sorts the slips by hand.",
+      "The coordinator estimates each job from memory.",
+      "The coordinator writes the queue on a whiteboard.",
+      "Parts are ordered on Mondays from one supplier.",
+      "Long wheel builds are started when a volunteer is free."
+    ],
+    "problems": [
+      "Estimates from memory are often an hour out.",
+      "A bike with a loose headset waited two weekends.",
+      "A bike waiting for a part can sit in the shed for a week, and nobody tells the customer until they ask.",
+      "Long wheel builds are started late on a Saturday and left half done."
+    ],
+    "cites": [
+      "[A:A01 \"estimates from memory are often an hour out\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "Saturday's drop-off slips in.",
+      "A repair queue out."
+    ],
+    "out": [
+      "Buying parts",
+      "Bike donations",
+      "The Tuesday youth session"
+    ],
+    "cites": [
+      "[A:A01 \"Out: buying parts, bike donations, the Tuesday youth session.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Typed drop-off forms, about 25 each saturday. Each form has a 'needed for work' box and a line for parts the customer brought.",
+    "format": "plain text, one form per ticket",
+    "constraints": [
+      "Ticket number",
+      "Bike",
+      "The customer's description of the fault",
+      "Date needed",
+      "'Needed for work' box (ticked or not)",
+      "Parts the customer brought, if any"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "Made-up drop-off forms."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "bench minutes",
+      "meaning": "The standard time a job takes, from the bench-time table.",
+      "cites": [
+        "[A:A01 \"Bench minutes: the standard time a job takes, from the bench-time table.\"]"
+      ]
+    },
+    {
+      "term": "headset",
+      "meaning": "The bearings that let the handlebars turn.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "slip",
+      "meaning": "The drop-off form a customer fills in.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "needed for work",
+      "meaning": "The box on the form a customer ticks when they ride the bike to work.",
+      "cites": [
+        "[A:A01 \"Needed for work: the box on the form a customer ticks when they ride the bike to work.\"]"
+      ]
+    },
+    {
+      "term": "waiting for parts",
+      "meaning": "A job that cannot start until a part arrives.",
+      "cites": [
+        "[A:A01 \"Waiting for parts: a job that cannot start until a part arrives.\"]"
+      ]
+    },
+    {
+      "term": "wheel build",
+      "meaning": "Lacing a new wheel from a rim, spokes and a hub.",
+      "cites": [
+        "[A:A01 \"Wheel build: threading a new wheel from a rim, spokes and a hub.\"]"
+      ]
+    },
+    {
+      "term": "indexing",
+      "meaning": "Adjusting the gears so each click moves one sprocket.",
+      "cites": [
+        "[A:A01 \"Indexing: adjusting the gears so each click moves one sprocket.\"]"
+      ]
+    },
+    {
+      "term": "split job",
+      "meaning": "A job worked over two days because it is longer than 90 bench minutes.",
+      "cites": [
+        "[A:A01 \"Split job: a job worked over two days because it is longer than 90 bench minutes.\"]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it four made-up Saturdays of slips, and every brake or steering job is at the top of the queue.",
+      "cites": [
+        "[A:A01 \"I give it four made-up Saturdays of slips, and every brake or steering job is at the top of the queue.\"]"
+      ]
+    },
+    {
+      "id": "T02",
+      "words": "I give it a day with a 120-minute wheel build, and the build is split over two days.",
+      "cites": [
+        "[A:A01 \"I give it a day with a 120-minute wheel build, and the build is split over two days.\"]"
+      ]
+    },
+    {
+      "id": "T03",
+      "words": "I give it a form whose part is not in stock, and the bike is listed as waiting for parts with no date.",
+      "cites": [
+        "[A:A01 \"I give it a form whose part is not in stock, and the bike is listed as waiting for parts with no date.\"]"
+      ]
+    },
+    {
+      "id": "T04",
+      "words": "I give it two brake jobs, one needed for work, and the work one comes first.",
+      "cites": [
+        "[A:A01 \"I give it two brake jobs, one needed for work, and the work one comes first.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/saturday-slips.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "id": "S02",
+      "path": "inputs/context/bench-table.txt",
+      "classification": "synthetic",
+      "evidence_for": "bench minutes"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The project coordinator's own decisions",
+        "use_for": "Rules, job priority, promised dates"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Form format, bench minutes"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/saturday-slips.txt": 2,
+        "inputs/context/bench-table.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the form and the bench-time table line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row is marked 'ask the workshop' and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "output": {
+    "description": "A repair queue, one row per drop-off form, in working order. A slip with no fault description is refused as 'ask the customer'. A job over 90 bench minutes is shown on both of its days; a bike waiting for a part is listed at the end with no promised date.",
+    "format": "Table, one row per ticket, in queue order",
+    "fields": [
+      {
+        "name": "ticket",
+        "description": "The ticket number from the form."
+      },
+      {
+        "name": "bike",
+        "description": "The bike as the form describes it."
+      },
+      {
+        "name": "job_type",
+        "description": "brakes, steering, gears, wheels, punctures or other."
+      },
+      {
+        "name": "bench_minutes",
+        "description": "From the bench-time table."
+      },
+      {
+        "name": "promised_date",
+        "description": "ISO date."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence, quoting the customer's description."
+      },
+      {
+        "name": "needed_for_work",
+        "description": "yes or no, from the form's box."
+      },
+      {
+        "name": "parts",
+        "description": "'waiting for parts' with the part named, or empty."
+      },
+      {
+        "name": "split",
+        "description": "For a job over 90 bench minutes, the two days it is worked on."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "A promised date is never earlier than the queue's bench time allows.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 a promised date is never earlier than the queue's bench time allows (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A brake or steering job goes ahead of every other job.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a brake or steering job goes ahead of every other job (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the customer's description from the form.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the customer's description from the form (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "Bench minutes come from the bench-time table, never a guess.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q04 bench minutes come from the bench-time table, never a guess\"]"
+        ]
+      },
+      {
+        "id": "Q05",
+        "statement": "A job the form marks 'needed for work' goes ahead of other jobs of the same kind.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q05 a job the form marks 'needed for work' goes ahead of other jobs of the same kind (major).\"]"
+        ]
+      },
+      {
+        "id": "Q06",
+        "statement": "A bike waiting for a part is listed as 'waiting for parts' and gets no promised date.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q06 a bike waiting for a part is listed as 'waiting for parts' and gets no promised date (major).\"]"
+        ]
+      },
+      {
+        "id": "Q07",
+        "statement": "A job over 90 bench minutes is split over two days, never squeezed into one.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q07 a job over 90 bench minutes is split over two days, never squeezed into one (major).\"]"
+        ]
+      },
+      {
+        "id": "Q08",
+        "statement": "Ticket numbers are copied exactly as the form gives them.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q08 ticket numbers are copied exactly as the form gives them (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "S-21 | mountain | steering | 40 | 2099-05-09 | 'handlebars feel loose'",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "S-22 | folding | punctures | 15 | 2099-05-09 | 'flat again'",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E05",
+        "text": "H-41 | commuter | brakes | 30 | 2099-06-03 | 'needed for work, brakes squeal' | ahead of H-42",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E06",
+        "text": "H-43 | tandem | wheels | 120 | 2099-06-05 | 'rear wheel buckled' | split over two days",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E07",
+        "text": "H-44 | town | gears | — | waiting for parts | 'needs a new gear hanger'",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "S-23 | hybrid | gears | 50 | 2099-05-02",
+        "why": "The promised date is earlier than the bench time allows.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "S-24 | road | brakes | 25, after S-22",
+        "why": "A brake job is behind another kind of job.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E08",
+        "text": "H-45 | road | wheels | 120 | 2099-06-03",
+        "why": "A job over 90 bench minutes is squeezed into one day.",
+        "breaks": [
+          "Q07"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E09",
+        "text": "H-46 | town | gears | 45 | 2099-06-04 | 'needs a new gear hanger'",
+        "why": "A bike waiting for a part has a promised date.",
+        "breaks": [
+          "Q06"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E10",
+        "text": "H-47 | hybrid | brakes | 30, after H-48 brakes for leisure",
+        "why": "A 'needed for work' job is behind another of the same kind.",
+        "breaks": [
+          "Q05"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A queue can be reordered before the work starts, but a missed promise has already let a customer down. Customers are affected. The worst case is a customer who needs the bike for work being promised a day that can't be kept. Nothing is written to any system, so the queue can be redone before the volunteers start.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"About sixty customers a month and twelve repair volunteers.\"]",
+      "[A:A01 \"A bike promised for a day it can't be ready means a customer without a way to get to work\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "dropoff-forms",
+      "description": "The typed drop-off forms.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the typed drop-off forms.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the repair queue.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I sign off the queue before it goes on the whiteboard.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should bikes left over from last Saturday go first?",
+      "owner": "project-coordinator"
+    },
+    {
+      "id": "OQ02",
+      "question": "Do children's bikes get their own bench-time line?",
+      "owner": "repair-volunteers"
+    },
+    {
+      "id": "OQ03",
+      "question": "Should a customer be phoned when a part arrives, or wait for the next queue?",
+      "owner": "project-coordinator"
+    },
+    {
+      "id": "OQ04",
+      "question": "Do e-bike batteries count as a part we wait for?",
+      "owner": "project-coordinator"
+    },
+    {
+      "id": "OQ05",
+      "question": "Can a split job's second day be a Sunday?",
+      "owner": "repair-volunteers"
+    },
+    {
+      "id": "OQ06",
+      "question": "Who decides when the bench-time table is updated?",
+      "owner": "project-coordinator"
+    },
+    {
+      "id": "OQ07",
+      "question": "How many bikes come in on a busy Saturday in summer?",
+      "owner": "project-coordinator"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every brake and steering job first on four made-up Saturdays.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"It must order every brake and steering job first on four made-up Saturdays.\"]"
+      ]
+    }
+  ]
+}

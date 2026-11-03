@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-riverside-returns/inputs/context/overnight-returns.txt",
+      "title": "overnight-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:27+00:00",
+      "sha256": "de9c150844b3a2b16eca1aff6feb7efbf28318e3c7e434096ef25f3b4a579cb0",
+      "status": "stored",
+      "reason": null,
+      "bytes": 350
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-riverside-returns/inputs/context/branch-ranges.txt",
+      "title": "branch-ranges.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:27+00:00",
+      "sha256": "9c96c8cb97caeefe53ba75b7aab5ac61a4abbc174a2240b8e3b67e811ee16f9c",
+      "status": "stored",
+      "reason": null,
+      "bytes": 189
+    }
+  ]
+}

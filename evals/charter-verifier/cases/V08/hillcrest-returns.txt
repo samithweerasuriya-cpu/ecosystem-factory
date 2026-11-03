@@ -1,0 +1,9 @@
+Made-up returns export (synthetic test data).
+
+barcode | title | condition note | reservation
+204511 | Kettle Hill | no damage | no
+204512 | A Map of Rain | no damage | yes
+204513 | The Copper Fox | split spine | no
+204514 | The Long Meadow | no damage | no
+204515 | Small Engines | cover torn | no
+204516 | Rivers of Ice | no damage | yes

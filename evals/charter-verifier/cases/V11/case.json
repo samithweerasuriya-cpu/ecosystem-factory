@@ -1,0 +1,24 @@
+{
+  "id": "V11",
+  "kind": "planted",
+  "goal": "Build each day's bike repair queue with bench minutes and promised dates",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "clinic-slips.txt",
+      "as": "context"
+    },
+    {
+      "file": "bench-table.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

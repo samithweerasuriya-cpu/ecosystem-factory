@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-return-slot/inputs/context/slot-returns.txt",
+      "title": "slot-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:22+00:00",
+      "sha256": "92ff4691c697bb6e246acae4ef542989a89a97de8821fb62f197dc24c0586a52",
+      "status": "stored",
+      "reason": null,
+      "bytes": 340
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-return-slot/inputs/context/bad-examples.txt",
+      "title": "bad-examples.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:22+00:00",
+      "sha256": "c6cf5c46dd0a09fd8a1fa75abdcecb3f7458b12a1eb312641cb5e577791304fd",
+      "status": "stored",
+      "reason": null,
+      "bytes": 283
+    }
+  ]
+}

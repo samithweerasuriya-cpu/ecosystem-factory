@@ -1,0 +1,22 @@
+{
+  "id": "W5",
+  "kind": "charter",
+  "seed": "replay",
+  "slug": "school-returns",
+  "goal": "Sort each day's returned school library books into shelve and mending",
+  "brief": "brief.md",
+  "context": [],
+  "replay": [
+    {
+      "interviewer": "r1.json",
+      "reply": "a02.md"
+    },
+    {
+      "interviewer": "r2.json",
+      "reply": "confirmed.md"
+    },
+    {
+      "interviewer": "r3.json"
+    }
+  ]
+}

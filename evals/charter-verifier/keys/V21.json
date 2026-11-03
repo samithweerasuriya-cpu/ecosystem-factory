@@ -1,0 +1,41 @@
+{
+  "case": "V21",
+  "design_id": "V-C09",
+  "canary": "kurzeljex18",
+  "domain": "D1",
+  "anchors": {
+    "CV03": "output"
+  },
+  "must_find": [
+    "CV03"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV03": [
+      "output",
+      "A02",
+      "hold shelf",
+      "7 days"
+    ]
+  },
+  "planted_misquotes": [
+    "Reserved books wait on the hold shelf for 7 days"
+  ],
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S3, the half that breaks CV03 (major), subtle: the output's 7-day rule is stated by the owner (A02, Q3: 'Reserved books wait on the holds shelf for 7 days'), but the charter's quote says 'hold shelf'. Same number as V-P14, where no source states it (CV02, blocker). Verdict fail."
+}

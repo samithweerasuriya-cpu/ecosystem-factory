@@ -1,0 +1,39 @@
+{
+  "case": "V09",
+  "design_id": "V-P06",
+  "canary": "gryjexilk69",
+  "domain": "D2",
+  "anchors": {
+    "CV06": "glossary"
+  },
+  "must_find": [
+    "CV06"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV06": [
+      "till trained",
+      "glossary",
+      "S02",
+      "three years",
+      "last year"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Misleading source, CV06 (major), subtle: the glossary defines 'till trained' as signed off in the last three years, citing only the volunteer handbook S02 (rank 2). The store manager's brief (A01, rank 1) says signed off by the manager in the last year. A lower rank overrides a higher one, and the disagreement is not disclosed. S02 is current and in scope (not CV07) and states its point (not CV01). Twin: V-C05 (D1)."
+}

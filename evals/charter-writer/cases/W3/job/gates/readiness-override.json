@@ -1,0 +1,12 @@
+{
+  "job_id": "20261103-intake-evening-repairs",
+  "reason": "Approver accepted the missing acceptance tests (W3 fixture).",
+  "by": "Samith",
+  "at": "2026-11-03T05:15:05+00:00",
+  "score": 6,
+  "threshold": 7,
+  "failed": [
+    2
+  ],
+  "report": "jobs/20261103-intake-evening-repairs/research/interviewer-C003.json"
+}

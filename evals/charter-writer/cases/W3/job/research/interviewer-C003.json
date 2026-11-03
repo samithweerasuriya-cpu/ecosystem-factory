@@ -1,0 +1,186 @@
+{
+ "job_id": "20261103-intake-evening-repairs",
+ "status": "complete",
+ "stage0": {
+  "passed": true,
+  "cites": [
+   "[A:A01]"
+  ]
+ },
+ "fields": {
+  "title": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "slug": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "goal": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "success_metrics": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "users_and_stakeholders": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "current_process": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "scope": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "open_questions": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "inputs": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "glossary": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "context_inventory": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "data_classification": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "source_policy": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "output": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "quality_rulebook": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "examples": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "acceptance_tests": {
+   "state": "missing",
+   "cites": [
+    "[A:A02]"
+   ]
+  },
+  "acceptance_criteria": {
+   "state": "answered",
+   "cites": [
+    "[A:A02]"
+   ]
+  },
+  "risk": {
+   "state": "answered",
+   "cites": [
+    "[A:A02]"
+   ]
+  },
+  "systems": {
+   "state": "answered",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "gates": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  },
+  "caps": {
+   "state": "default",
+   "cites": [
+    "[A:A01]"
+   ]
+  }
+ },
+ "examples": {
+  "good": [
+   {
+    "id": "E01",
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E02",
+    "cites": [
+     "[A:A01]"
+    ]
+   }
+  ],
+  "bad": [
+   {
+    "id": "E03",
+    "breaks": [
+     "Q01"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   },
+   {
+    "id": "E04",
+    "breaks": [
+     "Q02"
+    ],
+    "cites": [
+     "[A:A01]"
+    ]
+   }
+  ]
+ },
+ "contradictions": [],
+ "playback": {
+  "answer": "A03"
+ },
+ "flags": [],
+ "summary": "Every field answered or kept at its default except acceptance tests: the owner has not given any yet (A02, Q3); playback confirmed in A03."
+}

@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-clubhouse-bookings/inputs/context/clubhouse-entries.txt",
+      "title": "clubhouse-entries.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:48+00:00",
+      "sha256": "18064b83c39fc90ac155806fdaa70475cc5cd939ec4a7b18bcebc199d8d7f1ae",
+      "status": "stored",
+      "reason": null,
+      "bytes": 474
+    }
+  ]
+}

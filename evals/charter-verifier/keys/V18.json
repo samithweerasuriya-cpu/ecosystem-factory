@@ -1,0 +1,39 @@
+{
+  "case": "V18",
+  "design_id": "V-P09",
+  "canary": "orngrytov84",
+  "domain": "D1",
+  "anchors": {
+    "CV07": "glossary"
+  },
+  "must_find": [
+    "CV07"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV07": [
+      "holds shelf",
+      "glossary",
+      "10 days",
+      "S02",
+      "Eastgate"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Misleading source, CV07 (major), subtle: the glossary's 'holds shelf' adds 'kept there for 10 days', citing S02, which is registered as evidence for how the Eastgate branch runs its holds shelf and says it applies there only. S02 states the point, but for another branch: a source out of scope (not CV01). No in-scope source gives a number of days, so no disagreement goes undisclosed (not CV06), and a source states the fact (not CV02). Twin: V-C06 (D2)."
+}

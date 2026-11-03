@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-reserved-returns/inputs/context/hillcrest-returns.txt",
+      "title": "hillcrest-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:29+00:00",
+      "sha256": "aab73ba696e4204e649b7eddae6327f0d4b8a0aaccfa2e039d5ad8eee0a612ec",
+      "status": "stored",
+      "reason": null,
+      "bytes": 340
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-reserved-returns/inputs/context/desk-guide.txt",
+      "title": "desk-guide.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:29+00:00",
+      "sha256": "c0f912dd20bd81bc536633deb16927ab8c2c9921df2573b1f79bef6f21eb2857",
+      "status": "stored",
+      "reason": null,
+      "bytes": 191
+    }
+  ]
+}

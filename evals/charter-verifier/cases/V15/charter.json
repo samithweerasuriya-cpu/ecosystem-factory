@@ -53,7 +53,7 @@
     {"id": "S02", "path": "inputs/context/hall-prices-2098.txt", "classification": "synthetic", "evidence_for": "hall hire prices"},
     {"id": "S03", "path": "inputs/context/hall-prices-2099.txt", "classification": "synthetic", "evidence_for": "hall hire prices"}
   ],
-  "data_classification": {"class": "synthetic", "cites": ["[A:A01]"]},
+  "data_classification": {"class": "synthetic", "cites": ["[A:A01 \"keep default\"]"]},
   "source_policy": {
     "ranks": [
       {"rank": 1, "what": "The hall coordinator's own decisions", "use_for": "Rules, scope, opening hours"},
@@ -70,7 +70,7 @@
       "low": "Inferred or one weak source; such a row is refused and raised as a question."
     },
     "conflicts": ["The higher rank wins within its own area.", "A conflict the ranks do not settle is reported with both citations, never decided silently."],
-    "cites": ["[A:A01]"]
+    "cites": ["[A:A01 \"keep default\"]"]
   },
   "output": {
     "description": "One row per request, with a decision: propose, clash or refuse. A request with no room or no time is refused as incomplete; a request outside opening hours is refused with the reason.",
@@ -128,7 +128,7 @@
      "before_write": ["hall-calendar"], "cites": ["[A:A01 \"I confirm once more right before anything goes into the calendar.\"]"]}
   ],
   "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 25,
-           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01]"]},
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01 \"keep default\"]"]},
   "open_questions": [
     {"id": "OQ01", "question": "Should regular weekly bookings go through the same list?", "owner": "hall-committee"}
   ],

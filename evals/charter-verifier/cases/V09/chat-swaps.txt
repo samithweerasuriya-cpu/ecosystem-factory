@@ -1,0 +1,10 @@
+Made-up swap texts for one week (synthetic test data).
+
+Ivy: can Jon take my Wed afternoon shift?
+Jon: yes, I'll do Wed afternoon.
+
+Kit: I can't do Sat morning, Lou has said she'll swap.
+
+Max: Nia is taking my Fri afternoon.
+
+Ivy: anyone for Thu morning?

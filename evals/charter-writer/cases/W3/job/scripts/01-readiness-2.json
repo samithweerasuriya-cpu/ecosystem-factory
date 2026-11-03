@@ -1,0 +1,16 @@
+{
+  "script": "readiness",
+  "argv": [
+    "python",
+    "engine/readiness.py",
+    "score",
+    "20261103-intake-evening-repairs"
+  ],
+  "timeout_s": 60,
+  "started": "2026-11-03T05:15:23+00:00",
+  "exit_code": 0,
+  "timed_out": false,
+  "stdout": "{\n  \"job_id\": \"20261103-intake-evening-repairs\",\n  \"scored\": \"jobs/20261103-intake-evening-repairs/research/interviewer-C003.json\",\n  \"threshold\": 7,\n  \"criteria\": [\n    {\n      \"n\": 1,\n      \"text\": \"Stage 0 passed.\",\n      \"passed\": true,\n      \"problems\": []\n    },\n    {\n      \"n\": 2,\n      \"text\": \"Every \\\"you must answer\\\" field is answered and passes its \\\"vague if\\\" test.\",\n      \"passed\": false,\n      \"problems\": [\n        \"acceptance_tests is missing\"\n      ]\n    },\n    {\n      \"n\": 3,\n      \"text\": \"Every other field is answered, kept at its default, or an open question with an owner.\",\n      \"passed\": true,\n      \"problems\": []\n    },\n    {\n      \"n\": 4,\n      \"text\": \"At least 2 good and 2 bad examples; every bad one names the rule it breaks.\",\n      \"passed\": true,\n      \"problems\": []\n    },\n    {\n      \"n\": 5,\n      \"text\": \"Every context file has a class and an \\\"evidence for\\\".\",\n      \"passed\": true,\n      \"problems\": []\n    },\n    {\n      \"n\": 6,\n      \"text\": \"No unresolved contradiction.\",\n      \"passed\": true,\n      \"problems\": []\n    },\n    {\n      \"n\": 7,\n      \"text\": \"The playback is confirmed.\",\n      \"passed\": true,\n      \"problems\": []\n    }\n  ],\n  \"flags\": [],\n  \"override\": {\n    \"job_id\": \"20261103-intake-evening-repairs\",\n    \"reason\": \"Approver accepted the missing acceptance tests (W3 fixture).\",\n    \"by\": \"Samith\",\n    \"at\": \"2026-11-03T05:15:05+00:00\",\n    \"score\": 6,\n    \"threshold\": 7,\n    \"failed\": [\n      2\n    ],\n    \"report\": \"jobs/20261103-intake-evening-repairs/research/interviewer-C003.json\"\n  },\n  \"score\": 6,\n  \"result\": \"override\"\n}\n",
+  "stderr": "",
+  "duration_s": 0.434
+}

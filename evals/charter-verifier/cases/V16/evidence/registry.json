@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-village-hall-requests/inputs/context/ashby-requests.txt",
+      "title": "ashby-requests.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:51+00:00",
+      "sha256": "4558f7b7da435b075c7aea84b67d4f4e2bab3f74fc6f0c19752a28ee82ed4de9",
+      "status": "stored",
+      "reason": null,
+      "bytes": 433
+    }
+  ]
+}

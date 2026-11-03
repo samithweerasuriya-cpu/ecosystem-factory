@@ -1,0 +1,7 @@
+Bad examples for the return slot sorter (synthetic).
+
+Blue Orchard | coffee stain | shelve
+Wrong: a book whose condition note mentions damage goes to the mending tray, never back on the shelf.
+
+The Clockmaker | reserved | shelve
+Wrong: a reserved book goes to the reservation shelf.

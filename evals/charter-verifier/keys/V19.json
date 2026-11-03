@@ -1,0 +1,38 @@
+{
+  "case": "V19",
+  "design_id": "V-P02",
+  "canary": "zelyabilk39",
+  "domain": "D2",
+  "anchors": {
+    "CV02": "inputs.constraints"
+  },
+  "must_find": [
+    "CV02"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV02": [
+      "inputs",
+      "constraints",
+      "three swaps",
+      "each month"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV02 (blocker), obvious: inputs.constraints adds 'At most three swaps per volunteer each month'. No answer or context file states any limit on swaps; the rest of the field is supported (A01, S01), so it is an invented fact in a supported field (CV02), not an unsupported field filled in (not CV04). Twin: V-C01 (D1)."
+}

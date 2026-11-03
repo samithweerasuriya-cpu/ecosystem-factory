@@ -1,0 +1,10 @@
+Made-up swap texts for one week (synthetic test data).
+
+Gil: can Hal take my Wed afternoon shift?
+Hal: yes, I'll do Wed afternoon.
+
+Ines: I can't do Sat morning, Jo has said she'll swap.
+
+Kai: Lia is taking my Fri afternoon.
+
+Gil: anyone for Thu morning?

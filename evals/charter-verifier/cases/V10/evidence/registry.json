@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-returns-checker/inputs/context/trolley-returns.txt",
+      "title": "trolley-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:21+00:00",
+      "sha256": "35a2765e668346be223b3814652264205d18625cbb7b52753e824ca53d00e56b",
+      "status": "stored",
+      "reason": null,
+      "bytes": 342
+    }
+  ]
+}

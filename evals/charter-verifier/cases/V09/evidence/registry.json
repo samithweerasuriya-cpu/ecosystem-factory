@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-till-cover/inputs/context/chat-swaps.txt",
+      "title": "chat-swaps.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:10+00:00",
+      "sha256": "97f7a7ff5ba978737f06edd82c7e0de1e12d5a42c01a5a488185e63d37861d4e",
+      "status": "stored",
+      "reason": null,
+      "bytes": 255
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-till-cover/inputs/context/volunteer-handbook.txt",
+      "title": "volunteer-handbook.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:10+00:00",
+      "sha256": "d36b4ce7142906111efc7092f97bb57d8b536c90ac6b5f37c90c570e459c4fd7",
+      "status": "stored",
+      "reason": null,
+      "bytes": 169
+    }
+  ]
+}

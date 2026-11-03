@@ -1,0 +1,26 @@
+{
+  "case": "W3",
+  "design_id": "W3",
+  "canary": "kurnixulm48",
+  "domain": "D3",
+  "expect": "needs_input",
+  "question": {
+    "accept": [
+      "acceptance test",
+      "acceptance_tests"
+    ]
+  },
+  "invented_entries": [
+    {
+      "field": "acceptance_tests",
+      "match": {
+        "words": "."
+      }
+    }
+  ],
+  "leak_terms": [
+    "answer key",
+    "hidden reference"
+  ],
+  "why": "A must-answer field left unanswered: the owner gave no acceptance test (brief 'Don't know yet.', A02 Q3 'I don't know yet how I'd test it'). Readiness failed on criterion 2 and the approver recorded a readiness override (fixture authored in a factory copy; the override was run by the approver with engine/gate.py). The writer must ask the exact question for acceptance_tests (needs_input), never write a test of its own: any acceptance test entry in a charter is invented."
+}

@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-morning-returns/inputs/context/morning-export.txt",
+      "title": "morning-export.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:26+00:00",
+      "sha256": "caa515f7b85334d7fe6ef86a2ca4f5070305bf46352a94b14543bceff5000c19",
+      "status": "stored",
+      "reason": null,
+      "bytes": 349
+    }
+  ]
+}

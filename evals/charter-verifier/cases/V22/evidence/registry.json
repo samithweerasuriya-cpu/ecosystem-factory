@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-thornby-requests/inputs/context/thornby-requests.txt",
+      "title": "thornby-requests.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:49+00:00",
+      "sha256": "ed6335645a893fef14bb6feab787beb0edd249e53511e8c51f48febac0caef3b",
+      "status": "stored",
+      "reason": null,
+      "bytes": 336
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-thornby-requests/inputs/context/good-rows.txt",
+      "title": "good-rows.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:50+00:00",
+      "sha256": "d07d165522e81f3e56802fbe456da2ca387c11a746c67714a9579bea11d7b172",
+      "status": "stored",
+      "reason": null,
+      "bytes": 242
+    }
+  ]
+}

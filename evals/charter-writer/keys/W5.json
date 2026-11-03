@@ -1,0 +1,96 @@
+{
+  "case": "W5",
+  "design_id": "W5",
+  "canary": "rintyabfen21",
+  "domain": "D1",
+  "expect": "charter",
+  "fields": {
+    "data_classification": {
+      "accept": [
+        "synthetic"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "caps": {
+      "accept": [
+        "350000"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "gates": {
+      "accept": [
+        "human"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "quality_rulebook": {
+      "accept": [
+        "invented"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "source_policy": {
+      "accept": [
+        "rank"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "risk": {
+      "accept": [
+        "fully",
+        "reversible"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    },
+    "acceptance_criteria": {
+      "accept": [
+        "two"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    }
+  },
+  "invented_entries": [
+    {
+      "field": "gates",
+      "match": {
+        "mode": "^(?!human$)"
+      }
+    },
+    {
+      "field": "quality_rulebook.rules",
+      "match": {
+        "id": "^Q(0[4-9]|[1-9][0-9])$"
+      }
+    },
+    {
+      "field": "systems",
+      "match": {
+        "access": "write"
+      }
+    }
+  ],
+  "invented_markers": [
+    "200,000",
+    "200000",
+    "internal"
+  ],
+  "why": "The owner kept every default (classification, source policy, output, starter quality rules, gate, limits) in the brief (A01). The charter must record each as the default with its values and cite A01; CV09 in first-pass acceptance checks they are recorded as defaults. Invented content, read structurally: a gate that is not human, a fourth quality rule (the owner kept only the three starter rules), or any system written to; in free text, a changed limit or another class.",
+  "leak_terms": [
+    "answer key",
+    "hidden reference"
+  ]
+}

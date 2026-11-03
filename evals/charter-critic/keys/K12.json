@@ -4,8 +4,7 @@
   "canary": "braquotov52",
   "domain": "D1",
   "must_find": [
-    "CH03",
-    "CH15"
+    "CH03"
   ],
   "must_not_find": [
     "CH01",
@@ -21,21 +20,15 @@
     "CH12",
     "CH13",
     "CH14",
+    "CH15",
     "DR07"
   ],
   "verdict": "fail",
   "anchors": {
-    "CH03": "success_metrics.outcome",
-    "CH15": "success_metrics.outcome"
+    "CH03": "success_metrics.outcome"
   },
   "locations": {
     "CH03": [
-      "M04",
-      "success_metrics",
-      "quickly",
-      "outcome"
-    ],
-    "CH15": [
       "M04",
       "success_metrics",
       "quickly",
@@ -47,5 +40,5 @@
     "answer key",
     "near miss"
   ],
-  "why": "Severity pair S2, major half (subtle). The outcome metric M04's target is 'quickly': no number, threshold or test (CH03, major). The vague word also breaks CH15 (minor), so both are expected. Twin: C09, the same charter with 'quickly' moved into the background text and M04 given a real target."
+  "why": "Severity pair S2, major half (subtle). The outcome metric M04's target is 'quickly': no number, threshold or test (CH03, major). CH15 does not apply: it covers wording outside success_metrics (narrowed in batch 2), so only CH03 is expected. Twin: C09, the same charter with 'quickly' moved into the background text and M04 given a real target."
 }

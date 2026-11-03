@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-repair-shed/inputs/context/shed-slips.txt",
+      "title": "shed-slips.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:01+00:00",
+      "sha256": "008483b8d6c3d2fce199be393598bbec9000db60f2fbf8de57702f1f21f8ff3f",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-repair-shed/inputs/context/bench-table.txt",
+      "title": "bench-table.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:02+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    }
+  ]
+}

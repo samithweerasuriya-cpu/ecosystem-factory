@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-bike-clinic/inputs/context/clinic-slips.txt",
+      "title": "clinic-slips.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:05+00:00",
+      "sha256": "a91781213eb2054c8843610374aacf467213892fec3d5cfa0d7fc06c26c77c70",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-bike-clinic/inputs/context/bench-table.txt",
+      "title": "bench-table.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:05+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    }
+  ]
+}

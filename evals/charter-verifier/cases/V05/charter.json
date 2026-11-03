@@ -1,0 +1,393 @@
+{
+  "schema_version": "1",
+  "slug": "rota-swaps",
+  "title": "Rota swap checker",
+  "goal": {
+    "text": "The shop manager gets a checked list of swap requests every Friday, so the till is never left with someone who can't cash up.",
+    "cites": [
+      "[A:A01 \"so the till is never left with someone who can't cash up\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Approved swaps whose taker lacks the shift's training",
+        "target": "none",
+        "check": "A script compares each approved row's taker with the training list (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a shift holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their swap message",
+        "target": "every row",
+        "check": "A script finds each quoted message word for word in the input (Q03).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Shifts taken by someone who isn't till trained",
+        "target": "none in a quarter",
+        "cites": [
+          "[A:A01 \"No shift taken by someone who isn't till trained in a quarter.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Swap texts answered by the following Friday",
+        "target": "every one",
+        "cites": [
+          "[A:A01 \"Every swap text is answered by the Friday after it arrives.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "shop-volunteers",
+      "relation": "user",
+      "interest": "Read the list and turn up for the shifts they took.",
+      "cites": [
+        "[A:A01 \"Shop volunteers (users: read the list and turn up for the shifts they took).\"]"
+      ]
+    },
+    {
+      "role": "volunteer-manager",
+      "relation": "approver",
+      "interest": "Approves the list every wednesday.",
+      "cites": [
+        "[A:A01 \"Volunteer manager (approver: approves the list every Wednesday).\"]"
+      ]
+    },
+    {
+      "role": "area-office",
+      "relation": "stakeholder",
+      "interest": "Every till is cashed up correctly.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "A volunteer texts the manager.",
+      "The manager checks the training folder.",
+      "The manager changes the paper rota."
+    ],
+    "problems": [
+      "Twice this year a volunteer who had never cashed up took a closing shift.",
+      "Texts sent on a Saturday are often missed until Tuesday."
+    ],
+    "cites": [
+      "[A:A01 \"twice this year a volunteer who had never cashed up took a closing shift\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "The week's swap texts in.",
+      "A checked list of swaps out."
+    ],
+    "out": [
+      "New volunteer sign-ups",
+      "Holiday cover",
+      "The stock room rota"
+    ],
+    "cites": [
+      "[A:A01 \"Out: new volunteer sign-ups, holiday cover, the stock room rota.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Swap messages, about 12 a week.",
+    "format": "plain text, one swap per message",
+    "constraints": [
+      "Who gives up the shift",
+      "Which shift",
+      "Who takes it"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of swap messages."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "cashing up",
+      "meaning": "Counting the till and filling in the takings sheet at closing.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "till trained",
+      "meaning": "Signed off on the till and on cashing up.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it a month of made-up swap texts, and no closing shift ever goes to someone who isn't till trained.",
+      "cites": [
+        "[A:A01 \"I give it a month of made-up swap texts, and no closing shift ever goes to someone who isn't till trained.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/quayside-texts.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "id": "S03",
+      "path": "inputs/context/shop-hours.txt",
+      "classification": "synthetic",
+      "evidence_for": "opening hours"
+    }
+  ],
+  "data_classification": {
+    "class": "public",
+    "cites": [
+      "[A:A01 \"Public: the opening hours are the ones on the shop door\"]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The volunteer manager's own decisions",
+        "use_for": "Rules, roles, training needs"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Message format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/quayside-texts.txt": 2,
+        "inputs/context/shop-hours.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the swap message and the training list entry that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a swap is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "output": {
+    "description": "One row per swap message, with a decision: approve or refuse. A message that names no shift is refused as incomplete.",
+    "format": "Table, one row per swap message",
+    "fields": [
+      {
+        "name": "message",
+        "description": "The swap message, quoted."
+      },
+      {
+        "name": "shift",
+        "description": "The shift: day, morning or afternoon."
+      },
+      {
+        "name": "gives_up",
+        "description": "The volunteer giving it up."
+      },
+      {
+        "name": "takes",
+        "description": "The volunteer taking it."
+      },
+      {
+        "name": "decision",
+        "description": "approve or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"A message that names no shift is refused as incomplete.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "The volunteer taking a shift holds the training it needs.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 the volunteer taking a shift holds the training it needs (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A swap is only between two volunteers in the same role.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a swap is only between two volunteers in the same role (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the swap message.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the swap message (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Wed afternoon | Lena to Omar | approve | Omar is till trained",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Sat morning | Pat to Rae | approve | Rae is till trained",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Fri afternoon | Sid to Ula | approve",
+        "why": "Ula is not till trained.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Thu morning | Vic (till) to Wyn (sorting room) | approve",
+        "why": "Wyn works in the sorting room, not on the till.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "team",
+    "notes": "A wrong swap can be undone before the shift, but not after the till is short. The shop's volunteers are affected.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"Our twenty or so volunteers. Customers only notice if the till closes late.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "swap-messages",
+      "description": "The swap messages, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the swap messages.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the checked list of swaps.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I approve the list every Wednesday before I change the rota.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Can a volunteer take two shifts on one day through a swap?",
+      "owner": "volunteer-manager"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every swap right on a month of made-up texts.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should get every swap right on a month of made-up texts\"]"
+      ]
+    }
+  ]
+}

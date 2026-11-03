@@ -1,0 +1,4 @@
+Training list (synthetic).
+
+Till trained: Lena, Omar, Rae, Pat.
+Shop floor only: Sid, Ula, Wyn.

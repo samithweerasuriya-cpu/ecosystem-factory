@@ -1,0 +1,41 @@
+{
+  "case": "V24",
+  "design_id": "V-P03",
+  "canary": "orndrilom94",
+  "domain": "D3",
+  "anchors": {
+    "CV03": "scope"
+  },
+  "must_find": [
+    "CV03"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV03": [
+      "scope",
+      "A01",
+      "bike repairs",
+      "bike donations"
+    ]
+  },
+  "planted_misquotes": [
+    "Out: buying parts, bike repairs, the Tuesday youth session."
+  ],
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV03 (major), subtle: the scope quotes the brief as 'Out: buying parts, bike repairs, the Tuesday youth session.', but the brief (A01) says 'Out: buying parts, bike donations, the Tuesday youth session.': one word changed. The scope's out list itself matches the brief. Twin: V-C02 (D2)."
+}

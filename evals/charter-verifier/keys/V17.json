@@ -1,0 +1,38 @@
+{
+  "case": "V17",
+  "design_id": "V-P04",
+  "canary": "yabyabkur13",
+  "domain": "D4",
+  "anchors": {
+    "CV04": "acceptance_criteria"
+  },
+  "must_find": [
+    "CV04"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV04": [
+      "acceptance_criteria",
+      "AC01",
+      "Don't know yet",
+      "open question"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV04 (major), obvious: the brief says 'Don't know yet.' for acceptance criteria (A01) and the owner's only later answer (A02) is about who is affected; no context file covers it. The charter fills acceptance_criteria with AC01 citing A01 instead of raising an open question. A whole field with no source, filled in (CV04), not a fact added to a supported field (not CV02). Twin: V-C03 (D3)."
+}

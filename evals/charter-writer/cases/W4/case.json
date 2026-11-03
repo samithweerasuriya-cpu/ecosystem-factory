@@ -1,0 +1,28 @@
+{
+  "id": "W4",
+  "kind": "charter",
+  "seed": "replay",
+  "slug": "hall-check",
+  "goal": "Check each week's community hall booking requests against the calendar",
+  "brief": "brief.md",
+  "context": [
+    {
+      "file": "requests-week.txt",
+      "class": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "replay": [
+    {
+      "interviewer": "r1.json",
+      "reply": "a02.md"
+    },
+    {
+      "interviewer": "r2.json",
+      "reply": "confirmed.md"
+    },
+    {
+      "interviewer": "r3.json"
+    }
+  ]
+}

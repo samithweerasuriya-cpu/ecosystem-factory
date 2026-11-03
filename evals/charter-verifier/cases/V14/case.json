@@ -1,0 +1,20 @@
+{
+  "id": "V14",
+  "kind": "planted",
+  "goal": "Check each week's community hall booking requests against the calendar",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "clubhouse-entries.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

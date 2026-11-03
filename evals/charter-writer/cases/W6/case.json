@@ -1,0 +1,33 @@
+{
+  "id": "W6",
+  "kind": "charter",
+  "seed": "replay",
+  "slug": "foodbank-swaps",
+  "goal": "Check each day's food bank shift swap requests",
+  "brief": "brief.md",
+  "context": [
+    {
+      "file": "swap-messages.txt",
+      "class": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "file": "volunteer-handbook.txt",
+      "class": "synthetic",
+      "evidence_for": "shift and role rules"
+    }
+  ],
+  "replay": [
+    {
+      "interviewer": "r1.json",
+      "reply": "a02.md"
+    },
+    {
+      "interviewer": "r2.json",
+      "reply": "confirmed.md"
+    },
+    {
+      "interviewer": "r3.json"
+    }
+  ]
+}

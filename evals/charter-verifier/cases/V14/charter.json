@@ -1,0 +1,420 @@
+{
+  "schema_version": "1",
+  "slug": "clubhouse-bookings",
+  "title": "Clubhouse booking checker",
+  "goal": {
+    "text": "The pavilion manager gets a checked list of requests each Wednesday, so clubs stop arriving to a locked or double-booked pavilion.",
+    "cites": [
+      "[A:A01 \"so clubs stop arriving to a locked or double-booked pavilion\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Proposed bookings that overlap another booking for the same room",
+        "target": "none",
+        "check": "A script compares every proposed row with the other rows and the calendar (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 no proposed booking overlaps another booking for the same room (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Rows that quote their request",
+        "target": "every row",
+        "check": "A script finds each quoted request line word for word in the input (Q02).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Late replies (over a week)",
+        "target": "no more than two a week",
+        "cites": [
+          "[A:A01 \"No more than two late replies a week.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Clubs arriving to a double-booked room",
+        "target": "none in a season",
+        "cites": [
+          "[A:A01 \"No club turns up to a double-booked room in a season.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "clubhouse-volunteers",
+      "relation": "user",
+      "interest": "Send the replies and hand out the keys.",
+      "cites": [
+        "[A:A01 \"Clubhouse volunteers (users: send the replies and hand out the keys).\"]"
+      ]
+    },
+    {
+      "role": "clubhouse-manager",
+      "relation": "approver",
+      "interest": "Approves the list before the calendar changes.",
+      "cites": [
+        "[A:A01 \"Clubhouse manager (approver: approves the list before the calendar changes).\"]"
+      ]
+    },
+    {
+      "role": "sports-clubs",
+      "relation": "stakeholder",
+      "interest": "Want their regular slots kept.",
+      "cites": [
+        "[A:A01 \"Sports clubs (stakeholders: want their regular slots kept).\"]"
+      ]
+    },
+    {
+      "role": "caretaker",
+      "relation": "stakeholder",
+      "interest": "Opens and locks the clubhouse for each booking.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "The manager prints the form entries.",
+      "The manager checks the key log and the calendar.",
+      "The manager e-mails each group."
+    ],
+    "problems": [
+      "Three times this season a club arrived to find the changing rooms booked by a party.",
+      "Replies take up to a fortnight."
+    ],
+    "cites": [
+      "[A:A01 \"three times this season a club arrived to find the changing rooms booked by a party\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "One week's form entries in.",
+      "A checked list of proposed bookings out."
+    ],
+    "out": [
+      "Pitch bookings",
+      "Bar licences",
+      "The groundsman's rota"
+    ],
+    "cites": [
+      "[A:A01 \"Out: pitch bookings, bar licences, the groundsman's rota.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "One week's form entrys, about 10 a week.",
+    "format": "plain text, one request per form entry",
+    "constraints": [
+      "Group name",
+      "Room",
+      "Date",
+      "Start and end time"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "A made-up week of form entrys."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "function room",
+      "meaning": "The upstairs room with the kitchen.",
+      "cites": [
+        "[A:A01 \"Function room: the upstairs room with the kitchen.\"]"
+      ]
+    },
+    {
+      "term": "changing rooms",
+      "meaning": "The two rooms downstairs with showers.",
+      "cites": [
+        "[A:A01 \"Changing rooms: the two rooms downstairs with showers.\"]"
+      ]
+    },
+    {
+      "term": "clash",
+      "meaning": "Two bookings for the same room that overlap in time.",
+      "cites": [
+        "[A:A01 \"Clash: two bookings for the same room that overlap in time.\"]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it a month of made-up form entries, and no club's regular slot is ever given to someone else.",
+      "cites": [
+        "[A:A01 \"I give it a month of made-up form entries, and no club's regular slot is ever given to someone else.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/clubhouse-entries.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The clubhouse manager's own decisions",
+        "use_for": "Rules, scope, opening hours"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Request format"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/clubhouse-entries.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the request line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row is refused and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "output": {
+    "description": "One row per request, with a decision: propose, clash or refuse. An entry with no room or no time is refused as incomplete.",
+    "format": "Table, one row per request",
+    "fields": [
+      {
+        "name": "request",
+        "description": "The request line, quoted."
+      },
+      {
+        "name": "group",
+        "description": "The group name from the request."
+      },
+      {
+        "name": "room",
+        "description": "Function room or changing rooms."
+      },
+      {
+        "name": "date",
+        "description": "ISO date."
+      },
+      {
+        "name": "start",
+        "description": "Start time, 24-hour clock."
+      },
+      {
+        "name": "end",
+        "description": "End time, 24-hour clock."
+      },
+      {
+        "name": "decision",
+        "description": "propose, clash or refuse."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"An entry with no room or no time is refused as incomplete.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "No proposed booking overlaps another booking for the same room.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 no proposed booking overlaps another booking for the same room (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "Every row quotes the request it came from.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 every row quotes the request it came from (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "A request outside opening hours (08:00 to 22:30) is refused, with the reason.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 a request outside opening hours (08:00 to 22:30) is refused, with the reason (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "The reason is one sentence.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "Sat 2099-04-11 | Changing rooms | Under-11s football | 09:00-11:00 | propose | no clash",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "Sat 2099-04-11 | Function room | Birthday party | 14:00-18:00 | clash | function room booked 13:00-17:00 by the cricket club tea",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "Sat 2099-04-11 | Function room | Birthday party | 14:00-18:00 | propose",
+        "why": "It overlaps the cricket club tea.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "Fri 2099-04-10 | Function room | Quiz | 21:00-23:30 | propose",
+        "why": "It runs past 22:30.",
+        "breaks": [
+          "Q03"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A wrong booking can be cancelled, but a group that arrives to find the room taken has lost its session. Outside groups are affected.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"About fifteen clubs and maybe forty families a year.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "request-form",
+      "description": "The form entrys, as text.",
+      "access": "read",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "id": "pavilion-calendar",
+      "description": "The pavilion's online calendar.",
+      "access": "write",
+      "cites": [
+        "[A:A01 \"Writes to the pavilion's online calendar.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the checked list, directly before any booking is written to the calendar.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [
+        "pavilion-calendar"
+      ],
+      "cites": [
+        "[A:A01 \"I approve the list each Wednesday, right before anything is added to the calendar.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should regular club slots for next season be checked here too?",
+      "owner": "clubhouse-manager"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every regular club slot kept on a made-up month of entries.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"it should keep every regular club slot on a made-up month of entries\"]"
+      ]
+    }
+  ]
+}

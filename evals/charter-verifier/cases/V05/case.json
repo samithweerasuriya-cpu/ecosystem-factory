@@ -1,0 +1,28 @@
+{
+  "id": "V05",
+  "kind": "planted",
+  "goal": "Check each week's volunteer shift swap requests",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "quayside-texts.txt",
+      "as": "context"
+    },
+    {
+      "file": "training-list.txt",
+      "as": "context"
+    },
+    {
+      "file": "shop-hours.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

@@ -1,0 +1,408 @@
+{
+  "schema_version": "1",
+  "slug": "popup-repair",
+  "title": "Pop-up repair queue",
+  "goal": {
+    "text": "The project coordinator gets a repair queue each Saturday afternoon, so nobody is promised a bike back before the work can be done.",
+    "cites": [
+      "[A:A01 \"so nobody is promised a bike back before the work can be done\"]"
+    ]
+  },
+  "success_metrics": {
+    "agent_checkable": [
+      {
+        "id": "M01",
+        "metric": "Promised dates earlier than the queue's bench time allows",
+        "target": "none",
+        "check": "A script adds up bench minutes in queue order and compares each promised date (Q01).",
+        "cites": [
+          "[A:A01 \"Q01 a promised date is never earlier than the queue's bench time allows (blocker).\"]"
+        ]
+      },
+      {
+        "id": "M02",
+        "metric": "Brake or steering jobs behind another kind of job",
+        "target": "none",
+        "check": "A script checks the queue order (Q02).",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "outcome": [
+      {
+        "id": "M03",
+        "metric": "Bikes promised back earlier than the work allows",
+        "target": "none in a term",
+        "cites": [
+          "[A:A01 \"No bike promised back earlier than the work allows, over a term.\"]"
+        ]
+      },
+      {
+        "id": "M04",
+        "metric": "Steering jobs done the same Saturday",
+        "target": "every one",
+        "cites": [
+          "[A:A01 \"Every steering job is done the same Saturday.\"]"
+        ]
+      }
+    ]
+  },
+  "users_and_stakeholders": [
+    {
+      "role": "repair-volunteers",
+      "relation": "user",
+      "interest": "Work through the queue in order.",
+      "cites": [
+        "[A:A01 \"Repair volunteers (users: work through the queue in order).\"]"
+      ]
+    },
+    {
+      "role": "stall-lead",
+      "relation": "approver",
+      "interest": "Signs off the queue by 10:00.",
+      "cites": [
+        "[A:A01 \"Stall lead (approver: signs off the queue by 10:00).\"]"
+      ]
+    },
+    {
+      "role": "customers",
+      "relation": "stakeholder",
+      "interest": "Their bike back on the date they were given.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "current_process": {
+    "steps": [
+      "The coordinator sorts the slips by hand.",
+      "The coordinator estimates each job from memory.",
+      "The coordinator writes the queue on a whiteboard.",
+      "Parts are ordered on Mondays from one supplier.",
+      "Long wheel builds are started when a volunteer is free."
+    ],
+    "problems": [
+      "Estimates from memory are often an hour out.",
+      "A bike with a loose headset waited two weekends."
+    ],
+    "cites": [
+      "[A:A01 \"estimates from memory are often an hour out\"]"
+    ]
+  },
+  "scope": {
+    "in": [
+      "Saturday's drop-off slips in.",
+      "A repair queue out."
+    ],
+    "out": [
+      "Buying parts",
+      "Bike donations",
+      "The Tuesday youth session"
+    ],
+    "cites": [
+      "[A:A01 \"Out: buying parts, bike donations, the Tuesday youth session.\"]"
+    ]
+  },
+  "inputs": {
+    "description": "Typed drop-off forms, about 25 each saturday.",
+    "format": "plain text, one form per ticket",
+    "constraints": [
+      "Ticket number",
+      "Bike",
+      "The customer's description of the fault",
+      "Date needed"
+    ],
+    "samples": [
+      {
+        "source": "S01",
+        "description": "Made-up drop-off forms."
+      }
+    ],
+    "cites": [
+      "[A:A01]",
+      "[S:S01 §whole file]"
+    ]
+  },
+  "glossary": [
+    {
+      "term": "bench minutes",
+      "meaning": "The standard time a job takes, from the bench-time table.",
+      "cites": [
+        "[A:A01 \"Bench minutes: the standard time a job takes, from the bench-time table.\"]"
+      ]
+    },
+    {
+      "term": "headset",
+      "meaning": "The bearings that let the handlebars turn.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "slip",
+      "meaning": "The drop-off form a customer fills in.",
+      "cites": [
+        "[A:A01]"
+      ]
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "id": "T01",
+      "words": "I give it four made-up Saturdays of slips, and every brake or steering job is at the top of the queue.",
+      "cites": [
+        "[A:A01 \"I give it four made-up Saturdays of slips, and every brake or steering job is at the top of the queue.\"]"
+      ]
+    }
+  ],
+  "context_inventory": [
+    {
+      "id": "S01",
+      "path": "inputs/context/stall-slips.txt",
+      "classification": "synthetic",
+      "evidence_for": "the input format"
+    },
+    {
+      "id": "S02",
+      "path": "inputs/context/bench-table.txt",
+      "classification": "synthetic",
+      "evidence_for": "bench minutes"
+    }
+  ],
+  "data_classification": {
+    "class": "synthetic",
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "source_policy": {
+    "ranks": [
+      {
+        "rank": 1,
+        "what": "The stall lead's own decisions",
+        "use_for": "Rules, job priority, promised dates"
+      },
+      {
+        "rank": 2,
+        "what": "Reference documents in the context pack",
+        "use_for": "Form format, bench minutes"
+      },
+      {
+        "rank": 3,
+        "what": "Specifications and contracts",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 4,
+        "what": "Official documentation on the maker's own site",
+        "use_for": "Not used"
+      },
+      {
+        "rank": 5,
+        "what": "Everything else",
+        "use_for": "Leads only"
+      }
+    ],
+    "official_sources": {
+      "domains": {},
+      "files": {
+        "inputs/context/stall-slips.txt": 2,
+        "inputs/context/bench-table.txt": 2
+      }
+    },
+    "confidence": {
+      "high": "The row quotes the form and the bench-time table line that decided it.",
+      "medium": "A reputable secondary source; not expected here.",
+      "low": "Inferred or one weak source; such a row is marked 'ask the workshop' and raised as a question."
+    },
+    "conflicts": [
+      "The higher rank wins within its own area.",
+      "A conflict the ranks do not settle is reported with both citations, never decided silently."
+    ],
+    "cites": [
+      "[A:A01 \"keep default\"]"
+    ]
+  },
+  "output": {
+    "description": "A repair queue, one row per drop-off form, in working order. A slip with no fault description is refused as 'ask the customer'.",
+    "format": "Table, one row per ticket, in queue order",
+    "fields": [
+      {
+        "name": "ticket",
+        "description": "The ticket number from the form."
+      },
+      {
+        "name": "bike",
+        "description": "The bike as the form describes it."
+      },
+      {
+        "name": "job_type",
+        "description": "brakes, steering, gears, wheels, punctures or other."
+      },
+      {
+        "name": "bench_minutes",
+        "description": "From the bench-time table."
+      },
+      {
+        "name": "promised_date",
+        "description": "ISO date."
+      },
+      {
+        "name": "reason",
+        "description": "One sentence, quoting the customer's description."
+      }
+    ],
+    "cites": [
+      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]"
+    ]
+  },
+  "quality_rulebook": {
+    "rules": [
+      {
+        "id": "Q01",
+        "statement": "A promised date is never earlier than the queue's bench time allows.",
+        "severity": "blocker",
+        "cites": [
+          "[A:A01 \"Q01 a promised date is never earlier than the queue's bench time allows (blocker).\"]"
+        ]
+      },
+      {
+        "id": "Q02",
+        "statement": "A brake or steering job goes ahead of every other job.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q02 a brake or steering job goes ahead of every other job (major).\"]"
+        ]
+      },
+      {
+        "id": "Q03",
+        "statement": "Every row quotes the customer's description from the form.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q03 every row quotes the customer's description from the form (major).\"]"
+        ]
+      },
+      {
+        "id": "Q04",
+        "statement": "Bench minutes come from the bench-time table, never a guess.",
+        "severity": "major",
+        "cites": [
+          "[A:A01 \"Q04 bench minutes come from the bench-time table, never a guess\"]"
+        ]
+      }
+    ]
+  },
+  "examples": {
+    "good": [
+      {
+        "id": "E01",
+        "text": "S-21 | mountain | steering | 40 | 2099-05-09 | 'handlebars feel loose'",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E02",
+        "text": "S-22 | folding | punctures | 15 | 2099-05-09 | 'flat again'",
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "id": "E03",
+        "text": "S-23 | hybrid | gears | 50 | 2099-05-02",
+        "why": "The promised date is earlier than the bench time allows.",
+        "breaks": [
+          "Q01"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      },
+      {
+        "id": "E04",
+        "text": "S-24 | road | brakes | 25, after S-22",
+        "why": "A brake job is behind another kind of job.",
+        "breaks": [
+          "Q02"
+        ],
+        "origin": "synthetic",
+        "cites": [
+          "[A:A01]"
+        ]
+      }
+    ]
+  },
+  "risk": {
+    "reversibility": "partly",
+    "blast_radius": "external",
+    "notes": "A queue can be reordered before the work starts, but a missed promise has already let a customer down. Customers are affected.",
+    "cites": [
+      "[A:A01 \"Partly reversible\"]",
+      "[A:A02 \"About sixty customers a month and twelve repair volunteers.\"]"
+    ]
+  },
+  "systems": [
+    {
+      "id": "dropoff-forms",
+      "description": "The typed drop-off forms.",
+      "access": "read",
+      "cites": [
+        "[A:A01 \"Reads the typed drop-off forms.\"]"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "decision": "Approve or reject the repair queue.",
+      "mode": "human",
+      "approver_role": "approver",
+      "before_write": [],
+      "cites": [
+        "[A:A01 \"I sign off the queue by 10:00 before any bike goes on a stand.\"]"
+      ]
+    }
+  ],
+  "caps": {
+    "critic_revisions": 2,
+    "total_revisions_before_gate": 3,
+    "gate_rejections": 3,
+    "agent_calls_per_job": 25,
+    "usage_ceiling": {
+      "tokens": 350000,
+      "agent_minutes": 20
+    },
+    "cites": [
+      "[A:A01]"
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ01",
+      "question": "Should bikes we couldn't finish go to next week's queue?",
+      "owner": "stall-lead"
+    },
+    {
+      "id": "OQ02",
+      "question": "Who phones customers when a date slips?",
+      "owner": "repair-volunteers"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC01",
+      "criterion": "Every brake and steering job first on four made-up Saturdays.",
+      "check": "Evaluation report before go-live.",
+      "cites": [
+        "[A:A02 \"It must order every brake and steering job first on four made-up Saturdays.\"]"
+      ]
+    }
+  ]
+}

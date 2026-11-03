@@ -1,0 +1,11 @@
+Bench-time table (synthetic).
+
+Brakes, adjust: 20 minutes
+Brakes, new pads: 30 minutes
+Steering, headset: 40 minutes
+Gears, index: 25 minutes
+Gears, new cable: 45 minutes
+Wheels, true: 30 minutes
+Wheels, build: 120 minutes
+Punctures: 15 minutes
+Other: ask the lead

@@ -1,0 +1,24 @@
+{
+  "id": "V23",
+  "kind": "clean",
+  "goal": "Sort each day's returned library books into shelve, holds and repair",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "overnight-returns.txt",
+      "as": "context"
+    },
+    {
+      "file": "branch-ranges.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

@@ -1,0 +1,29 @@
+{
+  "case": "V23",
+  "design_id": "V-C01",
+  "canary": "nixbradri99",
+  "domain": "D1",
+  "length": "long",
+  "anchors": {},
+  "must_find": [],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean, long. Near miss for CV01 and CV02: every statement cites a source that states it (the brief A01, the answers A02, the export S01 for the input format and the barcode ranges S02 for home branches); nothing is added that no source states; the uncounted daily volume is an open question with an owner. Kept defaults quote 'keep default'."
+}

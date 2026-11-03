@@ -1,0 +1,38 @@
+{
+  "case": "V06",
+  "design_id": "V-C03",
+  "canary": "gryfenvesk90",
+  "domain": "D3",
+  "anchors": {
+    "CV09": "caps"
+  },
+  "must_find": [
+    "CV09"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {
+    "CV09": [
+      "caps",
+      "keep default",
+      "A01",
+      "default"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S4, minor half. Near miss for CV04: both unknowns are open questions with owner roles. The owner kept the default limits ('keep default', A01); the caps hold the default values and cite A01, but are not recorded as the kept default (classification and source policy quote 'keep default'): CV09 (minor), verdict pass."
+}

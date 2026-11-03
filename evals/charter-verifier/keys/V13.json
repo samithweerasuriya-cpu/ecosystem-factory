@@ -1,0 +1,41 @@
+{
+  "case": "V13",
+  "design_id": "V-P07",
+  "canary": "athedrinix66",
+  "domain": "D3",
+  "anchors": {
+    "CV06": "output.fields"
+  },
+  "must_find": [
+    "CV06"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV06": [
+      "bench_minutes",
+      "output",
+      "fields",
+      "punctures",
+      "20 minutes",
+      "15 minutes",
+      "S02"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Misleading source, CV06 (major), obvious: the bench-time table S02 says 'Punctures: 15 minutes'; the coordinator's answer (A02, rank 1) says 20. The output follows the answer (the right rank) but cites only A02: the disagreement with S02 is not disclosed and is not an open question. S02 is current and in scope (not CV07). Twin: V-C05 (D1)."
+}

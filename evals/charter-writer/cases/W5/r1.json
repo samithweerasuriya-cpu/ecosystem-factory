@@ -1,0 +1,14 @@
+{
+ "status": "needs_input",
+ "job_id": "{{JOB}}",
+ "questions": [
+  {
+   "field": "risk",
+   "text": "Your brief says \"Don't know yet\" for risk [A:A01]. If a book is sorted wrongly, can it be put right, and who is affected? [risk]"
+  },
+  {
+   "field": "acceptance_criteria",
+   "text": "What must be true before you approve it for use, in a way a person can check? [acceptance_criteria]"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-popup-repair/inputs/context/stall-slips.txt",
+      "title": "stall-slips.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:06+00:00",
+      "sha256": "28ae75a7b31f50b90115f64cfe04fa1b3efac5a492919521f945a25b970f28dc",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-popup-repair/inputs/context/bench-table.txt",
+      "title": "bench-table.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:07+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    }
+  ]
+}

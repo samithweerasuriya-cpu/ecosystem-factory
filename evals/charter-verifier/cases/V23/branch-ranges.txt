@@ -1,0 +1,8 @@
+Branch barcode ranges (synthetic).
+
+Riverside: 300000-349999
+Eastfield: 350000-399999
+Central: 400000-449999
+Market Street: 450000-499999
+
+A barcode outside every range is checked by hand.

@@ -1,0 +1,8 @@
+Made-up returns export (synthetic test data).
+
+barcode | title | condition note | reservation
+510201 | The Wren's Year | no damage | no
+510202 | Harbour Songs | no damage | yes
+510203 | Tin Lanterns | pages wet | no
+510204 | Cold Valley | no damage | no
+510205 | Little Bridges | spine split | yes

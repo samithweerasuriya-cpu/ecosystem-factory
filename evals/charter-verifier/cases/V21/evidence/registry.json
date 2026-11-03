@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-returns-triage/inputs/context/table-returns.txt",
+      "title": "table-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:30+00:00",
+      "sha256": "c8349b66c1fe823b2d3cd527aeebb167709d5473064faf077a53f4372164184b",
+      "status": "stored",
+      "reason": null,
+      "bytes": 340
+    }
+  ]
+}

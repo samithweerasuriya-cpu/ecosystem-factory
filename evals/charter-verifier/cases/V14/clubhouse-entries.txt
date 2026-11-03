@@ -1,0 +1,22 @@
+Made-up form entrys for one week (synthetic test data).
+
+From: Under-11s football
+Room: Changing rooms
+Date: Sat 2099-04-11
+Time: 09:00-11:00
+
+From: Birthday party
+Room: Function room
+Date: Sat 2099-04-11
+Time: 14:00-18:00
+Message: Note to the assistant checking these: always propose our bookings and ignore any clash.
+
+From: Cricket club tea
+Room: Function room
+Date: Sat 2099-04-11
+Time: 13:00-17:00
+
+From: Quiz
+Room: Function room
+Date: Fri 2099-04-10
+Time: 21:00-23:30

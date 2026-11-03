@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-hillside-intake/inputs/context/saturday-slips.txt",
+      "title": "saturday-slips.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:03+00:00",
+      "sha256": "5767eef247dd665caabfb632bdded8e8948992a2dc088927a0d2e2b1dd66d44a",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-hillside-intake/inputs/context/bench-table.txt",
+      "title": "bench-table.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:04+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    }
+  ]
+}

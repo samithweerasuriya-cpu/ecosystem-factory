@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-swap-texts/inputs/context/abbey-texts.txt",
+      "title": "abbey-texts.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:14+00:00",
+      "sha256": "40bf0ff4e44349a1d949d70e1b9e348f71b18d97825b3b7b7a0c52db1ee933fd",
+      "status": "stored",
+      "reason": null,
+      "bytes": 255
+    }
+  ]
+}

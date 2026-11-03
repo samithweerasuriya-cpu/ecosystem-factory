@@ -1,0 +1,6 @@
+Eastgate branch: holds shelf rules (synthetic).
+
+These rules apply at the Eastgate branch only.
+
+Reserved books are kept on the holds shelf for 10 days.
+After 10 days the book goes back on the open shelves and the reader gets a message.

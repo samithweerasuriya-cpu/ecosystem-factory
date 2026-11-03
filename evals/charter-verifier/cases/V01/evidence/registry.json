@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-canal-queue/inputs/context/dropoff-forms.txt",
+      "title": "dropoff-forms.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:08+00:00",
+      "sha256": "41c10e6eb00d41ff6ea1d12c1708ee8c6d6c273a7de5666176311326aecd1e7d",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-canal-queue/inputs/context/bench-times.txt",
+      "title": "bench-times.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:09+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    },
+    {
+      "id": "S03",
+      "kind": "file",
+      "path": "jobs/20261103-intake-canal-queue/inputs/context/workshop-hours.txt",
+      "title": "workshop-hours.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:09+00:00",
+      "sha256": "afb85fb9113f7d087947e865ab28e13ffb00dec925cc72adf672fc8ed5bd0156",
+      "status": "stored",
+      "reason": null,
+      "bytes": 111
+    }
+  ]
+}

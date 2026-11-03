@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-saturday-queue/inputs/context/brookside-slips.txt",
+      "title": "brookside-slips.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:03:59+00:00",
+      "sha256": "6c7d2b08e1fe64b9c9e031b674adcb474e362feaba806c414f513eff9df9981e",
+      "status": "stored",
+      "reason": null,
+      "bytes": 352
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-saturday-queue/inputs/context/bench-table.txt",
+      "title": "bench-table.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:04:00+00:00",
+      "sha256": "418324670002814df88097d2022fb6b0a0de9088cf1ee3630b388bca7dc135f8",
+      "status": "stored",
+      "reason": null,
+      "bytes": 265
+    }
+  ]
+}

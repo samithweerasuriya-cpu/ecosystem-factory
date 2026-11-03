@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-shop-swaps/inputs/context/swap-texts.txt",
+      "title": "swap-texts.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:09+00:00",
+      "sha256": "178e7f6b951e4c3e4e25fe553ef94761bbb92b07642eef564071496c23205ba6",
+      "status": "stored",
+      "reason": null,
+      "bytes": 259
+    }
+  ]
+}

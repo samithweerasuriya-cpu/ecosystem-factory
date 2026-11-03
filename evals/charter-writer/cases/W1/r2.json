@@ -1,0 +1,6 @@
+{
+ "status": "needs_input",
+ "job_id": "{{JOB}}",
+ "kind": "playback",
+ "playback": "Situation: at the Fernhill branch, returns wait on a cart and volunteers sort them by hand (current_process). Complication: about one reserved book a week ends up on the open shelves (current_process). Question: sort each morning's returns export into shelve, reserved shelf and repair bin (goal; scope; inputs). Answer: a sorted list the branch supervisor checks each morning; a reserved book never goes to shelve; partly reversible; ready when three weeks of made-up returns have no reserved book under shelve (output; quality_rulebook; gates; risk; acceptance_criteria)."
+}

@@ -1,0 +1,24 @@
+{
+  "id": "V22",
+  "kind": "clean",
+  "goal": "Check each week's community hall booking requests against the calendar",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "thornby-requests.txt",
+      "as": "context"
+    },
+    {
+      "file": "good-rows.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}

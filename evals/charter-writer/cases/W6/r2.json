@@ -1,0 +1,6 @@
+{
+ "status": "needs_input",
+ "job_id": "{{JOB}}",
+ "kind": "playback",
+ "playback": "Situation: food bank volunteers swap shifts by message and the volunteer coordinator checks each one by hand (users_and_stakeholders; current_process). Complication: distribution ran without a certificate holder twice this spring, and once an unchecked driver drove the van (current_process). Question: check one day's swap messages for the next 14 days against the certificate and driving lists (goal; scope; inputs). Answer: a checked list each evening, approve or refuse with a reason; the brief's 24-hour notice applies, where the handbook says 72 hours, because the owner's decisions rank above the handbook (quality_rulebook; source_policy); partly reversible; ready when three made-up weeks are right (risk; acceptance_criteria)."
+}

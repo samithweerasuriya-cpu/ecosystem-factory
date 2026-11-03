@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-rota-swaps/inputs/context/quayside-texts.txt",
+      "title": "quayside-texts.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:11+00:00",
+      "sha256": "178e7f6b951e4c3e4e25fe553ef94761bbb92b07642eef564071496c23205ba6",
+      "status": "stored",
+      "reason": null,
+      "bytes": 259
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-rota-swaps/inputs/context/training-list.txt",
+      "title": "training-list.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:12+00:00",
+      "sha256": "d7f2a69204481e03111c8432a9d00586ea7302bdb5520ff20dea98383cd204e5",
+      "status": "stored",
+      "reason": null,
+      "bytes": 96
+    },
+    {
+      "id": "S03",
+      "kind": "file",
+      "path": "jobs/20261103-intake-rota-swaps/inputs/context/shop-hours.txt",
+      "title": "shop-hours.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:02:12+00:00",
+      "sha256": "22665261cfd744aba3dd4af99a8b83f09e22178f41f81eaec93fe0baa573f843",
+      "status": "stored",
+      "reason": null,
+      "bytes": 110
+    }
+  ]
+}

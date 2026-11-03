@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "S01",
+      "kind": "file",
+      "path": "jobs/20261103-intake-holds-returns/inputs/context/parkside-returns.txt",
+      "title": "parkside-returns.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:23+00:00",
+      "sha256": "03c6f3e76aa172bbab34baa4721f07e39fd6236bf3025f00841305d82583afc6",
+      "status": "stored",
+      "reason": null,
+      "bytes": 335
+    },
+    {
+      "id": "S02",
+      "kind": "file",
+      "path": "jobs/20261103-intake-holds-returns/inputs/context/eastgate-hold-rules.txt",
+      "title": "eastgate-hold-rules.txt",
+      "rank": 5,
+      "fetched_at": "2026-11-03T05:00:24+00:00",
+      "sha256": "ee25e787d71a1b328f3cb14a8ae2d40886b544e016ac1483b28af03a20b18ab2",
+      "status": "stored",
+      "reason": null,
+      "bytes": 237
+    }
+  ]
+}

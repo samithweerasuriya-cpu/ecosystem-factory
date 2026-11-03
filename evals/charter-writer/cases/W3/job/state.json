@@ -1,0 +1,232 @@
+{
+  "job_id": "20261103-intake-evening-repairs",
+  "type": "intake",
+  "class": "synthetic",
+  "goal": "Build each evening's bike repair queue with bench minutes and promised dates",
+  "parent": null,
+  "route": {
+    "stages": [
+      {
+        "agent": "interviewer",
+        "rules": [
+          "rules/interview-guide.md"
+        ]
+      },
+      {
+        "script": "readiness"
+      },
+      {
+        "agent": "charter-writer",
+        "rules": [
+          "schemas/charter.v1.md"
+        ]
+      }
+    ],
+    "reviews": [
+      {
+        "agent": "charter-critic",
+        "kind": "critic"
+      },
+      {
+        "agent": "charter-verifier",
+        "kind": "verifier"
+      }
+    ],
+    "revise_with": "charter-writer",
+    "fix_with": "interviewer",
+    "gate": "G0-charter",
+    "deliver": null
+  },
+  "state": "WORKING",
+  "stage": "charter-writer",
+  "stage_kind": "agent",
+  "stage_index": 2,
+  "review_index": 0,
+  "fanout": null,
+  "fixing": false,
+  "artifact_path": null,
+  "resume_to": null,
+  "last_failed_by": null,
+  "visit": 10,
+  "calls": [
+    {
+      "id": "C001",
+      "agent": "interviewer",
+      "item": null,
+      "visit": 2,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H001",
+      "ts": "2026-11-03T05:12:38.351+00:00",
+      "status": "done",
+      "ended": "2026-11-03T05:12:38.468+00:00",
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_write": 0,
+        "total": 0,
+        "duration_s": 0.0,
+        "model": "replay",
+        "cost_usd_estimate": 0.0
+      },
+      "usage_source": "headless",
+      "warning": false
+    },
+    {
+      "id": "C002",
+      "agent": "interviewer",
+      "item": null,
+      "visit": 4,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H002",
+      "ts": "2026-11-03T05:12:39.136+00:00",
+      "status": "done",
+      "ended": "2026-11-03T05:12:39.256+00:00",
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_write": 0,
+        "total": 0,
+        "duration_s": 0.0,
+        "model": "replay",
+        "cost_usd_estimate": 0.0
+      },
+      "usage_source": "headless",
+      "warning": false
+    },
+    {
+      "id": "C003",
+      "agent": "interviewer",
+      "item": null,
+      "visit": 6,
+      "state": "WORKING",
+      "attempt": 1,
+      "retry_of": null,
+      "reason": null,
+      "handoff": "H003",
+      "ts": "2026-11-03T05:12:39.918+00:00",
+      "status": "done",
+      "ended": "2026-11-03T05:12:40.032+00:00",
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_write": 0,
+        "total": 0,
+        "duration_s": 0.0,
+        "model": "replay",
+        "cost_usd_estimate": 0.0
+      },
+      "usage_source": "headless",
+      "warning": false,
+      "output": {
+        "path": "jobs/20261103-intake-evening-repairs/research/interviewer-C003.json",
+        "sha256": "dc3f61008eef96ea802b0ae86ecd3565522828c43511bde82cef2d9ada761179"
+      }
+    }
+  ],
+  "retry": null,
+  "last_handoff": "H003",
+  "handoffs": 3,
+  "handoff_log": [
+    {
+      "id": "H001",
+      "agent": "interviewer",
+      "item": null,
+      "used_by": "C001"
+    },
+    {
+      "id": "H002",
+      "agent": "interviewer",
+      "item": null,
+      "used_by": "C002"
+    },
+    {
+      "id": "H003",
+      "agent": "interviewer",
+      "item": null,
+      "used_by": "C003"
+    }
+  ],
+  "ceiling": null,
+  "inputs": [
+    {
+      "id": "A01",
+      "class": "synthetic",
+      "path": "jobs/20261103-intake-evening-repairs/inputs/A01-brief.md",
+      "sha256": "3a64bc7a64d220f613a32a5e5f679c87e1aab6737a1cf45f6c1652e52bb69d13",
+      "note": null,
+      "recorded": "2026-11-03T05:12:37+00:00",
+      "minutes": null,
+      "minutes_unknown": true,
+      "minutes_source": "reported via orchestrator"
+    },
+    {
+      "id": "A02",
+      "class": "synthetic",
+      "path": "jobs/20261103-intake-evening-repairs/inputs/A02-20261103-intake-evening-repairs-answer-r1-1.md",
+      "sha256": "8ad728e25ce2997a968218682b132a185d8a8f81af071ce18cdf1be7ca94dd72",
+      "note": null,
+      "recorded": "2026-11-03T05:12:38+00:00",
+      "minutes": null,
+      "minutes_unknown": true,
+      "minutes_source": "reported via orchestrator"
+    },
+    {
+      "id": "A03",
+      "class": "synthetic",
+      "path": "jobs/20261103-intake-evening-repairs/inputs/A03-20261103-intake-evening-repairs-answer-r2-1.md",
+      "sha256": "81e8d8efb28851f9918c8443b895d157ca16296ab6b4a489dc24b90fc163e862",
+      "note": null,
+      "recorded": "2026-11-03T05:12:39+00:00",
+      "minutes": null,
+      "minutes_unknown": true,
+      "minutes_source": "reported via orchestrator"
+    }
+  ],
+  "awaiting": null,
+  "continued_from": null,
+  "seed": [],
+  "counters": {
+    "critic_revisions": 0,
+    "verifier_revisions": 0,
+    "total_revisions": 0,
+    "fix_attempts": 1,
+    "infra_errors": 0,
+    "cycle_input_rounds": 2,
+    "lifetime_agent_calls": 3,
+    "lifetime_revisions": 0,
+    "lifetime_resumes": 0,
+    "input_rounds": 2,
+    "repairs": 0,
+    "gate_rejections": 0,
+    "agent_calls": 3
+  },
+  "created": "2026-11-03T05:12:37+00:00",
+  "updated": "2026-11-03T05:15:23+00:00",
+  "answered_rounds": [
+    {
+      "questions": "jobs/20261103-intake-evening-repairs/questions/q-1.md",
+      "kind": "questions",
+      "answers": [
+        "A02"
+      ],
+      "answered": "2026-11-03T05:12:38+00:00"
+    },
+    {
+      "questions": "jobs/20261103-intake-evening-repairs/questions/q-2.md",
+      "kind": "playback",
+      "answers": [
+        "A03"
+      ],
+      "answered": "2026-11-03T05:12:39+00:00"
+    }
+  ]
+}

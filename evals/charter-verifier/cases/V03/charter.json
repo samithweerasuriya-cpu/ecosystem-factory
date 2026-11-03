@@ -51,7 +51,7 @@
     {"id": "S02", "path": "inputs/context/steward-handbook-2098.txt", "classification": "synthetic", "evidence_for": "the swap rules"},
     {"id": "S03", "path": "inputs/context/steward-handbook-2099.txt", "classification": "synthetic", "evidence_for": "the swap rules"}
   ],
-  "data_classification": {"class": "synthetic", "cites": ["[A:A01]"]},
+  "data_classification": {"class": "synthetic", "cites": ["[A:A01 \"keep default\"]"]},
   "source_policy": {
     "ranks": [
       {"rank": 1, "what": "The steward coordinator's own decisions", "use_for": "Goals, scope, rules"},
@@ -71,7 +71,7 @@
     "conflicts": ["The higher rank wins within its own area; newer beats older within a rank only when the newer source covers the point.",
                   "The two handbooks disagree on the swap notice period: 48 hours in the 2098 handbook (S02), 24 hours in the 2099 handbook (S03). Both are rank 2; the 2099 handbook covers the 2099 season and is followed.",
                   "A conflict the ranks do not settle is reported with both citations, never decided silently."],
-    "cites": ["[A:A01]", "[S:S02 §2 \"Swaps must be asked for at least 48 hours before kick-off.\"]",
+    "cites": ["[A:A01 \"keep default\"]", "[S:S02 §2 \"Swaps must be asked for at least 48 hours before kick-off.\"]",
               "[S:S03 §2 \"Swaps must be asked for at least 24 hours before kick-off.\"]"]
   },
   "output": {
@@ -119,10 +119,10 @@
   ],
   "gates": [
     {"id": "G1", "decision": "Approve the checked list of swaps before anything is written to the rota sheet (the brief's default gate, kept by the owner).",
-     "mode": "human", "approver_role": "approver", "before_write": ["rota-sheet"], "cites": ["[A:A01]"]}
+     "mode": "human", "approver_role": "approver", "before_write": ["rota-sheet"], "cites": ["[A:A01 \"keep default\"]"]}
   ],
   "caps": {"critic_revisions": 2, "total_revisions_before_gate": 3, "gate_rejections": 3, "agent_calls_per_job": 25,
-           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01]"]},
+           "usage_ceiling": {"tokens": 350000, "agent_minutes": 20}, "cites": ["[A:A01 \"keep default\"]"]},
   "open_questions": [
     {"id": "OQ01", "question": "Do cup matches use the same notice period?", "owner": "club-secretary"}
   ],

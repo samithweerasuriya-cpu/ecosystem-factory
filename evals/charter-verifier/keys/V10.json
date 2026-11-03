@@ -1,0 +1,38 @@
+{
+  "case": "V10",
+  "design_id": "V-P01",
+  "canary": "gryquoulm90",
+  "domain": "D1",
+  "anchors": {
+    "CV01": "current_process"
+  },
+  "must_find": [
+    "CV01"
+  ],
+  "must_not_find": [
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV01": [
+      "current_process",
+      "S01",
+      "problems",
+      "steps"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV01 (major), subtle: current_process (its steps and both problems, including 'about one reserved book in twenty is shelved by mistake') cites only S01, the made-up returns export. S01 shows reservation flags, so it touches the topic, but it states none of the steps or problems; the owner's brief (A01) does, and is not cited. Not CV02: a source (A01) states every point. Twin: V-C01."
+}

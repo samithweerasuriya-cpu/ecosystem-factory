@@ -1,0 +1,28 @@
+{
+  "case": "V02",
+  "design_id": "V-C02",
+  "canary": "pellsabquo56",
+  "domain": "D2",
+  "anchors": {},
+  "must_find": [],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean. Near miss for CV03: quotes keep the brief's odd punctuation exactly: an apostrophe and an en dash in 'who'd never cashed up took the 4–6 p.m. close (on a Saturday, no less)', and em dashes and single quotes in the refusal rule. Every quote is word for word."
+}

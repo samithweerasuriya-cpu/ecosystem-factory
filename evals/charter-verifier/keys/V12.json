@@ -1,0 +1,39 @@
+{
+  "case": "V12",
+  "design_id": "V-P05",
+  "canary": "ornmavdri38",
+  "domain": "D1",
+  "anchors": {
+    "CV05": "quality_rulebook.rules"
+  },
+  "must_find": [
+    "CV05"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV05": [
+      "Q02",
+      "quality_rulebook",
+      "S02",
+      "bad examples",
+      "example"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "CV05 (major), subtle: quality rule Q02 (damage sends the book to the mending tray) cites only S02, which is registered as evidence for bad examples. An example file may back only the charter's examples (E03 and E04 cite it correctly); the rule should cite the owner's brief (A01), which states it. Twin: V-C04 (D4), where the example file backs only examples."
+}

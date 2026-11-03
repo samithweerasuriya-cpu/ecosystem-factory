@@ -1,0 +1,28 @@
+{
+  "case": "V08",
+  "design_id": "V-C05",
+  "canary": "veskpellwor24",
+  "domain": "D1",
+  "anchors": {},
+  "must_find": [],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "pass",
+  "locations": {},
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Clean twin for CV06 (V-P06, V-P07). The desk guide S02 (rank 2) says reserved books stay 10 days; the owner's brief A01 (rank 1) says 7. The glossary follows A01, and source_policy.conflicts discloses the disagreement with both citations. S02 is in scope and current, so CV07 holds too."
+}

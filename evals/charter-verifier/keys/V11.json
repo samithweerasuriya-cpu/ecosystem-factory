@@ -1,0 +1,39 @@
+{
+  "case": "V11",
+  "design_id": "V-P15",
+  "canary": "gryrintyab25",
+  "domain": "D3",
+  "anchors": {
+    "CV04": "caps"
+  },
+  "must_find": [
+    "CV04"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV03",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV04": [
+      "caps",
+      "Don't know yet",
+      "limits",
+      "critic_revisions",
+      "open question"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S4, major half (subtle): the owner answered 'Don't know yet.' for limits (A01) and no later answer covers them, yet the charter's caps are filled with values below the defaults (1, 2, 2, 15, 200,000 tokens, 12 minutes) citing only A01. A whole field with no source is filled in instead of raised as an open question (CV04), not a fact added to a supported field (not CV02). Twin half: V-C03, where kept defaults are cited but not marked (CV09, minor)."
+}

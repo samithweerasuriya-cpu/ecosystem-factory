@@ -1,0 +1,38 @@
+{
+  "case": "V07",
+  "design_id": "V-P14",
+  "canary": "sabquofen66",
+  "domain": "D2",
+  "anchors": {
+    "CV02": "output"
+  },
+  "must_find": [
+    "CV02"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV03",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "CV09",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV02": [
+      "output",
+      "7 days",
+      "notice",
+      "description"
+    ]
+  },
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Severity pair S3, blocker half (subtle): the output adds 'A swap asked for less than 7 days before the shift is refused.' No answer or context file states a notice period; the output is otherwise supported, so this is an invented number (CV02, blocker), not an unsupported field (CV04). Same number as V-C09, where an answer states it and the quote is reworded (CV03, major)."
+}

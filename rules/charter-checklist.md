@@ -28,7 +28,7 @@ reused.
 | CH12 | The risk states reversibility and blast radius, and they fit what the systems and gates describe. | major |
 | CH13 | Caps are no higher than the factory's, and every cap changed from the default has the owner's reason. | major |
 | CH14 | Every term with a special meaning in the output, the rules or the examples is in the glossary. | minor |
-| CH15 | Wording is concise and unambiguous. | minor |
+| CH15 | Wording outside `success_metrics` is concise and unambiguous (CH03 covers metrics). | minor |
 
 Reserved rule (fixed severity: a correct list never fails on it):
 

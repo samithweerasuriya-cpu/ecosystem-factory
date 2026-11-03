@@ -1,0 +1,86 @@
+{
+  "case": "W6",
+  "design_id": "W6",
+  "canary": "quorintwor59",
+  "domain": "D2",
+  "length": "long",
+  "expect": "charter",
+  "fields": {
+    "quality_rulebook": {
+      "accept": [
+        "24 hours"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "users_and_stakeholders": {
+      "accept": [
+        "volunteer coordinator",
+        "volunteer-coordinator"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "scope": {
+      "accept": [
+        "14 days"
+      ],
+      "cites": [
+        "A:A01"
+      ]
+    },
+    "context_inventory": {
+      "accept": [
+        "volunteer-handbook.txt"
+      ],
+      "cites": []
+    },
+    "risk": {
+      "accept": [
+        "partly"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    },
+    "acceptance_criteria": {
+      "accept": [
+        "three"
+      ],
+      "cites": [
+        "A:A02"
+      ]
+    }
+  },
+  "invented_entries": [
+    {
+      "field": "quality_rulebook.rules",
+      "match": {
+        "statement": "72 hours"
+      }
+    },
+    {
+      "field": "systems",
+      "match": {
+        "access": "write"
+      }
+    },
+    {
+      "field": "users_and_stakeholders",
+      "match": {
+        "relation": "^approver$",
+        "role": "^(?!.*coordinator)"
+      }
+    }
+  ],
+  "invented_markers": [
+    "48 hours"
+  ],
+  "why": "Long. A lower-rank context file contradicts an answer: the handbook S02 (rank 2) says swaps must be asked for 72 hours ahead; the owner's brief (A01, rank 1) says 24 hours. The charter must follow the ranking (Q03 at 24 hours, citing A01) and disclose both citations (the verifier's CV06 in first-pass acceptance judges the disclosure). Invented content, read structurally: a rule that applies 72 hours, a system written to, or an approver other than the volunteer coordinator; in free text, a notice period no source states.",
+  "leak_terms": [
+    "answer key",
+    "hidden reference"
+  ]
+}

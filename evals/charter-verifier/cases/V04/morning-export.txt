@@ -1,0 +1,9 @@
+Made-up returns export (synthetic test data).
+
+barcode | title | condition note | reservation
+204511 | Iron Gate | no damage | no
+204512 | The Painted Bird House | no damage | yes
+204513 | Stone Soup Stories | wet pages | no
+204514 | The Long Meadow | no damage | no
+204515 | Small Engines | cover torn | no
+204516 | Rivers of Ice | no damage | yes

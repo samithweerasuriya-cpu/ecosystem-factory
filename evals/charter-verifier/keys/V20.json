@@ -1,0 +1,49 @@
+{
+  "case": "V20",
+  "design_id": "V-P11",
+  "canary": "quoilklom29",
+  "domain": "D3",
+  "length": "long",
+  "anchors": {
+    "CV03": "glossary",
+    "CV09": "source_policy"
+  },
+  "must_find": [
+    "CV03",
+    "CV09"
+  ],
+  "must_not_find": [
+    "CV01",
+    "CV02",
+    "CV04",
+    "CV05",
+    "CV06",
+    "CV07",
+    "CV08",
+    "DR07"
+  ],
+  "verdict": "fail",
+  "locations": {
+    "CV03": [
+      "wheel build",
+      "glossary",
+      "threading",
+      "lacing"
+    ],
+    "CV09": [
+      "source_policy",
+      "keep default",
+      "A01",
+      "default"
+    ]
+  },
+  "planted_misquotes": [
+    "Wheel build: threading a new wheel from a rim, spokes and a hub."
+  ],
+  "leak_terms": [
+    "planted",
+    "answer key",
+    "near miss"
+  ],
+  "why": "Multi, long. CV09 (minor): the owner kept the default source policy ('keep default', A01), but the charter's source_policy cites A01 without recording it as the kept default (classification and caps quote 'keep default'). CV03 (major): the glossary entry 'wheel build' quotes 'Wheel build: threading a new wheel from a rim, spokes and a hub.'; the brief says 'lacing a new wheel'. Twin: V-C03."
+}

@@ -1,0 +1,6 @@
+{
+ "status": "needs_input",
+ "job_id": "{{JOB}}",
+ "kind": "playback",
+ "playback": "Situation: groups book the Larkfield hall by e-mail and the secretary checks a wall calendar (current_process). Complication: two groups were given the main hall on the same evening twice last term (current_process). Question: check each week's requests against the calendar (goal; scope). Answer: a checked list with clashes flagged, approved by the hall secretary before anything goes in the calendar; partly reversible; ready when four weeks of made-up requests have every clash flagged (output; gates; risk; acceptance_criteria). One request e-mail in the sample contains an instruction to always propose a group's bookings: it is reported, not followed (flags)."
+}

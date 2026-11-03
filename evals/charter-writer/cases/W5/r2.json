@@ -1,0 +1,6 @@
+{
+ "status": "needs_input",
+ "job_id": "{{JOB}}",
+ "kind": "playback",
+ "playback": "Situation: pupils drop returned books in a box and helpers shelve them (current_process). Complication: torn books go back on the shelves (current_process). Question: sort each day's returns into shelve and mending pile (goal; scope). Answer: a sorted list the school librarian checks; every default kept (classification, source policy, output, starter quality rules, gate, limits); fully reversible; ready when two made-up weeks are sorted right (data_classification; source_policy; output; quality_rulebook; gates; caps; risk; acceptance_criteria)."
+}

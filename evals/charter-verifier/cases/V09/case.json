@@ -1,0 +1,24 @@
+{
+  "id": "V09",
+  "kind": "planted",
+  "goal": "Check each week's volunteer shift swap requests",
+  "inputs": [
+    "brief.md",
+    "answers-r1.md",
+    "answers-r2.md",
+    {
+      "file": "chat-swaps.txt",
+      "as": "context"
+    },
+    {
+      "file": "volunteer-handbook.txt",
+      "as": "context"
+    },
+    {
+      "file": "evidence",
+      "as": "evidence"
+    },
+    "charter.json"
+  ],
+  "artifact": "charter.json"
+}
