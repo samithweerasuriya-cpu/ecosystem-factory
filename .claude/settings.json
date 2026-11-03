@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "default",
     "additionalDirectories": ["C:\\ecosystems"],
     "deny": [
       "Bash(python engine/gate.py *)",

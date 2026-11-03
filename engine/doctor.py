@@ -354,7 +354,38 @@ def check_hooks(ctx):
                       "restore .claude/settings.json (git checkout -- .claude/settings.json), then restart Claude Code")
                if problems else result("hook_settings", "hooks", OK,
                                        "both hooks registered in .claude/settings.json with onFailure: block"))
+    out.append(check_permission_mode(ctx))
     return out
+
+
+ALLOWED_MODES = ("default", "plan")     # the guard hook's rule 8
+
+
+def check_permission_mode(ctx):
+    """FAIL unless the project pins defaultMode to default and no project-level file overrides it with a refused
+    mode; WARN for a refused mode in user settings (overridden here, refused by the hook anyway). Reports the last
+    mode the hook saw (private/logs/hook-mode.json)."""
+    pinned = ((load(ctx.root / ".claude" / "settings.json").get("permissions") or {}).get("defaultMode"))
+    problems, warnings = [], []
+    if pinned != "default":
+        problems.append(f"project settings pin defaultMode to {pinned!r}, not 'default'")
+    for label, f in settings_files(ctx):
+        mode = ((read_settings(f)[0].get("permissions") or {}).get("defaultMode"))
+        if mode is not None and mode not in ALLOWED_MODES:
+            (warnings if label.startswith("user") else problems).append(f"{label} set defaultMode {mode!r}")
+    seen = load(ctx.root / "private" / "logs" / "hook-mode.json").get("mode", "none recorded")
+    seen_note = f"; last mode the hook saw: {seen}" + ("" if seen in ALLOWED_MODES + ("none recorded",) else
+                                                        " (refused: switch the session to the ask mode)")
+    if problems:
+        return result("permission_mode", "hooks", FAIL, "; ".join(problems) + seen_note,
+                      "restore .claude/settings.json (git checkout -- .claude/settings.json), remove the override, "
+                      "then restart Claude Code")
+    if warnings:
+        return result("permission_mode", "hooks", WARN, "; ".join(warnings) + " (the project pin overrides it; the "
+                      "hook refuses that mode anyway)" + seen_note,
+                      "remove defaultMode from your user settings yourself (the doctor never changes it)")
+    return result("permission_mode", "hooks", OK if seen in ALLOWED_MODES + ("none recorded",) else WARN,
+                  "defaultMode pinned to default; the hook refuses auto, bypass, accept-edits and don't-ask" + seen_note)
 
 
 # ---------- 3. user-level and stray files ----------

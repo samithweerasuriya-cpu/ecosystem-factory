@@ -88,7 +88,8 @@ class Driver:
         self.trail.append((what, st["state"], st["stage"]))
 
     def hook(self, launcher, payload):
-        p = subprocess.run([sys.executable, str(self.root / "engine/hooks" / launcher)], input=json.dumps(payload),
+        p = subprocess.run([sys.executable, str(self.root / "engine/hooks" / launcher)],
+                           input=json.dumps({"permission_mode": "default", **payload}),
                            capture_output=True, text=True, env=self.env)
         return p.returncode, p.stderr
 

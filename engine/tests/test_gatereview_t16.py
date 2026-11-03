@@ -122,7 +122,7 @@ class FeedbackFolderTests(GateBase):
         try:
             hook = importlib.import_module("pre_tool_use")
             data = {"tool_name": "Write", "tool_input": {"file_path": "jobs/20260101-spec-x/gates/human-feedback-2.md"},
-                    "cwd": str(self.tmp), "agent_id": "a1", "agent_type": "critic"}
+                    "cwd": str(self.tmp), "agent_id": "a1", "agent_type": "critic", "permission_mode": "default"}
             self.assertEqual(hook.run(json.dumps(data)), 2)
         finally:
             sys.path.remove(str(self.tmp / "engine/hooks"))

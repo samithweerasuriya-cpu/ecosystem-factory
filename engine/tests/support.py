@@ -171,7 +171,7 @@ class LabTestBase(unittest.TestCase):
 
     def run_hook(self, payload, raw=None):
         p = subprocess.run([sys.executable, str(self.tmp / "engine/hooks/pre_tool_use.py")],
-                           input=raw if raw is not None else json.dumps(payload),
+                           input=raw if raw is not None else json.dumps({"permission_mode": "default", **payload}),
                            capture_output=True, text=True, env=self.hook_env())
         return p.returncode
 

@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.23.0 (2026-11-03)
+
+Permission-mode guard (hook rule 8), Samith's approved proposal.
+
+- Probe first: the hook logged the `permission_mode` field for this desktop app, the interactive CLI and a headless `claude -p` call (CLI 2.1.308). All three always carried it (seen: `acceptEdits`, `auto`, `default`), so a missing mode is refused too.
+- The guard hook refuses every tool call unless `permission_mode` is `default` or `plan`: `auto`, `bypassPermissions`, `acceptEdits`, `dontAsk`, any other value and a missing field are blocked (fail closed). Approving an edit with "allow all edits" switches a session to accept-edits, which the hook then refuses.
+- `.claude/settings.json` and the ecosystem template pin `permissions.defaultMode` to `default`.
+- The hook records the last mode seen in `private/logs/hook-mode.json` (git-ignored); blocked-call rows (`logs/blocked.jsonl`, git-ignored) carry the mode.
+- Doctor `permission_mode`: FAIL unless the project pins `default` and no project-level file overrides it with a refused mode; WARN for a refused mode in user settings or as the last mode seen.
+- Tests: allowed and refused modes for every tool kind, subagents included; the mode logs; the shipped pin; the doctor check. Every existing hook test payload states `permission_mode: default`. Hook pin updated.
+
 ## 0.22.3 (2026-11-03)
 
 Privacy fix before the first live run: job records name no machine path.

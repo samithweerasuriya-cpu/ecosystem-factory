@@ -331,6 +331,7 @@ class StoreProtectionTests(EvidenceBase):
     def test_writes_to_the_store_are_blocked_and_the_script_is_allowed(self):
         h = self.hook()
         run = lambda tool, agent=False, **ti: h.run(json.dumps({"tool_name": tool, "tool_input": ti, "cwd": str(self.tmp),
+                                                                 "permission_mode": "default",
                                                                  **({"agent_id": "a1"} if agent else {})}))
         for path in ("jobs/20260101-spec-a/evidence/registry.json", "jobs/20260101-spec-a/evidence/quotes.json",
                      "cache/evidence/abc.txt", "private/jobs/20260101-spec-a/evidence/cache/abc.txt"):
@@ -363,7 +364,8 @@ class InternalCacheTests(EvidenceBase):
         finally:
             sys.path.remove(str(self.tmp / "engine/hooks"))
         read = lambda path: h.run(json.dumps({"tool_name": "Read", "tool_input": {"file_path": path},
-                                              "cwd": str(self.tmp), "agent_id": "a1", "agent_type": "researcher"}))
+                                              "cwd": str(self.tmp), "agent_id": "a1", "agent_type": "researcher",
+                                              "permission_mode": "default"}))
         self.assertEqual(read(lc.rel(own)), 0)                                           # its own job's cached page
         self.assertEqual(read(f"private/jobs/{other}/evidence/registry.json"), 2)         # another job's store
 

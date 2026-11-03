@@ -116,7 +116,8 @@ class ChainBasicsTests(ChainBase):
             h = importlib.import_module("pre_tool_use")
         finally:
             sys.path.remove(str(self.tmp / "engine/hooks"))
-        call = lambda: h.run(json.dumps({"tool_name": "mcp__out__send", "tool_input": {}, "cwd": str(self.tmp)}))
+        call = lambda: h.run(json.dumps({"tool_name": "mcp__out__send", "tool_input": {}, "cwd": str(self.tmp),
+                                         "permission_mode": "default"}))
         self.assertEqual(call(), 0)
         self.edit(top)
         self.assertEqual(call(), 2)

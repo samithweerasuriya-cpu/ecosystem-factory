@@ -280,6 +280,40 @@ class HookFailureTests(DoctorBase):
         (self.tmp / ".claude/settings.json").write_text(json.dumps(s), encoding="utf-8")
         self.assertIn("post_tool_use_launcher.py not registered", self.results()["hook_settings"]["message"])
 
+    def set_mode(self, rel, mode, base=None):
+        f = (base or self.tmp) / rel
+        s = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+        s.setdefault("permissions", {})
+        if mode is None:
+            s["permissions"].pop("defaultMode", None)
+        else:
+            s["permissions"]["defaultMode"] = mode
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(json.dumps(s), encoding="utf-8")
+
+    def test_permission_mode(self):
+        r = self.results()["permission_mode"]                                   # shipped settings: pinned, nothing seen
+        self.assertEqual(r["status"], "OK", r["message"])
+        self.assertIn("none recorded", r["message"])
+        (self.tmp / "private/logs").mkdir(parents=True)
+        (self.tmp / "private/logs/hook-mode.json").write_text(json.dumps({"mode": "acceptEdits"}), encoding="utf-8")
+        r = self.results()["permission_mode"]                                   # last mode seen was refused
+        self.assertEqual(r["status"], "WARN")
+        self.assertIn("acceptEdits (refused", r["message"])
+        (self.tmp / "private/logs/hook-mode.json").write_text(json.dumps({"mode": "default"}), encoding="utf-8")
+        self.set_mode(".claude/settings.json", "default", base=self.home)       # user settings: allowed mode
+        self.assertEqual(self.status("permission_mode"), "OK")
+        self.set_mode(".claude/settings.json", "auto", base=self.home)          # user settings: refused mode
+        self.assertEqual(self.status("permission_mode"), "WARN")
+        self.set_mode(".claude/settings.local.json", "bypassPermissions")       # project local override
+        r = self.results()["permission_mode"]
+        self.assertEqual(r["status"], "FAIL")
+        self.assertIn("project local settings", r["message"])
+        (self.tmp / ".claude/settings.local.json").unlink()
+        for pin in (None, "acceptEdits", "plan"):                               # the project pin must be default
+            self.set_mode(".claude/settings.json", pin)
+            self.assertEqual(self.status("permission_mode"), "FAIL", pin)
+
     def test_the_shipped_pins_match_the_shipped_hooks(self):
         pins = json.loads((REPO / "engine/hooks/PINS.json").read_text(encoding="utf-8"))
         for f in self.doc.HOOK_FILES:

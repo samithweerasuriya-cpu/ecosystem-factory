@@ -51,8 +51,8 @@ class HookBase(LabTestBase):
         force_rmtree(self.scratch)
         super().tearDown()
 
-    def call(self, tool, agent=False, scratch=True, cwd=None, **ti):
-        data = {"tool_name": tool, "tool_input": ti, "cwd": str(cwd or self.tmp),
+    def call(self, tool, agent=False, scratch=True, cwd=None, mode="default", **ti):
+        data = {"tool_name": tool, "tool_input": ti, "cwd": str(cwd or self.tmp), "permission_mode": mode,
                 "scratchpad_dir": str(self.scratch) if scratch is True else scratch}
         if agent:
             data.update(agent_id="a123", agent_type="factory-critic")
@@ -352,6 +352,42 @@ class BlockLogTests(HookBase):
         self.assertIn("INTERNAL-MARKER", private)
 
 
+class PermissionModeTests(HookBase):
+    """Rule 8 (0.23.0): only the default (ask) and plan modes pass; anything else, or no mode, is refused."""
+
+    def test_default_and_plan_pass(self):
+        for mode in ("default", "plan"):
+            self.assertAllowed(self.call("Read", file_path="engine/labcore.py", mode=mode), mode)
+            self.assertAllowed(self.call("Read", agent=True, file_path="engine/labcore.py", mode=mode), mode)
+
+    def test_other_modes_and_a_missing_mode_are_refused_for_every_tool(self):
+        for mode in ("auto", "bypassPermissions", "acceptEdits", "dontAsk", "Default", "", None, 1, ["default"]):
+            for tool, ti in (("Read", {"file_path": "engine/labcore.py"}), ("Write", {"file_path": "notes.md"}),
+                             ("Bash", {"command": "ls"}), ("mcp__docs__search_pages", {}),
+                             ("Agent", {"run_in_background": False})):
+                self.assertBlocked(self.call(tool, mode=mode, **ti), f"{tool} {mode!r}")
+        data = {"tool_name": "Read", "tool_input": {"file_path": "engine/labcore.py"}, "cwd": str(self.tmp)}
+        self.assertBlocked(self.hook.run(json.dumps(data)), "field absent")
+
+    def test_the_mode_is_logged(self):
+        self.call("Read", file_path="engine/labcore.py", mode="plan")
+        seen = json.loads((self.tmp / "private/logs/hook-mode.json").read_text(encoding="utf-8"))
+        self.assertEqual((seen["mode"], seen["tool"], seen["subagent"]), ("plan", "Read", False))
+        self.call("Read", file_path="engine/labcore.py", mode="auto")
+        rows = (self.tmp / "logs/blocked.jsonl").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(json.loads(rows[-1])["mode"], "auto")
+        self.assertIn("permission mode 'auto'", json.loads(rows[-1])["reason"])
+
+    def test_mode_logs_stay_out_of_tracked_files(self):
+        ignored = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
+        self.assertIn("private/", ignored)                  # hook-mode.json lives under private/logs/
+        self.assertIn("logs/blocked.jsonl", ignored)        # blocked rows carry the mode
+
+    def test_shipped_settings_pin_the_default_mode(self):
+        d = json.loads((REPO / ".claude/settings.json").read_text(encoding="utf-8"))
+        self.assertEqual(d["permissions"]["defaultMode"], "default")
+
+
 class LauncherTests(LabTestBase):
     """(e) the launcher turns any failure of the real hook into a block."""
 
@@ -361,11 +397,12 @@ class LauncherTests(LabTestBase):
         return p.returncode, p.stderr
 
     def harmless(self):
-        return json.dumps({"tool_name": "Read", "tool_input": {"file_path": "engine/labcore.py"}})
+        return json.dumps({"tool_name": "Read", "tool_input": {"file_path": "engine/labcore.py"}, "permission_mode": "default"})
 
     def test_healthy_hook(self):
         self.assertEqual(self.launch(self.harmless())[0], 0)
-        self.assertEqual(self.launch(json.dumps({"tool_name": "Bash", "tool_input": {"command": "cat .env"}}))[0], 2)
+        self.assertEqual(self.launch(json.dumps({"tool_name": "Bash", "tool_input": {"command": "cat .env"},
+                                                 "permission_mode": "default"}))[0], 2)
         self.assertEqual(self.launch("not json")[0], 2)
 
     def corrupt(self, text):

@@ -39,6 +39,11 @@ Rules
     explicitly to false. A background call returns before the subagent finishes, so the usage
     hook would see no figures; some apps run subagents in the background unless told otherwise,
     so a call that doesn't say is refused too.
+ 8. Permission mode (0.23.0): every call needs the harness's permission_mode field set to default or plan
+    (.claude/settings.json pins defaultMode to default). auto, bypassPermissions, acceptEdits, dontAsk,
+    any other value and a missing field are refused, so nothing runs without the human's per-action
+    approval. The last mode seen goes to private/logs/hook-mode.json (git-ignored) for the doctor; blocked
+    calls log their mode too.
 Limits: this is pattern-based analysis, not a sandbox. It stops accidents and prompt drift,
 not a determined attacker on your own machine: a path assembled at run time is not recognised,
 and inline interpreter code is judged by what it names and by its delete calls (rmtree, remove,
@@ -68,6 +73,7 @@ WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 READ_TOOLS = {"Read", "Grep", "Glob", "NotebookRead", "LS"}
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor"}
 AGENT_TOOLS = {"Agent", "Task"}
+ALLOWED_MODES = {"default", "plan"}     # 8. everything else, and a missing mode, is refused
 
 SECRET_NAME = re.compile(r"^(\.env(\..*)?|master\.key)$", re.IGNORECASE)
 INTERPRETERS = {"python", "python3", "py", "python.exe", "python3.exe", "py.exe", "pythonw", "ruby", "node",
@@ -734,9 +740,18 @@ def check_agent(ctx):
                       "recorded; set run_in_background to false (a call that doesn't say may run in the background).")
 
 
+def check_mode(ctx):
+    mode = ctx.data.get("permission_mode")
+    if not isinstance(mode, str) or mode not in ALLOWED_MODES:
+        shown = "missing" if mode is None else repr(mode)[:40]
+        raise Blocked(f"permission mode {shown} is not allowed: switch the session to the default (ask) mode or "
+                      "plan mode; auto, bypass, accept-edits and don't-ask modes are refused (manual mode only).")
+
+
 def decide(data):
     ctx = Ctx(data)
     try:
+        check_mode(ctx)
         if ctx.tool in AGENT_TOOLS:
             check_agent(ctx)
         elif ctx.tool in WRITE_TOOLS:
@@ -758,7 +773,20 @@ def log_block(msg, data, ctx=None):
     d.mkdir(parents=True, exist_ok=True)
     with open(d / "blocked.jsonl", "a", encoding="utf-8") as fh:
         fh.write(json.dumps({"ts": lc.now(), "reason": msg, "tool": data.get("tool_name"),
-                             "agent": data.get("agent_type"), "input": data.get("tool_input")}) + "\n")
+                             "agent": data.get("agent_type"), "mode": data.get("permission_mode"),
+                             "input": data.get("tool_input")}) + "\n")
+
+
+def log_mode(data):
+    """8. The last permission mode seen, for the doctor (private/logs/, git-ignored; overwritten each call)."""
+    try:
+        d = lc.ROOT / "private" / "logs"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "hook-mode.json").write_text(json.dumps({"ts": lc.now(), "mode": data.get("permission_mode"),
+                                                      "tool": data.get("tool_name"),
+                                                      "subagent": bool(data.get("agent_id"))}) + "\n", encoding="utf-8")
+    except OSError:
+        pass                                    # a record the doctor reads; never a reason to fail the call
 
 
 def run(raw):
@@ -771,6 +799,7 @@ def run(raw):
         log_block("hook could not parse tool-call input (failing closed).", {})
         print("BLOCKED by engine guardrail: hook could not parse tool-call input (failing closed).", file=sys.stderr)
         return 2
+    log_mode(data)
     msg, ctx = decide(data)
     if msg is None:
         return 0

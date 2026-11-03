@@ -171,7 +171,8 @@ class PostHookTests(UsageBase):
         try:
             hook = importlib.import_module("pre_tool_use")
             for path in ("logs/usage.jsonl", "logs/usage-unmatched.jsonl", "private/logs/usage.jsonl"):
-                code = hook.run(json.dumps({"tool_name": "Write", "tool_input": {"file_path": path}, "cwd": str(self.tmp)}))
+                code = hook.run(json.dumps({"tool_name": "Write", "tool_input": {"file_path": path}, "cwd": str(self.tmp),
+                                            "permission_mode": "default"}))
                 self.assertEqual(code, 2, path)
         finally:
             sys.path.remove(str(self.tmp / "engine/hooks"))

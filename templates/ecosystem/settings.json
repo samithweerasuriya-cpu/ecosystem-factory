@@ -1,6 +1,7 @@
 {
   "disableClaudeAiConnectors": true,
   "permissions": {
+    "defaultMode": "default",
     "deny": [
       "Agent",
       "Task",
