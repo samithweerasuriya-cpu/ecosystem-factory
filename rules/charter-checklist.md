@@ -12,6 +12,10 @@ major finding, and only then. Each finding uses the severity written here, never
 their answers or gate feedback stands as they wrote it. Rule IDs are stable: a retired rule keeps its ID and is never
 reused.
 
+Definitions:
+
+- `approver_role` is always `"approver"` by schema; the approver's name comes from `config/gates.json`.
+
 | ID | Rule | Sev |
 |---|---|---|
 | CH01 | There are at least 2 good and 2 bad examples, and every bad example names the quality rule it breaks. | major |
@@ -29,6 +33,12 @@ reused.
 | CH13 | Caps are no higher than the factory's, and every cap changed from the default has the owner's reason. | major |
 | CH14 | Every term with a special meaning in the output, the rules or the examples is in the glossary. | minor |
 | CH15 | Wording outside `success_metrics` is concise and unambiguous (CH03 covers metrics). | minor |
+
+Where rules stop:
+
+- **CH09 and the verifier (CV01–CV04).** The critic checks the charter against the owner's answers for completeness
+  and consistency. Whether a stated fact is supported by its cited source is the verifier's (CV01–CV04). A required
+  input, value or decision the charter relies on but never supplies or raises as an open question remains CH09.
 
 Reserved rule (fixed severity: a correct list never fails on it):
 

@@ -19,13 +19,13 @@ Steps: a helper posts the swap in the group chat, the leader checks the safeguar
 In: the week's swap posts in; a checked list of swaps out. Out: new helper checks, trips and residentials, the tuck shop.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text swap messages: who gives up the session, which session (evening and age group) and who takes it. About 6 a week. Sample: chat-swaps.txt (made up).
+Plain-text swap messages: who gives up the session, which session (evening and age group) and who takes it. About 6 a week. Sample: chat-swaps.txt (made up). The training list (each volunteer's role and checks) is in helper-list.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Safeguarding check: the background check every helper needs, renewed every three years. Session: one evening with one age group.
 
 ## 9. Context pack <!-- field: context_inventory -->
-chat-swaps.txt, synthetic, evidence for the input format.
+chat-swaps.txt, synthetic, evidence for the input format. helper-list.txt, synthetic, evidence for each volunteer's role and checks.
 
 ## 10. Data classification <!-- field: data_classification -->
 keep default

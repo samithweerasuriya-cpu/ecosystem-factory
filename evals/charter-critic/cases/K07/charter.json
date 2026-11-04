@@ -236,7 +236,7 @@
       },
       {
         "name": "job_type",
-        "description": "brakes, steering, gears, wheels, punctures or other."
+        "description": "service, brakes, steering, gears, wheels, punctures or other."
       },
       {
         "name": "bench_minutes",
@@ -314,7 +314,7 @@
       {
         "id": "E03",
         "text": "C-53 | town | wheels | 75 | 2099-08-03",
-        "why": "The promised date is earlier than the bench time allows.",
+        "why": "The promised date is earlier than the bench time allows: the day is already full.",
         "breaks": [
           "Q01"
         ],

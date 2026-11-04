@@ -114,11 +114,16 @@
       {
         "source": "S01",
         "description": "A made-up week of swap messages."
+      },
+      {
+        "source": "S03",
+        "description": "A made-up training list: each volunteer's role and fire walks."
       }
     ],
     "cites": [
       "[A:A01]",
-      "[S:S01 §whole file]"
+      "[S:S01 §whole file]",
+      "[S:S03 §whole file]"
     ]
   },
   "glossary": [
@@ -158,6 +163,12 @@
       "path": "inputs/context/steward-handbook.txt",
       "classification": "public",
       "evidence_for": "the training needs"
+    },
+    {
+      "id": "S03",
+      "path": "inputs/context/steward-list.txt",
+      "classification": "synthetic",
+      "evidence_for": "each volunteer's role and fire walks"
     }
   ],
   "data_classification": {
@@ -198,7 +209,8 @@
       "domains": {},
       "files": {
         "inputs/context/swap-emails.txt": 2,
-        "inputs/context/steward-handbook.txt": 2
+        "inputs/context/steward-handbook.txt": 2,
+        "inputs/context/steward-list.txt": 2
       }
     },
     "confidence": {

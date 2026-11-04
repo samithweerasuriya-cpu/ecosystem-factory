@@ -144,6 +144,13 @@
       "cites": [
         "[A:A01 \"Reservation flag: the export's yes or no for an open reservation.\"]"
       ]
+    },
+    {
+      "term": "check by hand",
+      "meaning": "Someone looks at the book before it is sorted.",
+      "cites": [
+        "[A:A01 \"Check by hand: someone looks at the book before it is sorted.\"]"
+      ]
     }
   ],
   "acceptance_tests": [
@@ -217,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, reserve shelf or repair crate. A line with no barcode is listed as 'check by hand'.",
+    "description": "One row per returned book, with a decision: shelve, reserve shelf, repair crate or check by hand. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -230,7 +237,7 @@
       },
       {
         "name": "decision",
-        "description": "shelve, reserve shelf or repair crate."
+        "description": "shelve, reserve shelf, repair crate or check by hand."
       },
       {
         "name": "reason",
@@ -238,7 +245,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A line with no barcode is listed as 'check by hand'.\"]"
+      "[A:A01 \"A line with a blank reservation flag is listed as 'check by hand'.\"]",
+      "[A:A01 \"It refuses to sort anything that is not in the returns export.\"]"
     ]
   },
   "quality_rulebook": {

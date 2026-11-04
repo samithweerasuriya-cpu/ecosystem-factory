@@ -22,7 +22,7 @@ In: the morning's returns in; a sorted list (shelve, holds shelf, repair box) ou
 A plain-text export of the returns: barcode, title, condition note, reservation flag. About 120 a day. Sample: returns-sample.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Holds shelf: the shelf behind the desk for books a reader has reserved. Repair box: the box of books waiting for tape, glue or a new cover. Reservation flag: the export's yes or no for an open reservation.
+Holds shelf: the shelf behind the desk for books a reader has reserved. Repair box: the box of books waiting for tape, glue or a new cover. Reservation flag: the export's yes or no for an open reservation. Check by hand: a volunteer looks at the book before it is sorted.
 
 ## 9. Context pack <!-- field: context_inventory -->
 returns-sample.txt, synthetic, evidence for the input format.
@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, holds shelf or repair box) and the reason in one sentence. A book with no barcode is listed as 'check by hand'.
+A list, one row per returned book: barcode, title, decision (shelve, holds shelf, repair box or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair box (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

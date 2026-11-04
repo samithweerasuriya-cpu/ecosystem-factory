@@ -314,7 +314,7 @@
       {
         "id": "E03",
         "text": "S-23 | hybrid | gears | 50 | 2099-05-02",
-        "why": "The promised date is earlier than the bench time allows.",
+        "why": "The promised date is earlier than the bench time allows: two weekends of work are ahead of it.",
         "breaks": [
           "Q01"
         ],

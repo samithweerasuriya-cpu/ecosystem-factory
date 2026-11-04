@@ -788,6 +788,8 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
         "run_records": run_records,
         "framework": framework, "suite_fingerprint": s["fingerprint"],
     }
+    if s.get("revision"):                                              # suite.json's note on how its cases changed
+        report["revision"] = s["revision"]
     if discrimination:
         report["counts_for_lock"] = False
         report["too_easy"] = metrics["cases"] > 0 and metrics["cases_passed"] == metrics["cases"]
@@ -934,6 +936,8 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
         "run_records": run_records,
         "framework": framework, "suite_fingerprint": s["fingerprint"],
     }
+    if s.get("revision"):
+        report["revision"] = s["revision"]
     if weaker:
         report["counts_for_lock"] = False
         report["too_easy"] = metrics["cases"] > 0 and metrics["cases_passed"] == metrics["cases"]

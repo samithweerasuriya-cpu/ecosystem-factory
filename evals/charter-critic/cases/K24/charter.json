@@ -142,7 +142,7 @@
   },
   "inputs": {
     "description": "One week's requests, about 25 a week. Notes from the front desk are typed up first, so both arrive as the same plain text.",
-    "format": "plain text, one request per request",
+    "format": "plain text, one request each",
     "constraints": [
       "Group name",
       "Room",
@@ -576,7 +576,7 @@
     {
       "id": "OQ02",
       "question": "Does setting-up time count for the Snug?",
-      "owner": "margery-holt"
+      "owner": "hall-trustees"
     },
     {
       "id": "OQ03",
@@ -586,7 +586,7 @@
     {
       "id": "OQ04",
       "question": "Can the front desk approve Snug bookings alone when the warden is away?",
-      "owner": "margery-holt"
+      "owner": "hall-trustees"
     }
   ],
   "acceptance_criteria": [

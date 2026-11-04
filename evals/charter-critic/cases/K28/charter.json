@@ -142,7 +142,7 @@
   },
   "inputs": {
     "description": "One week's requests, about 25 a week. Notes from the front desk are typed up first, so both arrive as the same plain text.",
-    "format": "plain text, one request per request",
+    "format": "plain text, one request each",
     "constraints": [
       "Group name",
       "Room",

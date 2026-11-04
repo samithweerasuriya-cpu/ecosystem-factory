@@ -61,7 +61,7 @@ I approve the list every Friday, directly before anything is written to the cale
 Lower the token limit to 200,000: we are a small charity and want the running cost kept low. Keep the rest.
 
 ## 21. Open questions <!-- field: open_questions -->
-Should repeat weekly bookings be checked once a term instead of every week? Owner: hall trustees. Does setting-up time count for the Snug? Owner: Margery Holt. Should the barn dance licence hours override the 23:00 closing time? Owner: hall trustees. Can the front desk approve Snug bookings alone when the warden is away? Owner: Margery Holt.
+Should repeat weekly bookings be checked once a term instead of every week? Owner: hall trustees. Does setting-up time count for the Snug? Owner: hall trustees. Should the barn dance licence hours override the 23:00 closing time? Owner: hall trustees. Can the front desk approve Snug bookings alone when the warden is away? Owner: hall trustees.
 
 ## 22. Acceptance criteria <!-- field: acceptance_criteria -->
 Don't know yet.

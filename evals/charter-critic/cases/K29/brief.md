@@ -19,13 +19,13 @@ Steps: a presenter e-mails the shared inbox, the coordinator reads it on Monday 
 In: the week's swap e-mails in; a checked list of swaps out. Out: new presenter training, programme ideas, the outside broadcast rota.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text swap messages: who gives up the slot, which slot (day and hour) and who takes it. About 8 a week. Sample: inbox-swaps.txt (made up).
+Plain-text swap messages: who gives up the slot, which slot (day and hour) and who takes it. About 8 a week. Sample: inbox-swaps.txt (made up). The training list (each volunteer's role and training) is in desk-list.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Desk trained: signed off on running the studio desk alone. Slot: one hour on air.
 
 ## 9. Context pack <!-- field: context_inventory -->
-inbox-swaps.txt, synthetic, evidence for the input format.
+inbox-swaps.txt, synthetic, evidence for the input format. desk-list.txt, synthetic, evidence for each volunteer's role and training.
 
 ## 10. Data classification <!-- field: data_classification -->
 keep default

@@ -321,7 +321,7 @@
       {
         "id": "E03",
         "text": "D-33 | road | wheels | 90 | 2099-03-10",
-        "why": "The promised date is earlier than the bench time allows.",
+        "why": "The promised date is earlier than the bench time allows: only 60 minutes are left in the day.",
         "breaks": [
           "Q01"
         ],

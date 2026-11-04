@@ -315,7 +315,7 @@
       {
         "id": "E03",
         "text": "T-106 | town | gears | 45 | 2099-04-01",
-        "why": "The promised date is earlier than the bench time allows.",
+        "why": "The promised date is earlier than the bench time allows: the queue ahead needs three hours first.",
         "breaks": [
           "Q01"
         ],

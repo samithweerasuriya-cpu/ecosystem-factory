@@ -223,6 +223,13 @@
       "cites": [
         "[A:A01]"
       ]
+    },
+    {
+      "term": "check by hand",
+      "meaning": "An assistant looks at the book before it is sorted.",
+      "cites": [
+        "[A:A01 \"Check by hand: an assistant looks at the book before it is sorted.\"]"
+      ]
     }
   ],
   "acceptance_tests": [
@@ -316,7 +323,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, hold shelf or repair trolley. A book with no barcode is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan'; a barcode not in the export gets 'check by hand'.",
+    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan'; a barcode in no branch's range gets 'check by hand'.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -329,7 +336,7 @@
       },
       {
         "name": "decision",
-        "description": "shelve, hold shelf or repair trolley."
+        "description": "shelve, hold shelf, repair trolley or check by hand; empty for a book listed for the courier crate."
       },
       {
         "name": "reason",
@@ -341,7 +348,7 @@
       },
       {
         "name": "flags",
-        "description": "incomplete group loan, check by hand, or empty."
+        "description": "incomplete group loan, or empty."
       },
       {
         "name": "courier",
@@ -396,10 +403,10 @@
       },
       {
         "id": "Q06",
-        "statement": "A book whose barcode is not in the export is listed as 'check by hand'.",
+        "statement": "A book whose barcode is in no branch's range is listed as 'check by hand'.",
         "severity": "major",
         "cites": [
-          "[A:A01 \"Q06 a book whose barcode is not in the export is listed as 'check by hand' (major).\"]"
+          "[A:A01 \"Q06 a book whose barcode is in no branch's range is listed as 'check by hand' (major).\"]"
         ]
       },
       {
@@ -440,7 +447,7 @@
       },
       {
         "id": "E05",
-        "text": "Moonlit Quarry | home branch Eastfield | courier crate",
+        "text": "Moonlit Quarry | home branch Eastfield | listed for the courier crate",
         "origin": "synthetic",
         "cites": [
           "[A:A01]"

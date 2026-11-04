@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.23.1 (2026-11-04)
+
+Suite revision note, for the critic suite revised after its first quick pass.
+
+- `evals/run_evals.py`: an optional `"revision"` text in a suite's `suite.json` is copied into every report of that suite (reviewer, agent and job suites). The text is part of `suite.json`, so it is in the suite fingerprint like the rest of the file.
+- Test: a report carries the note only when `suite.json` has one.
+
 ## 0.23.0 (2026-11-03)
 
 Permission-mode guard (hook rule 8), Samith's approved proposal.

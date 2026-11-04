@@ -22,7 +22,7 @@ In: Saturday's and Sunday's returns in; a sorted list (shelve, collection shelf,
 A plain-text export of the returns: barcode, title, condition note, reservation flag. About 200 each weekend. Sample: weekend-returns.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Collection shelf: the shelf of reserved books waiting to be collected. Damaged-books bag: the bag of books going to the county repair service. Reservation flag: the export's yes or no for an open reservation.
+Collection shelf: the shelf of reserved books waiting to be collected. Damaged-books bag: the bag of books going to the county repair service. Reservation flag: the export's yes or no for an open reservation. Check by hand: someone looks at the book before it is sorted.
 
 ## 9. Context pack <!-- field: context_inventory -->
 weekend-returns.txt, synthetic, evidence for the input format.
@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, collection shelf or damaged-books bag) and the reason in one sentence. A book with no barcode is listed as 'check by hand'.
+A list, one row per returned book: barcode, title, decision (shelve, collection shelf, damaged-books bag or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the damaged-books bag (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

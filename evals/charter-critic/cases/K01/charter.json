@@ -114,11 +114,16 @@
       {
         "source": "S01",
         "description": "A made-up week of swap messages."
+      },
+      {
+        "source": "S02",
+        "description": "A made-up training list: each volunteer's role and checks."
       }
     ],
     "cites": [
       "[A:A01]",
-      "[S:S01 §whole file]"
+      "[S:S01 §whole file]",
+      "[S:S02 §whole file]"
     ]
   },
   "glossary": [
@@ -152,6 +157,12 @@
       "path": "inputs/context/chat-swaps.txt",
       "classification": "synthetic",
       "evidence_for": "the input format"
+    },
+    {
+      "id": "S02",
+      "path": "inputs/context/helper-list.txt",
+      "classification": "synthetic",
+      "evidence_for": "each volunteer's role and checks"
     }
   ],
   "data_classification": {
@@ -191,7 +202,8 @@
     "official_sources": {
       "domains": {},
       "files": {
-        "inputs/context/chat-swaps.txt": 2
+        "inputs/context/chat-swaps.txt": 2,
+        "inputs/context/helper-list.txt": 2
       }
     },
     "confidence": {

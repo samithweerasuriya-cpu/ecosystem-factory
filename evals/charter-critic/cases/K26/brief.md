@@ -37,7 +37,7 @@ keep default
 A list, one row per returned book: barcode, title, decision (shelve, pick-up shelf or fix-it tub) and the reason in one sentence.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage note that mentions damage sends the book to the fix-it tub (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage note that is not blank sends the book to the fix-it tub (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Garden of Stones | none | shelve". Good: "The Last Lighthouse | reserved | pick-up shelf". Bad: "The Last Lighthouse | reserved | shelve", although it is reserved (breaks Q01). Bad: "Clay and Kiln | loose pages | shelve", although the note says loose pages (breaks Q02).

@@ -330,11 +330,11 @@
       },
       {
         "name": "post",
-        "description": "platform, booking office or tours, as named in the register."
+        "description": "platform, booking office or signal box tours, as named in the register."
       },
       {
         "name": "flags",
-        "description": "duplicate, out of scope, or empty."
+        "description": "duplicate, incomplete, out of scope, or empty."
       }
     ],
     "cites": [

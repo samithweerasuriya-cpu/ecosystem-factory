@@ -553,6 +553,16 @@ class ReportAndVerdictTests(EvalBase):
                                  "20261028T060000Z-calibration-critic-quick-3.json",
                                  "20261028T060000Z-calibration-critic-quick.json"])
 
+    def test_a_suite_revision_note_is_copied_into_the_report(self):
+        rep, _ = self.run_suite("quick")
+        self.assertNotIn("revision", rep)
+        sj = self.tmp / f"evals/{SUITE}/suite.json"
+        doc = json.loads(sj.read_text(encoding="utf-8"))
+        doc["revision"] = "revised after first run"
+        self.dump(f"evals/{SUITE}/suite.json", doc)
+        rep, _ = self.run_suite("quick")
+        self.assertEqual(rep["revision"], "revised after first run")
+
     def test_a_minor_finding_never_fails_the_verdict(self):
         """T1.4: the reserved DR07 is minor; a clean list with a DR07 finding passes, and 'fail' needs a blocker or major."""
         schema = json.loads((self.tmp / "schemas/findings.schema.json").read_text(encoding="utf-8"))

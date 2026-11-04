@@ -253,7 +253,7 @@
       },
       {
         "id": "Q02",
-        "statement": "A damage note that mentions damage sends the book to the fix-it tub.",
+        "statement": "A damage note that is not blank sends the book to the fix-it tub.",
         "severity": "major",
         "cites": [
           "[A:A01 \"sends the book to the fix-it tub (major).\"]"

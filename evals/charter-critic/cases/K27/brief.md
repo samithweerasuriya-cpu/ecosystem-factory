@@ -19,13 +19,13 @@ Steps: a steward e-mails the lead, the lead checks the steward handbook's traini
 In: the week's swap e-mails in; a checked list of swaps out. Out: school group bookings, volunteer recruitment, the café rota.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text swap messages: who gives up the duty, which duty (day and gallery) and who takes it. About 10 a week. Sample: swap-emails.txt (made up).
+Plain-text swap messages: who gives up the duty, which duty (day and gallery) and who takes it. About 10 a week. Sample: swap-emails.txt (made up). The training list (each volunteer's role and fire walks) is in steward-list.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Fire walk: the walk-through of a gallery's evacuation route that a steward must do before covering it. Duty: one gallery for one half-day.
 
 ## 9. Context pack <!-- field: context_inventory -->
-swap-emails.txt, synthetic, evidence for the input format. steward-handbook.txt, public (it is on the museum's website), evidence for the training needs.
+swap-emails.txt, synthetic, evidence for the input format. steward-handbook.txt, public (it is on the museum's website), evidence for the training needs. steward-list.txt, synthetic, evidence for each volunteer's role and fire walks.
 
 ## 10. Data classification <!-- field: data_classification -->
 Public: the handbook is published on the museum's website, and the swap e-mails are made up.

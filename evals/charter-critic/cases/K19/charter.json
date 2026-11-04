@@ -316,7 +316,7 @@
       {
         "id": "E03",
         "text": "K-43 | road | wheels | 120 | 2099-02-10",
-        "why": "The promised date is earlier than the bench time allows.",
+        "why": "The promised date is earlier than the bench time allows: a full week of work is ahead of it.",
         "breaks": [
           "Q01"
         ],
