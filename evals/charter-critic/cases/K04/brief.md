@@ -25,7 +25,7 @@ Drop-off forms typed into plain text: ticket number, bike, the customer's descri
 Bench minutes: the standard time a job takes, from the bench-time table. Headset: the bearings that let the handlebars turn. Slip: the drop-off form a customer fills in.
 
 ## 9. Context pack <!-- field: context_inventory -->
-saturday-slips.txt, synthetic, evidence for the input format. bench-table.txt, synthetic, evidence for bench minutes.
+saturday-slips.txt, synthetic, evidence for the input format. bench-table.txt, synthetic, evidence for bench minutes and the bench minutes open each Saturday.
 
 ## 10. Data classification <!-- field: data_classification -->
 keep default

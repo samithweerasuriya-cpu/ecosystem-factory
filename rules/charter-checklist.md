@@ -15,6 +15,8 @@ reused.
 Definitions:
 
 - `approver_role` is always `"approver"` by schema; the approver's name comes from `config/gates.json`.
+- Allowed data classes (`config/data-classes.json`): `synthetic`, `public`. Any other class, for the charter or a
+  context file, is not allowed.
 
 | ID | Rule | Sev |
 |---|---|---|

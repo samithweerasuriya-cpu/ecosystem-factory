@@ -103,7 +103,7 @@
     ]
   },
   "inputs": {
-    "description": "One week's form entrys, about 10 a week.",
+    "description": "One week's form entries, about 10 a week.",
     "format": "plain text, one request per form entry",
     "constraints": [
       "Group name",
@@ -114,7 +114,7 @@
     "samples": [
       {
         "source": "S01",
-        "description": "A made-up week of form entrys."
+        "description": "A made-up week of form entries."
       }
     ],
     "cites": [
@@ -216,7 +216,7 @@
     ]
   },
   "output": {
-    "description": "One row per request, with a decision: propose, clash or refuse. An entry with no room or no time is refused as incomplete.",
+    "description": "One row per request, with a decision: propose, clash or refuse. An entry with no room or no time is refused as incomplete. A request for a pitch is refused as out of scope.",
     "format": "Table, one row per request",
     "fields": [
       {
@@ -253,7 +253,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"An entry with no room or no time is refused as incomplete.\"]"
+      "[A:A01 \"An entry with no room or no time is refused as incomplete.\"]",
+      "[A:A01 \"A request for a pitch is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {
@@ -350,7 +351,7 @@
   "systems": [
     {
       "id": "request-form",
-      "description": "The form entrys, as text.",
+      "description": "The form entries, as text.",
       "access": "read",
       "cites": [
         "[A:A01]"

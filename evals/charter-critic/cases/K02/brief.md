@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, reservations shelf, mending crate or check by hand) and the reason in one sentence. A line with no title is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.
+A list, one row per returned book: barcode, title, decision (shelve, reservations shelf, mending crate or check by hand) and the reason in one sentence. A line with no title is listed as 'check by hand'. It refuses to sort donations.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage note that is not blank sends the book to the mending crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

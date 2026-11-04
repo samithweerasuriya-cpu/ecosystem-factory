@@ -216,7 +216,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, reservations shelf, mending crate or check by hand. A line with no title is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.",
+    "description": "One row per returned book, with a decision: shelve, reservations shelf, mending crate or check by hand. A line with no title is listed as 'check by hand'. It refuses to sort donations.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -238,7 +238,7 @@
     ],
     "cites": [
       "[A:A01 \"A line with no title is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort anything that is not in the returns export.\"]"
+      "[A:A01 \"It refuses to sort donations.\"]"
     ]
   },
   "quality_rulebook": {

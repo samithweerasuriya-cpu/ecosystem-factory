@@ -60,7 +60,7 @@
     {
       "role": "ruth-calloway",
       "relation": "approver",
-      "interest": "Looks over the list on monday morning.",
+      "interest": "Looks over the list on Monday morning.",
       "cites": [
         "[A:A01 \"Ruth Calloway (approver: looks over the list on Monday morning).\"]"
       ]
@@ -68,7 +68,7 @@
     {
       "role": "readers-with-reservations",
       "relation": "stakeholder",
-      "interest": "Hear on monday that their book is in.",
+      "interest": "Hear on Monday that their book is in.",
       "cites": [
         "[A:A01]"
       ]
@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, collection shelf, damaged-books bag or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.",
+    "description": "One row per returned book, with a decision: shelve, collection shelf, damaged-books bag or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort Monday's own returns.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,7 @@
     ],
     "cites": [
       "[A:A01 \"A book with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort anything that is not in the returns export.\"]"
+      "[A:A01 \"It refuses to sort Monday's own returns.\"]"
     ]
   },
   "quality_rulebook": {

@@ -217,7 +217,7 @@
     ]
   },
   "output": {
-    "description": "One row per request, with a decision: propose, clash or refuse. A slip with no room or no time is refused as incomplete.",
+    "description": "One row per request, with a decision: propose, clash or refuse. A slip with no room or no time is refused as incomplete. A request for the car park is refused as out of scope.",
     "format": "Table, one row per request",
     "fields": [
       {
@@ -254,7 +254,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A slip with no room or no time is refused as incomplete.\"]"
+      "[A:A01 \"A slip with no room or no time is refused as incomplete.\"]",
+      "[A:A01 \"A request for the car park is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {

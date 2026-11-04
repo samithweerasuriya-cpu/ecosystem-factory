@@ -14,7 +14,7 @@
         "id": "M01",
         "metric": "Approved swaps whose taker lacks the shift's training",
         "target": "none",
-        "check": "A script compares each approved row's taker with the training list (Q01).",
+        "check": "A script checks that each approved row's taker holds the shift's training (Q01).",
         "cites": [
           "[A:A01 \"Q01 the volunteer taking a shift holds the training it needs (blocker).\"]"
         ]
@@ -196,7 +196,7 @@
       }
     },
     "confidence": {
-      "high": "The row quotes the swap message and the training list entry that decided it.",
+      "high": "The row quotes the swap message that decided it.",
       "medium": "A reputable secondary source; not expected here.",
       "low": "Inferred or one weak source; such a swap is refused and raised as a question."
     },

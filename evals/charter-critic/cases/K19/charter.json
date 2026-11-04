@@ -167,7 +167,7 @@
       "id": "S02",
       "path": "inputs/context/bench-times.txt",
       "classification": "synthetic",
-      "evidence_for": "bench minutes"
+      "evidence_for": "bench minutes and the bench minutes open each day"
     }
   ],
   "data_classification": {
@@ -225,7 +225,7 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in working order. A tag with no note is refused as 'ask the owner'.",
+    "description": "A repair queue, one row per drop-off form, in working order. A tag with no note is refused as 'ask the owner'. A tag for a bike left over three months is refused as out of scope.",
     "format": "Table, one row per ticket, in queue order",
     "fields": [
       {
@@ -251,10 +251,15 @@
       {
         "name": "reason",
         "description": "One sentence, quoting the customer's description."
+      },
+      {
+        "name": "flag",
+        "description": "'ask the workshop' when the sources do not settle the row, otherwise empty."
       }
     ],
     "cites": [
-      "[A:A01 \"A tag with no note is refused as 'ask the owner'.\"]"
+      "[A:A01 \"A tag with no note is refused as 'ask the owner'.\"]",
+      "[A:A01 \"A tag for a bike left over three months is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {

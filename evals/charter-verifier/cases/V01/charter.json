@@ -220,7 +220,7 @@
     "confidence": {
       "high": "The row quotes the form and the bench-time table line that decided it.",
       "medium": "A reputable secondary source; not expected here.",
-      "low": "Inferred or one weak source; such a row is marked 'ask the workshop' and raised as a question."
+      "low": "Inferred or one weak source; such a row is raised as a question."
     },
     "conflicts": [
       "The higher rank wins within its own area.",

@@ -103,7 +103,7 @@
     ]
   },
   "inputs": {
-    "description": "Typed drop-off forms, about 25 each saturday.",
+    "description": "Typed drop-off forms, about 25 each Saturday.",
     "format": "plain text, one form per ticket",
     "constraints": [
       "Ticket number",
@@ -165,7 +165,7 @@
       "id": "S02",
       "path": "inputs/context/bench-table.txt",
       "classification": "synthetic",
-      "evidence_for": "bench minutes"
+      "evidence_for": "bench minutes and the bench minutes open each Saturday"
     }
   ],
   "data_classification": {
@@ -249,6 +249,10 @@
       {
         "name": "reason",
         "description": "One sentence, quoting the customer's description."
+      },
+      {
+        "name": "flag",
+        "description": "'ask the workshop' when the sources do not settle the row, otherwise empty."
       }
     ],
     "cites": [

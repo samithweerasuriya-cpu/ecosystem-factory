@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, holds shelf, repair box or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.",
+    "description": "One row per returned book, with a decision: shelve, holds shelf, repair box or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort books from the mobile library.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,7 @@
     ],
     "cites": [
       "[A:A01 \"A book with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort anything that is not in the returns export.\"]"
+      "[A:A01 \"It refuses to sort books from the mobile library.\"]"
     ]
   },
   "quality_rulebook": {

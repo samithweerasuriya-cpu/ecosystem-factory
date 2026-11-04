@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. A slip with no room or no time is refused as incomplete.
+A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. A slip with no room or no time is refused as incomplete. A request for the car park is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 no proposed booking overlaps another booking for the same room (blocker). Q02 every row quotes the request it came from (major). Q03 a request outside opening hours (09:00 to 21:30) is refused, with the reason (major). Q04 the reason is one sentence (minor).

@@ -19,7 +19,7 @@ Steps: the manager prints the form entries, checks the key log and the calendar,
 In: one week's form entries in and a checked list out. Out: pitch bookings, bar licences, the groundsman's rota.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text form entrys, one request each: group name, room, date, start and end time. About 10 a week. Sample: form-entries.txt (made up).
+Plain-text form entries, one request each: group name, room, date, start and end time. About 10 a week. Sample: form-entries.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Function room: the upstairs room with the kitchen. Changing rooms: the two rooms downstairs with showers. Clash: two bookings for the same room that overlap in time.
@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. An entry with no room or no time is refused as incomplete.
+A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. An entry with no room or no time is refused as incomplete. A request for a pitch is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 no proposed booking overlaps another booking for the same room (blocker). Q02 every row quotes the request it came from (major). Q03 a request outside opening hours (08:00 to 22:30) is refused, with the reason (major). Q04 the reason is one sentence (minor).
@@ -52,7 +52,7 @@ No more than two late replies a week. No club turns up to a double-booked room i
 Partly reversible: a wrong booking can be cancelled, but a group that arrives to find the room taken has lost its session.
 
 ## 18. Systems <!-- field: systems -->
-Reads the form entrys as text. Writes to the pavilion's online calendar.
+Reads the form entries as text. Writes to the pavilion's online calendar.
 
 ## 19. Gates <!-- field: gates -->
 I approve the list each Wednesday, right before anything is added to the calendar.

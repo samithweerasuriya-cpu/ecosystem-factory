@@ -34,7 +34,7 @@ Public: the handbook is published on the museum's website, and the swap e-mails 
 keep default
 
 ## 12. Output format <!-- field: output -->
-One row per swap message: the message quoted, the duty, who gives it up, who takes it, the decision (approve or refuse) and the reason in one sentence. An e-mail that names no gallery is refused as incomplete.
+One row per swap message: the message quoted, the duty, who gives it up, who takes it, the decision (approve or refuse) and the reason in one sentence. An e-mail that names no gallery is refused as incomplete. A swap for the café rota is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 the volunteer taking a duty holds the training it needs (blocker). Q02 a swap is only between two volunteers in the same role (major). Q03 every row quotes the swap message (major). Q04 the reason is one sentence (minor).

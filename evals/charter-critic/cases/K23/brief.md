@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, collection shelf, damaged-books bag or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort anything that is not in the returns export.
+A list, one row per returned book: barcode, title, decision (shelve, collection shelf, damaged-books bag or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort Monday's own returns.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the damaged-books bag (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

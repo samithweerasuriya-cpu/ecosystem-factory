@@ -60,7 +60,7 @@
     {
       "role": "visitor-services-lead",
       "relation": "approver",
-      "interest": "Approves the list on thursdays.",
+      "interest": "Approves the list on Thursdays.",
       "cites": [
         "[A:A01 \"Visitor services lead (approver: approves the list on Thursdays).\"]"
       ]
@@ -227,7 +227,7 @@
     ]
   },
   "output": {
-    "description": "One row per swap message, with a decision: approve or refuse. An e-mail that names no gallery is refused as incomplete.",
+    "description": "One row per swap message, with a decision: approve or refuse. An e-mail that names no gallery is refused as incomplete. A swap for the café rota is refused as out of scope.",
     "format": "Table, one row per swap message",
     "fields": [
       {
@@ -256,7 +256,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"An e-mail that names no gallery is refused as incomplete.\"]"
+      "[A:A01 \"An e-mail that names no gallery is refused as incomplete.\"]",
+      "[A:A01 \"A swap for the café rota is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {

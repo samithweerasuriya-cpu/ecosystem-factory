@@ -60,7 +60,7 @@
     {
       "role": "shop-manager",
       "relation": "approver",
-      "interest": "Approves the list every friday.",
+      "interest": "Approves the list every Friday.",
       "cites": [
         "[A:A01 \"Shop manager (approver: approves the list every Friday).\"]"
       ]
@@ -220,7 +220,7 @@
     ]
   },
   "output": {
-    "description": "One row per swap message, with a decision: approve or refuse. A message that names no shift is refused as incomplete.",
+    "description": "One row per swap message, with a decision: approve or refuse. A message that names no shift is refused as incomplete. A swap for the stock room rota is refused as out of scope.",
     "format": "Table, one row per swap message",
     "fields": [
       {
@@ -229,7 +229,7 @@
       },
       {
         "name": "shift",
-        "description": "The shift: day, morning or afternoon."
+        "description": "The shift: the day, and morning or afternoon."
       },
       {
         "name": "gives_up",
@@ -249,7 +249,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A message that names no shift is refused as incomplete.\"]"
+      "[A:A01 \"A message that names no shift is refused as incomplete.\"]",
+      "[A:A01 \"A swap for the stock room rota is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {

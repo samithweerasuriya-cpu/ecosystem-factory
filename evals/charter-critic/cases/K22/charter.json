@@ -163,7 +163,7 @@
   "glossary": [
     {
       "term": "hold shelf",
-      "meaning": "The shelf by the issue desk for reserved books, kept for 7 days.",
+      "meaning": "The shelf by the issue desk for reserved books; how long they are kept is open (OQ02).",
       "cites": [
         "[A:A01]"
       ]
@@ -323,7 +323,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan'; a barcode in no branch's range gets 'check by hand'.",
+    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan' and the decision check by hand; a barcode in no branch's range gets 'check by hand'. It refuses to sort books from the mobile library.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -356,7 +356,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"it refuses to decide anything for another branch's books beyond listing them for the courier crate\"]"
+      "[A:A01 \"it refuses to decide anything for another branch's books beyond listing them for the courier crate\"]",
+      "[A:A01 \"It refuses to sort books from the mobile library.\"]"
     ]
   },
   "quality_rulebook": {

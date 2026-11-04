@@ -78,7 +78,7 @@
     {
       "role": "duty-roster-manager",
       "relation": "approver",
-      "interest": "Approves the list every wednesday.",
+      "interest": "Approves the list every Wednesday.",
       "cites": [
         "[A:A01 \"Duty roster manager (approver: approves the list every Wednesday).\"]"
       ]
@@ -310,7 +310,7 @@
       },
       {
         "name": "duty",
-        "description": "The duty: operating day and post."
+        "description": "The duty's operating day (the post is in the post field)."
       },
       {
         "name": "gives_up",

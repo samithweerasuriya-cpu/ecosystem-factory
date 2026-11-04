@@ -60,7 +60,7 @@
     {
       "role": "station-coordinator",
       "relation": "approver",
-      "interest": "Signs off the swaps each monday.",
+      "interest": "Signs off the swaps each Monday.",
       "cites": [
         "[A:A01 \"Station coordinator (approver: signs off the swaps each Monday).\"]"
       ]
@@ -220,7 +220,7 @@
     ]
   },
   "output": {
-    "description": "One row per swap message, with a decision: approve or refuse. A swap that names no slot is refused as incomplete.",
+    "description": "One row per swap message, with a decision: approve or refuse. A swap that names no slot is refused as incomplete. A swap for the outside broadcast rota is refused as out of scope.",
     "format": "Table, one row per swap message",
     "fields": [
       {
@@ -249,7 +249,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A swap that names no slot is refused as incomplete.\"]"
+      "[A:A01 \"A swap that names no slot is refused as incomplete.\"]",
+      "[A:A01 \"A swap for the outside broadcast rota is refused as out of scope.\"]"
     ]
   },
   "quality_rulebook": {

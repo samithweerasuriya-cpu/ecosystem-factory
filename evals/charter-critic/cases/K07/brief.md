@@ -25,7 +25,7 @@ Drop-off forms typed into plain text: ticket number, bike, the customer's descri
 Bench minutes: the standard time a job takes, from the bench-time table. Service: a booked check-over with a fixed list of jobs. Walk-in: a bike dropped off without a booking.
 
 ## 9. Context pack <!-- field: context_inventory -->
-job-cards.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes.
+job-cards.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes and the bench minutes open each day.
 
 ## 10. Data classification <!-- field: data_classification -->
 keep default
@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-One row per drop-off form: ticket, bike, job type, bench minutes, promised date, and a one-sentence reason. A card with no fault description is refused as 'ask at the counter'.
+One row per drop-off form: ticket, bike, job type, bench minutes, promised date, and a one-sentence reason. A card with no fault description is refused as 'ask at the counter'. A card for a rental fleet bike or a warranty claim is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a promised date is never earlier than the queue's bench time allows (blocker). Q02 a brake or steering job goes ahead of every other job (major). Q03 every row quotes the customer's description from the form (major). Q04 bench minutes come from the bench-time table, never a guess (minor).

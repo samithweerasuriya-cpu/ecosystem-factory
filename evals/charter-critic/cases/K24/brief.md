@@ -19,7 +19,7 @@ Steps: the front desk types up notes and prints the e-mails, the warden checks t
 In: one week's requests by e-mail or note in, and a checked list out. Out: invoices and payments, keys and alarm codes, the annual village show, the playing field.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text requests, one request each: group name, room, date, start and end time. About 25 a week. Sample: thornby-requests.txt (made up).
+Plain-text requests, one request each: group name, room, date, start and end time, number of people. About 25 a week. Sample: thornby-requests.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Great Hall: the main room with the stage, up to 120 people. Garden Room: the room onto the garden, up to 30 people. Snug: the small meeting room, up to 10 people. Clash: two bookings for the same room that overlap in time. Front Desk: the volunteer team at the entrance, not a person. Warden: the trustee who runs bookings, a role that rotates each year. Setting-up time: the half hour before a booking that counts as part of it. Note: a request written on paper and left at the front desk, typed up before it is checked. Room limit: the most people a room may hold, set by the hall's fire certificate.
@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. A request with no room or no time is refused as incomplete; a request for more people than the room holds is refused with the room's limit.
+A table, one row per request: request line, group, room, date, start, end, decision (propose, clash or refuse) and a one-sentence reason. A request with no room or no time is refused as incomplete; a request for more people than the room holds is refused with the room's limit. A request for the playing field is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 no proposed booking overlaps another booking for the same room (blocker). Q02 every row quotes the request it came from (major). Q03 a request outside opening hours (08:00 to 23:00) is refused, with the reason (major). Q04 the reason is one sentence (minor). Q05 a request for more people than the room holds is refused with the room's limit (major). Q06 setting-up time counts as part of the booking when checking clashes (major). Q07 a group's name is copied exactly as it wrote it (minor).
