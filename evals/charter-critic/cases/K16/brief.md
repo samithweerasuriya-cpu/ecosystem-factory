@@ -13,7 +13,7 @@ At the Marsh Lane library, returns come in at the counter and wait in a tray beh
 Counter staff (users: sort the tray from the list). Senior librarian (approver: approves each list). Readers with reservations (stakeholders: collect their book when the library says it is ready).
 
 ## 5. Current process <!-- field: current_process -->
-Steps: a member of counter staff takes each book from the tray, checks the loans screen for a reservation, looks it over and shelves it. Problems: reserved books are not found quickly, and readers are sent away; books with broken spines go back out.
+Steps: a member of counter staff takes each book from the tray, checks the loans screen for a reservation, looks it over and shelves it. Problems: reserved books are missed in the tray, and readers are sent away; books with broken spines go back out.
 
 ## 6. Scope <!-- field: scope -->
 In: the counter tray's returns in; a sorted list (shelve, reserve shelf, repair crate) out. Out: reader accounts, book sales, the reading group sets.
@@ -34,10 +34,10 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, reserve shelf, repair crate or check by hand) and the reason in one sentence. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets.
+A list, one row per returned book: barcode, title, decision (shelve, reserve shelf, repair crate or check by hand) and the reason in one sentence. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets. A book that is both reserved and damaged goes to the repair crate.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor). Q05 a reserved book can be found quickly on the list (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Ash and Ember | no reservation | shelve". Good: "The Tidal Clock | reserved | reserve shelf". Bad: "The Tidal Clock | reserved | shelve", when it has a reservation (breaks Q01). Bad: "North of Nowhere | broken spine | shelve", when the note says broken spine (breaks Q02).

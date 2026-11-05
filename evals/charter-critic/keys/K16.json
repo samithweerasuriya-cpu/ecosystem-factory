@@ -25,13 +25,13 @@
   ],
   "verdict": "pass",
   "anchors": {
-    "CH15": "current_process.problems"
+    "CH15": "quality_rulebook.rules"
   },
   "locations": {
     "CH15": [
-      "current_process",
-      "quickly",
-      "problems"
+      "quality_rulebook",
+      "Q05",
+      "quickly"
     ]
   },
   "leak_terms": [
@@ -39,5 +39,5 @@
     "answer key",
     "near miss"
   ],
-  "why": "Severity pair S2, minor half. 'Quickly' appears only in the current process's problem ('not found quickly'), not in any metric; every metric has a target. Expects CH15 (minor) only, so the verdict is pass. Same word as P17, where it is a metric's target."
+  "why": "Severity pair S2, minor half. 'Quickly' appears only in quality rule Q05 ('a reserved book can be found quickly on the list', the owner's words, minor), with no measure, and in no metric; every metric has a target. Expects CH15 (minor) only, so the verdict is pass. Same word as P17, where it is a metric's target. Revision 3: moved from the current process's problem line, where it was an ordinary word (arguable under CH15)."
 }

@@ -323,7 +323,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan' and the decision check by hand; a barcode in no branch's range gets 'check by hand'. It refuses to sort books from the mobile library.",
+    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan' and the decision check by hand; a barcode in no branch's range gets 'check by hand'. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair trolley.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -357,7 +357,8 @@
     ],
     "cites": [
       "[A:A01 \"it refuses to decide anything for another branch's books beyond listing them for the courier crate\"]",
-      "[A:A01 \"It refuses to sort books from the mobile library.\"]"
+      "[A:A01 \"It refuses to sort books from the mobile library.\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the repair trolley.\"]"
     ]
   },
   "quality_rulebook": {

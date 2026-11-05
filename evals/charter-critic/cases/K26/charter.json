@@ -217,7 +217,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, pick-up shelf or fix-it tub.",
+    "description": "One row per returned book, with a decision: shelve, pick-up shelf or fix-it tub. A book that is both reserved and damaged goes to the fix-it tub.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -238,7 +238,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"one row per returned book: barcode, title, decision\"]"
+      "[A:A01 \"one row per returned book: barcode, title, decision\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the fix-it tub.\"]"
     ]
   },
   "quality_rulebook": {

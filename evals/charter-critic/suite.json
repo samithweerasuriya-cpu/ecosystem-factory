@@ -1,6 +1,6 @@
 {
   "_doc": "Evaluation suite for the charter-critic (T2.5; case design in the T2.5 row of the build plan). Synthetic, domain-neutral charters for four made-up problems (library returns, volunteer shift swaps, a bike-repair queue, community-hall bookings). Each case gives the owner's answers (the brief as A01, then each answer round) and the charter under review. Rule 8 pairs: S1 (P16/C08) and S2 (P17/C09).",
-  "revision": "Revised after first run (quick pass 2026-11-03): shared domain-base defects fixed in the cases, approver_role schema fact and the CH09/CV01-CV04 boundary added to the rulebook. Revision 2 after quick pass 2 (2026-11-04): rule-by-rule audit of all four bases, allowed data classes in the rulebook (lint-checked). See the build log.",
+  "revision": "Revised after first run (quick pass 2026-11-03): shared domain-base defects fixed in the cases, approver_role schema fact and the CH09/CV01-CV04 boundary added to the rulebook. Revision 2 after quick pass 2 (2026-11-04): rule-by-rule audit of all four bases, allowed data classes in the rulebook (lint-checked). Revision 3 after quick pass 3 (2026-11-05): class order, factory caps and the output-field definition in the rulebook; K01 and K16 reworked where the plant was arguable; three missed base defects fixed; critic instructions tuned (field-by-field check, CH09 boundary, CH14/CH15 scope). See the build log.",
   "agent": ".claude/agents/charter-critic.md",
   "rulebook": "rules/charter-checklist.md",
   "kind": "reviewer"

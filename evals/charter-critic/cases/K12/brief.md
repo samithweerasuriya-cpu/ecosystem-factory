@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, reserve shelf, repair crate or check by hand) and the reason in one sentence. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets.
+A list, one row per returned book: barcode, title, decision (shelve, reserve shelf, repair crate or check by hand) and the reason in one sentence. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets. A book that is both reserved and damaged goes to the repair crate.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

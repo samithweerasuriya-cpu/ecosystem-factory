@@ -139,8 +139,8 @@ def check_charter_v1(path, doc, answers=None, context_ids=None):
               if s["source"] not in files]
 
     # data classes: allowed by config, and no file above the charter
-    allowed = json.loads((ROOT / "config/data-classes.json").read_text(encoding="utf-8"))["allowed"]
-    order = ["synthetic", "public", "internal"]
+    classes = json.loads((ROOT / "config/data-classes.json").read_text(encoding="utf-8"))
+    allowed, order = classes["allowed"], classes["order"]                # order: lowest first (one source)
     cls = doc["data_classification"]["class"]
     if cls not in allowed:
         probs.append(f"data classification {cls} is not allowed (config/data-classes.json: {', '.join(allowed)})")
@@ -148,6 +148,8 @@ def check_charter_v1(path, doc, answers=None, context_ids=None):
         if f["classification"] not in allowed:
             probs.append(f"context file {f['id']}: classification {f['classification']} is not allowed "
                          "(config/data-classes.json)")
+        elif cls not in order or f["classification"] not in order:       # unranked: fail closed
+            probs.append(f"context file {f['id']}: class order unknown (config/data-classes.json 'order')")
         elif order.index(f["classification"]) > order.index(cls):
             probs.append(f"context file {f['id']}: classified {f['classification']}, above the charter's {cls}")
 

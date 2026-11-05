@@ -355,10 +355,11 @@
     },
     {
       "id": "club-texts",
-      "description": "The club's texting service: sends each approved swap to both helpers' phones.",
+      "description": "The club's texting service: sends each approved swap to both helpers' phones. A text cannot be recalled once it is sent.",
       "access": "write",
       "cites": [
-        "[A:A01 \"Sends a text to both helpers of each approved swap through the club's texting service.\"]"
+        "[A:A01 \"Sends a text to both helpers of each approved swap through the club's texting service.\"]",
+        "[A:A01 \"A text cannot be recalled once it is sent.\"]"
       ]
     }
   ],

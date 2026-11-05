@@ -475,7 +475,7 @@
       },
       {
         "id": "E04",
-        "text": "Sun 2099-06-14 tours | Gus (tours) to Hen (café) | approve",
+        "text": "Sun 2099-06-14 signal box tours | Gus (signal box tours) to Hen (café) | approve",
         "why": "Hen works in the café, not as a station volunteer.",
         "breaks": [
           "Q02"
@@ -499,8 +499,8 @@
       },
       {
         "id": "E08",
-        "text": "Sun 2099-06-21 platform and tours | Ned to Oli | approve",
-        "why": "Oli already has tours at that time.",
+        "text": "Sun 2099-06-21 platform and signal box tours | Ned to Oli | approve",
+        "why": "Oli already has signal box tours at that time.",
         "breaks": [
           "Q07"
         ],

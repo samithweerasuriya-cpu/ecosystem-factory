@@ -82,11 +82,11 @@
       "They shelve it."
     ],
     "problems": [
-      "Reserved books are not found quickly, and readers are sent away.",
+      "Reserved books are missed in the tray, and readers are sent away.",
       "Books with broken spines go back out."
     ],
     "cites": [
-      "[A:A01 \"reserved books are not found quickly, and readers are sent away\"]"
+      "[A:A01 \"reserved books are missed in the tray, and readers are sent away\"]"
     ]
   },
   "scope": {
@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, reserve shelf, repair crate or check by hand. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets.",
+    "description": "One row per returned book, with a decision: shelve, reserve shelf, repair crate or check by hand. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets. A book that is both reserved and damaged goes to the repair crate.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,8 @@
     ],
     "cites": [
       "[A:A01 \"A line with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort reading group sets.\"]"
+      "[A:A01 \"It refuses to sort reading group sets.\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the repair crate.\"]"
     ]
   },
   "quality_rulebook": {
@@ -281,6 +282,14 @@
         "severity": "minor",
         "cites": [
           "[A:A01 \"Q04 the reason is one sentence (minor).\"]"
+        ]
+      },
+      {
+        "id": "Q05",
+        "statement": "A reserved book can be found quickly on the list.",
+        "severity": "minor",
+        "cites": [
+          "[A:A01 \"Q05 a reserved book can be found quickly on the list (minor).\"]"
         ]
       }
     ]

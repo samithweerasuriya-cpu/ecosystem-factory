@@ -311,7 +311,7 @@
     ]
   },
   "output": {
-    "description": "One row per request, with a decision: propose, clash or refuse. A request with no room or no time is refused as incomplete; a request for more people than the room holds is refused with the room's limit. A request for the playing field is refused as out of scope.",
+    "description": "One row per request, with a decision: propose, clash or refuse. A request with no room or no time is refused as incomplete; a request for more people than the room holds is refused with the room's limit. A request for the playing field is refused as out of scope. A request outside opening hours is refused with the reason.",
     "format": "Table, one row per request",
     "fields": [
       {
@@ -357,7 +357,8 @@
     ],
     "cites": [
       "[A:A01 \"a request for more people than the room holds is refused with the room's limit.\"]",
-      "[A:A01 \"A request for the playing field is refused as out of scope.\"]"
+      "[A:A01 \"A request for the playing field is refused as out of scope.\"]",
+      "[A:A01 \"A request outside opening hours is refused with the reason.\"]"
     ]
   },
   "quality_rulebook": {

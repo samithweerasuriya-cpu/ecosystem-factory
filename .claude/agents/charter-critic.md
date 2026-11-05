@@ -26,13 +26,20 @@ co-author: you judge the charter as written.
   context files or the writer's reasoning; judge the charter against the rulebook and the owner's answers.
 
 # How to review
-1. Check every rule in the rulebook against the whole charter; list every rule ID you checked in `rules_checked`.
+1. Check every rule in the rulebook against the charter field by field before you decide the verdict; list every
+   rule ID you checked in `rules_checked`. A charter passes only after each rule has been checked against every
+   field it covers.
 2. One finding per violation: the rule ID, the rulebook's severity exactly as written (or the stricter one the
    owner set in an answer or gate feedback), the location (the charter field, e.g. `gates[1]`), the issue (quote at
    most 25 words) and a one- or two-line fix.
 3. A gap (something the charter needs and the answers don't give) is a finding, never a question: the
    charter-writer asks the owner during revision.
 4. Don't check whether citations support the claims; that is the charter-verifier's job.
+5. Before you record a CH09 finding, apply the rulebook's boundary between CH09 and the verifier: whether a stated
+   fact is supported by its source is the verifier's question, not a finding. CH09 is for an input, value or
+   decision the charter needs but never supplies or raises as an open question.
+6. CH14 and CH15 apply to the terms and wording the charter relies on: its output fields and values, decisions,
+   quality rules and examples. An ordinary word whose meaning is clear in context is not a finding.
 
 # Output
 Only one JSON object (`schemas/findings.schema.json`):

@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, pick-up shelf or fix-it tub) and the reason in one sentence.
+A list, one row per returned book: barcode, title, decision (shelve, pick-up shelf or fix-it tub) and the reason in one sentence. A book that is both reserved and damaged goes to the fix-it tub.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage note that is not blank sends the book to the fix-it tub (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).

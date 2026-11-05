@@ -15,8 +15,14 @@ reused.
 Definitions:
 
 - `approver_role` is always `"approver"` by schema; the approver's name comes from `config/gates.json`.
-- Allowed data classes (`config/data-classes.json`): `synthetic`, `public`. Any other class, for the charter or a
-  context file, is not allowed.
+- Allowed data classes (`config/data-classes.json`, field `allowed`): `synthetic`, `public`. Any other class, for
+  the charter or a context file, is not allowed.
+- Class order (`config/data-classes.json`, field `order`), lowest first: `synthetic`, `public`, `internal`. A context
+  file is classed above the charter when its class comes later in this order.
+- Factory caps (`config/caps.json`): `critic_revisions` 2, `total_revisions_before_gate` 3, `gate_rejections` 3,
+  `agent_calls_per_job` 25, `usage_ceiling.tokens` 350,000, `usage_ceiling.agent_minutes` 20.
+- An output field whose values use a term defined nowhere in the charter is not exact (CH11); the same term
+  elsewhere is CH14 only.
 
 | ID | Rule | Sev |
 |---|---|---|
@@ -32,7 +38,7 @@ Definitions:
 | CH10 | Users and stakeholders are roles, never people's names, and include at least one user and one approver. | major |
 | CH11 | The output names its exact fields and format, says what happens to the common cases and what it refuses. | major |
 | CH12 | The risk states reversibility and blast radius, and they fit what the systems and gates describe. | major |
-| CH13 | Caps are no higher than the factory's, and every cap changed from the default has the owner's reason. | major |
+| CH13 | Caps are no higher than the factory's (`config/caps.json`), and every cap changed from the default has the owner's reason. | major |
 | CH14 | Every term with a special meaning in the output, the rules or the examples is in the glossary. | minor |
 | CH15 | Wording outside `success_metrics` is concise and unambiguous (CH03 covers metrics). | minor |
 
@@ -41,6 +47,9 @@ Where rules stop:
 - **CH09 and the verifier (CV01–CV04).** The critic checks the charter against the owner's answers for completeness
   and consistency. Whether a stated fact is supported by its cited source is the verifier's (CV01–CV04). A required
   input, value or decision the charter relies on but never supplies or raises as an open question remains CH09.
+- **CH14, CH15 and ordinary words.** CH14 and CH15 apply to the terms and wording the charter relies on: its output
+  fields and values, decisions, quality rules and examples. An ordinary word whose meaning is clear in context is not
+  a finding.
 
 Reserved rule (fixed severity: a correct list never fails on it):
 

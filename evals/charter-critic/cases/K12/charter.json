@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, reserve shelf, repair crate or check by hand. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets.",
+    "description": "One row per returned book, with a decision: shelve, reserve shelf, repair crate or check by hand. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets. A book that is both reserved and damaged goes to the repair crate.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,8 @@
     ],
     "cites": [
       "[A:A01 \"A line with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort reading group sets.\"]"
+      "[A:A01 \"It refuses to sort reading group sets.\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the repair crate.\"]"
     ]
   },
   "quality_rulebook": {

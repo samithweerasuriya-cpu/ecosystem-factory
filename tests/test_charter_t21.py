@@ -124,6 +124,7 @@ class CharterV1Tests(unittest.TestCase):
         self.assertEqual(cfg["allowed"], ["synthetic", "public"])
         schema = load(REPO / "schemas" / "charter.v1.schema.json")
         self.assertEqual(schema["$defs"]["data_class"]["enum"], ["synthetic", "public", "internal"])
+        self.assertEqual(cfg["order"], schema["$defs"]["data_class"]["enum"])   # every schema class ranked, lowest first
 
     def test_blueprint_v0_refuses_a_v1_charter(self):
         bp = load(REPO / "docs" / "thin" / "blueprint.json")

@@ -1,5 +1,12 @@
 # Engine changelog
 
+## 0.23.2 (2026-11-05)
+
+Data-class order from config, for the critic suite's revision 3.
+
+- `config/data-classes.json` gains `order` (`synthetic`, `public`, `internal`, lowest first). `engine/designcheck.py` reads it instead of a hard-coded list; a class missing from it fails closed.
+- Test: the order lists every class the charter schema can name, in schema order.
+
 ## 0.23.1 (2026-11-04)
 
 Suite revision note, for the critic suite revised after its first quick pass.

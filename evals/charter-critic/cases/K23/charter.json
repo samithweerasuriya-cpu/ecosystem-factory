@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, collection shelf, damaged-books bag or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort Monday's own returns.",
+    "description": "One row per returned book, with a decision: shelve, collection shelf, damaged-books bag or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort Monday's own returns. A book that is both reserved and damaged goes to the damaged-books bag.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,8 @@
     ],
     "cites": [
       "[A:A01 \"A book with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort Monday's own returns.\"]"
+      "[A:A01 \"It refuses to sort Monday's own returns.\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the damaged-books bag.\"]"
     ]
   },
   "quality_rulebook": {

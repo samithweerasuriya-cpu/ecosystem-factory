@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-A list, one row per returned book: barcode, title, decision (shelve, hold shelf, repair trolley or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. It refuses to sort books from the mobile library.
+A list, one row per returned book: barcode, title, decision (shelve, hold shelf, repair trolley or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair trolley.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair trolley (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor). Q05 a book returned from another branch is listed for the courier crate, not shelved here (major). Q06 a book whose barcode is in no branch's range is listed as 'check by hand' (major). Q07 a class or group loan returned in part is flagged as incomplete (major). Q08 titles are copied exactly, with no shortening (minor).

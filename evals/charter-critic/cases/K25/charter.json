@@ -216,7 +216,7 @@
     ]
   },
   "output": {
-    "description": "One row per request, with a decision: propose, clash or refuse. An entry with no room or no time is refused as incomplete. A request for a pitch is refused as out of scope.",
+    "description": "One row per request, with a decision: propose, clash or refuse. An entry with no room or no time is refused as incomplete. A request for a pitch is refused as out of scope. A request outside opening hours is refused with the reason.",
     "format": "Table, one row per request",
     "fields": [
       {
@@ -254,7 +254,8 @@
     ],
     "cites": [
       "[A:A01 \"An entry with no room or no time is refused as incomplete.\"]",
-      "[A:A01 \"A request for a pitch is refused as out of scope.\"]"
+      "[A:A01 \"A request for a pitch is refused as out of scope.\"]",
+      "[A:A01 \"A request outside opening hours is refused with the reason.\"]"
     ]
   },
   "quality_rulebook": {

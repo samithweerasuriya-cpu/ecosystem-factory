@@ -52,7 +52,7 @@ No session with fewer than two checked helpers in a term. Both helpers get their
 Reversible: a wrong swap can be swapped back before the session. Only the club's helpers are affected.
 
 ## 18. Systems <!-- field: systems -->
-Reads the swap posts. Sends a text to both helpers of each approved swap through the club's texting service.
+Reads the swap posts. Sends a text to both helpers of each approved swap through the club's texting service. A text cannot be recalled once it is sent.
 
 ## 19. Gates <!-- field: gates -->
 I approve the list each Sunday, and nothing is texted until I have.

@@ -224,7 +224,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, holds shelf, repair box or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort books from the mobile library.",
+    "description": "One row per returned book, with a decision: shelve, holds shelf, repair box or check by hand. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair box.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -246,7 +246,8 @@
     ],
     "cites": [
       "[A:A01 \"A book with a blank reservation flag is listed as 'check by hand'.\"]",
-      "[A:A01 \"It refuses to sort books from the mobile library.\"]"
+      "[A:A01 \"It refuses to sort books from the mobile library.\"]",
+      "[A:A01 \"A book that is both reserved and damaged goes to the repair box.\"]"
     ]
   },
   "quality_rulebook": {
