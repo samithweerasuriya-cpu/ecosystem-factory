@@ -223,7 +223,7 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in working order. A card with no fault description is refused as 'ask at the counter'. A card for a rental fleet bike or a warranty claim is refused as out of scope.",
+    "description": "A repair queue, one row per drop-off form, in working order. A card with no fault description is refused as 'ask at the counter'. A card for a rental fleet bike or a warranty claim is refused as out of scope. A refused card produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
     "format": "Table, one row per ticket, in queue order",
     "fields": [
       {
@@ -257,7 +257,8 @@
     ],
     "cites": [
       "[A:A01 \"A card with no fault description is refused as 'ask at the counter'.\"]",
-      "[A:A01 \"A card for a rental fleet bike or a warranty claim is refused as out of scope.\"]"
+      "[A:A01 \"A card for a rental fleet bike or a warranty claim is refused as out of scope.\"]",
+      "[A:A01 \"A refused card produces no row in the queue; it goes on a refused list below the table as ticket | refusal.\"]"
     ]
   },
   "quality_rulebook": {

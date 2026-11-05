@@ -396,7 +396,7 @@
   "acceptance_criteria": [
     {
       "id": "AC01",
-      "criterion": "Every fire walk check right on a month of made-up e-mails.",
+      "criterion": "The checker gets every fire walk check right on a month of made-up e-mails.",
       "check": "Evaluation report before go-live.",
       "cites": [
         "[A:A02 \"it should get every fire walk check right on a month of made-up e-mails\"]"

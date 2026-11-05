@@ -37,7 +37,7 @@ keep default
 One row per swap message: the message quoted, the slot, who gives it up, who takes it, the decision (approve or refuse) and the reason in one sentence. A swap that names no slot is refused as incomplete. A swap for the outside broadcast rota is refused as out of scope.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 the volunteer taking a slot holds the training it needs (blocker). Q02 a swap is only between two volunteers in the same role (major). Q03 every row quotes the swap message (major). Q04 the reason is one sentence (minor). Also, a swap must reach the inbox at least 48 hours before the slot, and the cover rule applies.
+Q01 the volunteer taking a slot holds the training it needs (blocker). Q02 a swap is only between two volunteers in the same role (major). Q03 every row quotes the swap message (major). Q04 the reason is one sentence (minor). Q05 a swap must reach the inbox at least 48 hours before the slot, and the cover rule applies (major).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Tue 07:00 | Ari to Bex | approve | Bex is desk trained". Good: "Sun 18:00 | Cal to Dot | approve | Dot is desk trained". Bad: "Mon 07:00 | Eve to Fin | approve", when Fin is not desk trained (breaks Q01). Bad: "Wed 12:00 | Gil (presenter) to Hal (producer) | approve", when Hal is a producer, not a presenter (breaks Q02).

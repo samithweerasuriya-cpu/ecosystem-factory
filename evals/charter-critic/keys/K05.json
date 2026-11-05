@@ -3,11 +3,11 @@
   "design_id": "P16",
   "canary": "lutegrynix51",
   "domain": "D4",
-  "anchors": {"CH11": "output.fields", "CH14": "glossary"},
-  "must_find": ["CH11", "CH14"],
-  "must_not_find": ["CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH12", "CH13", "CH15", "DR07"],
+  "anchors": {"CH11": "output.fields"},
+  "must_find": ["CH11"],
+  "must_not_find": ["CH01", "CH02", "CH03", "CH04", "CH05", "CH06", "CH07", "CH08", "CH09", "CH10", "CH12", "CH13", "CH14", "CH15", "DR07"],
   "verdict": "fail",
-  "locations": {"CH11": ["hold_type", "output", "soft hold", "hard hold"], "CH14": ["hold_type", "soft hold", "hard hold", "glossary"]},
+  "locations": {"CH11": ["hold_type", "output", "soft hold", "hard hold"]},
   "leak_terms": ["planted", "answer key", "near miss"],
-  "why": "Severity pair S1, major half. The output field hold_type takes 'soft hold or hard hold', terms defined nowhere, so the output's fields are not exact (CH11, major). The undefined term in the output also breaks CH14 (minor), so both are expected and neither counts as a false finding. Twin: C08."
+  "why": "Severity pair S1, major half. The output field hold_type takes 'soft hold or hard hold', terms defined nowhere, so the output's fields are not exact (CH11, major). Per the rulebook definition (revision 3), an undefined term in an output field is CH11 only, so CH14 is not expected here (revision 4; before, both were). Pair: K17, the same term outside the output, CH14 only, verdict pass. Twin: C08."
 }

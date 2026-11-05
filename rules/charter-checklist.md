@@ -23,6 +23,9 @@ Definitions:
   `agent_calls_per_job` 25, `usage_ceiling.tokens` 350,000, `usage_ceiling.agent_minutes` 20.
 - An output field whose values use a term defined nowhere in the charter is not exact (CH11); the same term
   elsewhere is CH14 only.
+- Examples may present an item in prose or a different layout from the output fields; only their content is judged.
+- Field names defined by the charter schema (for example role, relation, approver_role) are defined by the schema and
+  are never CH14.
 
 | ID | Rule | Sev |
 |---|---|---|
@@ -34,7 +37,7 @@ Definitions:
 | CH06 | The source policy is present: ranks 1 to 5, what each confidence level needs, and a rule for sources that disagree. | major |
 | CH07 | The data classification is stated, allowed by `config/data-classes.json`, and no context file is classed above it. | blocker |
 | CH08 | Every acceptance test gives an input and an expected result, in the owner's own words. | major |
-| CH09 | Every unknown is an open question with an owner role; no "TBD", no assumed value standing in for a missing answer. | major |
+| CH09 | Every unknown is an open question with an owner role; no "TBD", no assumed value standing in for a missing answer. Sourcing of a stated fact is the verifier's, never CH09. | major |
 | CH10 | Users and stakeholders are roles, never people's names, and include at least one user and one approver. | major |
 | CH11 | The output names its exact fields and format, says what happens to the common cases and what it refuses. | major |
 | CH12 | The risk states reversibility and blast radius, and they fit what the systems and gates describe. | major |

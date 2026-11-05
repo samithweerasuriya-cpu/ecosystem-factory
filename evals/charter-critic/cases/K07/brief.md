@@ -34,7 +34,7 @@ keep default
 keep default
 
 ## 12. Output format <!-- field: output -->
-One row per drop-off form: ticket, bike, job type, bench minutes, promised date, and a one-sentence reason. A card with no fault description is refused as 'ask at the counter'. A card for a rental fleet bike or a warranty claim is refused as out of scope.
+One row per drop-off form: ticket, bike, job type, bench minutes, promised date, and a one-sentence reason. A card with no fault description is refused as 'ask at the counter'. A card for a rental fleet bike or a warranty claim is refused as out of scope. A refused card produces no row in the queue; it goes on a refused list below the table as ticket | refusal.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a promised date is never earlier than the queue's bench time allows (blocker). Q02 a brake or steering job goes ahead of every other job (major). Q03 every row quotes the customer's description from the form (major). Q04 bench minutes come from the bench-time table, never a guess (minor).

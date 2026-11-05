@@ -225,7 +225,7 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in working order. A tag with no note is refused as 'ask the owner'. A tag for a bike left over three months is refused as out of scope.",
+    "description": "A repair queue, one row per drop-off form, in working order. A tag with no note is refused as 'ask the owner'. A tag for a bike left over three months is refused as out of scope. A refused tag produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
     "format": "Table, one row per ticket, in queue order",
     "fields": [
       {
@@ -259,7 +259,8 @@
     ],
     "cites": [
       "[A:A01 \"A tag with no note is refused as 'ask the owner'.\"]",
-      "[A:A01 \"A tag for a bike left over three months is refused as out of scope.\"]"
+      "[A:A01 \"A tag for a bike left over three months is refused as out of scope.\"]",
+      "[A:A01 \"A refused tag produces no row in the queue; it goes on a refused list below the table as ticket | refusal.\"]"
     ]
   },
   "quality_rulebook": {

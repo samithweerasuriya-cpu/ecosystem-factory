@@ -32,6 +32,7 @@
     "CH04": [
       "quality_rulebook",
       "definitions",
+      "Q05",
       "48 hours",
       "severity"
     ],
@@ -46,5 +47,5 @@
     "answer key",
     "near miss"
   ],
-  "why": "Multi. CH04 (major): the owner's rule 'a swap must reach the inbox at least 48 hours before the slot' is kept only as a definition, with no severity (the owner gave none, and no open question asks). CH14 (minor): 'the cover rule' is used in it and defined nowhere. Twin: C06 (D3), where every severity matches the owner's."
+  "why": "Multi. CH04 (major): the owner's rule Q05 'a swap must reach the inbox at least 48 hours before the slot' (major) is kept only as a definition, so the rulebook has no rule Q05 and loses the owner's severity (revision 4: the owner now numbers it and gives the severity; before, with no severity given, the gap was arguably CH09). CH14 (minor): 'the cover rule' is used in it and defined nowhere. Twin: C06 (D3), where every severity matches the owner's."
 }
