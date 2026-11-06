@@ -49,10 +49,10 @@
       },
       {
         "id": "M04",
-        "metric": "Time from return to the hold shelf for a reserved book",
+        "metric": "Time from return to the hold shelf for an undamaged reserved book",
         "target": "before opening on the day after it comes back",
         "cites": [
-          "[A:A01 \"Every reserved book is on the hold shelf before opening on the day after it comes back.\"]"
+          "[A:A01 \"Every undamaged reserved book is on the hold shelf before opening on the day after it comes back.\"]"
         ]
       },
       {

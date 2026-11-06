@@ -46,7 +46,7 @@ Good: "Ash and Ember | no reservation | shelve". Good: "The Tidal Clock | reserv
 I give it a fortnight of made-up tray returns, and no book with a reservation is on the shelve part.
 
 ## 16. Success metrics <!-- field: success_metrics -->
-No reserved book shelved by mistake in a term. Reserved books reach the reserve shelf by the next list after they come back.
+No reserved book shelved by mistake in a term. Undamaged reserved books reach the reserve shelf by the next list after they come back.
 
 ## 17. Risk <!-- field: risk -->
 Partly reversible: a reserved book can be pulled from the shelves, but a reader who was sent away may not come back.

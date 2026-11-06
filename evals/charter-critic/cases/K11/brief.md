@@ -22,7 +22,7 @@ In: the day's drop-off forms in; a repair queue out. Out: parts ordering, sales 
 Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, and the date they need it. About 15 a day. Sample: dropoff-forms.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Bench minutes: the standard time a job takes, from the bench-time table. Truing: straightening a wheel so it spins without a wobble. Rack: where dropped-off bikes wait.
+Bench minutes: the standard time a job takes, from the bench-time table. Truing: straightening a wheel so it spins without a wobble. Rack: where dropped-off bikes wait. Bench time: the bench minutes open each day, from the bench-time table, used up in queue order.
 
 ## 9. Context pack <!-- field: context_inventory -->
 dropoff-forms.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes and the bench minutes open each day.

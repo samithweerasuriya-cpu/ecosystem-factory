@@ -22,7 +22,7 @@ In: the week's swap e-mails in; a checked list of swaps out. Out: school group b
 Plain-text swap messages: who gives up the duty, which duty (day and gallery) and who takes it. About 10 a week. Sample: swap-emails.txt (made up). The training list (each volunteer's role and fire walks) is in steward-list.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Fire walk: the walk-through of a gallery's evacuation route that a steward must do before covering it. Duty: one gallery for one half-day.
+Fire walk: the walk-through of a gallery's evacuation route that a steward must do before covering it. Duty: one gallery for one half-day. Training: for a duty, the fire walk of that gallery. Role: steward, shop or café, as on the training list.
 
 ## 9. Context pack <!-- field: context_inventory -->
 swap-emails.txt, synthetic, evidence for the input format. steward-handbook.txt, public (it is on the museum's website), evidence for the training needs. steward-list.txt, synthetic, evidence for each volunteer's role and fire walks.

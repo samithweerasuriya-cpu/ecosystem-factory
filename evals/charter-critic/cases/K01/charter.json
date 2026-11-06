@@ -128,6 +128,20 @@
   },
   "glossary": [
     {
+      "term": "training",
+      "meaning": "For a session, a current safeguarding check.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "role",
+      "meaning": "Helper or minibus driver, as on the training list.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
       "term": "safeguarding check",
       "meaning": "The background check every helper needs, renewed every three years.",
       "cites": [

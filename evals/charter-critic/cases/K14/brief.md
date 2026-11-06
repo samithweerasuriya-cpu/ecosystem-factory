@@ -22,7 +22,7 @@ In: the week's swap e-mails for operating days in; a checked list of swaps out. 
 Plain-text swap messages: who gives up the duty, which duty (operating day and post) and who takes it. About 25 a week in the season, a handful in winter. Sample: swap-mailbox.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Passed out: signed off by an assessor as competent for a post. Post: one of platform, booking office or signal box tours. Operating day: a day when trains run for the public. Gala day: a busy operating day with extra trains. Maintenance day: a day with no public trains. Competence register: the list of who is passed out for which post. Duplicate: a second swap for a duty that has already been swapped.
+Passed out: signed off by an assessor as competent for a post. Post: one of platform, booking office or signal box tours. Operating day: a day when trains run for the public. Gala day: a busy operating day with extra trains. Maintenance day: a day with no public trains. Competence register: the list of who is passed out for which post. Duplicate: a second swap for a duty that has already been swapped. Training: for a duty, being passed out for its post. Role: what a volunteer does here: station volunteer, café, shop or engine crew.
 
 ## 9. Context pack <!-- field: context_inventory -->
 swap-mailbox.txt, synthetic, evidence for the input format. competence-register.txt, synthetic, evidence for who is passed out for which post.

@@ -124,6 +124,13 @@
   },
   "glossary": [
     {
+      "term": "bench time",
+      "meaning": "The bench minutes open each day, from the bench-time table, used up in queue order.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
       "term": "bench minutes",
       "meaning": "The standard time a job takes, from the bench-time table.",
       "cites": [
@@ -230,7 +237,7 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in working order. A tag with no fault description is refused as 'ask at the counter'. A tag for a hire bike is refused as out of scope. A refused tag produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
+    "description": "A repair queue, one row per drop-off form, in queue order. A tag with no fault description is refused as 'ask at the counter'. A tag for a hire bike is refused as out of scope. A refused tag produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
     "format": "Table, one row per ticket, in queue order",
     "fields": [
       {

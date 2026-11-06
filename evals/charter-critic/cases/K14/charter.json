@@ -160,6 +160,20 @@
   },
   "glossary": [
     {
+      "term": "training",
+      "meaning": "For a duty, being passed out for its post.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "role",
+      "meaning": "What a volunteer does here: station volunteer, café, shop or engine crew.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
       "term": "passed out",
       "meaning": "Signed off by an assessor as competent for a post.",
       "cites": [

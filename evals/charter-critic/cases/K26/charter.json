@@ -40,10 +40,10 @@
       },
       {
         "id": "M04",
-        "metric": "Reserved books on the pick-up shelf at opening",
+        "metric": "Undamaged reserved books on the pick-up shelf at opening",
         "target": "every one, the morning after it comes back",
         "cites": [
-          "[A:A01 \"Every reserved book is on the pick-up shelf when the doors open.\"]"
+          "[A:A01 \"Every undamaged reserved book is on the pick-up shelf when the doors open.\"]"
         ]
       }
     ]
@@ -149,9 +149,9 @@
   "acceptance_tests": [
     {
       "id": "T01",
-      "words": "I give it ten made-up nights of the bin, and every reserved book is under pick-up shelf.",
+      "words": "I give it ten made-up nights of the bin, and every undamaged reserved book is under pick-up shelf.",
       "cites": [
-        "[A:A01 \"I give it ten made-up nights of the bin, and every reserved book is under pick-up shelf.\"]"
+        "[A:A01 \"I give it ten made-up nights of the bin, and every undamaged reserved book is under pick-up shelf.\"]"
       ]
     }
   ],
@@ -378,10 +378,10 @@
   "acceptance_criteria": [
     {
       "id": "AC01",
-      "criterion": "Every reserved book under pick-up shelf on ten made-up nights.",
+      "criterion": "Every undamaged reserved book under pick-up shelf on ten made-up nights.",
       "check": "Evaluation report before go-live.",
       "cites": [
-        "[A:A02 \"On ten made-up nights it should put every reserved book under pick-up shelf.\"]"
+        "[A:A02 \"On ten made-up nights it should put every undamaged reserved book under pick-up shelf.\"]"
       ]
     }
   ]

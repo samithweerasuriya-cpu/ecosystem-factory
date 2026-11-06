@@ -22,7 +22,7 @@ In: Saturday's drop-off slips in; a repair queue out. Out: buying parts, bike do
 Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, and the date they need it. About 25 each Saturday. Sample: saturday-slips.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Bench minutes: the standard time a job takes, from the bench-time table. Headset: the bearings that let the handlebars turn. Slip: the drop-off form a customer fills in.
+Bench minutes: the standard time a job takes, from the bench-time table. Headset: the bearings that let the handlebars turn. Slip: the drop-off form a customer fills in. Bench time: the bench minutes open each Saturday, from the bench-time table, used up in queue order.
 
 ## 9. Context pack <!-- field: context_inventory -->
 saturday-slips.txt, synthetic, evidence for the input format. bench-table.txt, synthetic, evidence for bench minutes and the bench minutes open each Saturday.

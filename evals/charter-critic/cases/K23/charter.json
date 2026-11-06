@@ -40,10 +40,10 @@
       },
       {
         "id": "M04",
-        "metric": "Weekend reserved books on the collection shelf",
+        "metric": "Undamaged weekend reserved books on the collection shelf",
         "target": "all by 11:00 on Monday",
         "cites": [
-          "[A:A01 \"Every weekend reserved book is on the collection shelf by 11:00 on Monday.\"]"
+          "[A:A01 \"Every undamaged weekend reserved book is on the collection shelf by 11:00 on Monday.\"]"
         ]
       }
     ]
@@ -156,9 +156,9 @@
   "acceptance_tests": [
     {
       "id": "T01",
-      "words": "I give it three made-up weekends, and every reserved book is on the collection shelf part of the list.",
+      "words": "I give it three made-up weekends, and every undamaged reserved book is on the collection shelf part of the list.",
       "cites": [
-        "[A:A01 \"I give it three made-up weekends, and every reserved book is on the collection shelf part of the list.\"]"
+        "[A:A01 \"I give it three made-up weekends, and every undamaged reserved book is on the collection shelf part of the list.\"]"
       ]
     }
   ],

@@ -19,10 +19,10 @@ Steps: the lead reads the tags and notes, puts loud notes at the top and writes 
 In: the tags since the last queue in; a repair queue out. Out: selling parts, teaching sessions, bikes left over three months.
 
 ## 7. Inputs <!-- field: inputs -->
-Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, and the date they need it. About 30 a week. Sample: tags-and-notes.txt (made up).
+Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, the drop-off date, and the date they need it. About 30 a week. Sample: tags-and-notes.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Bench minutes: the standard time a job takes, from the bench-time table. Tag: the card tied to each bike with its ticket number. Note: what the owner wrote about the fault.
+Bench minutes: the standard time a job takes, from the bench-time table. Tag: the card tied to each bike with its ticket number. Note: what the owner wrote about the fault. Bench time: the bench minutes open each day, from the bench-time table, used up in queue order.
 
 ## 9. Context pack <!-- field: context_inventory -->
 tags-and-notes.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes and the bench minutes open each day.

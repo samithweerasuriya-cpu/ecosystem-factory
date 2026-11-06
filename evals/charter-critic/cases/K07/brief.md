@@ -22,7 +22,7 @@ In: the day's job cards in; a repair queue out. Out: bike fitting, warranty clai
 Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, and the date they need it. About 18 a day. Sample: job-cards.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Bench minutes: the standard time a job takes, from the bench-time table. Service: a booked check-over with a fixed list of jobs. Walk-in: a bike dropped off without a booking.
+Bench minutes: the standard time a job takes, from the bench-time table. Service: a booked check-over with a fixed list of jobs. Walk-in: a bike dropped off without a booking. Bench time: the bench minutes open each day, from the bench-time table, used up in queue order.
 
 ## 9. Context pack <!-- field: context_inventory -->
 job-cards.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes and the bench minutes open each day.

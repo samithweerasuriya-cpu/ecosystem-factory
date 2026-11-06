@@ -40,10 +40,10 @@
       },
       {
         "id": "M04",
-        "metric": "Reserved books on the reserve shelf by the next list",
+        "metric": "Undamaged reserved books on the reserve shelf by the next list",
         "target": "quickly",
         "cites": [
-          "[A:A01 \"Reserved books reach the reserve shelf quickly.\"]"
+          "[A:A01 \"Undamaged reserved books reach the reserve shelf quickly.\"]"
         ]
       }
     ]

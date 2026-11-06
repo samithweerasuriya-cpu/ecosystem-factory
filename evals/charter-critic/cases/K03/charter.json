@@ -40,10 +40,10 @@
       },
       {
         "id": "M04",
-        "metric": "Time from return to the holds shelf for a reserved book",
+        "metric": "Time from return to the holds shelf for an undamaged reserved book",
         "target": "by 10:00 on the day it comes back",
         "cites": [
-          "[A:A01 \"Every reserved book is on the holds shelf by 10:00 on the day it comes back.\"]"
+          "[A:A01 \"Every undamaged reserved book is on the holds shelf by 10:00 on the day it comes back.\"]"
         ]
       }
     ]

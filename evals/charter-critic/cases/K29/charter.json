@@ -128,6 +128,20 @@
   },
   "glossary": [
     {
+      "term": "training",
+      "meaning": "For a slot, being desk trained.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
+      "term": "role",
+      "meaning": "Presenter or producer, as on the training list.",
+      "cites": [
+        "[A:A01]"
+      ]
+    },
+    {
       "term": "desk trained",
       "meaning": "Signed off on running the studio desk alone.",
       "cites": [

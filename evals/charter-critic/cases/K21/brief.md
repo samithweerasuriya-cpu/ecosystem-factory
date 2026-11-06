@@ -22,7 +22,7 @@ In: the week's swap texts in; a checked list of swaps out. Out: new volunteer si
 Plain-text swap messages: who gives up the shift, which shift (day, morning or afternoon) and who takes it. About 12 a week. Sample: till-texts.txt (made up). The training list (each volunteer's role and training) is in till-list.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Cashing up: counting the till and filling in the takings sheet at closing. Till trained: signed off on the till and on cashing up.
+Cashing up: counting the till and filling in the takings sheet at closing. Till trained: signed off on the till and on cashing up. Training: for every shift, being till trained. Role: till or sorting room, as on the training list.
 
 ## 9. Context pack <!-- field: context_inventory -->
 till-texts.txt, synthetic, evidence for the input format. till-list.txt, synthetic, evidence for each volunteer's role and training.

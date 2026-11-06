@@ -46,7 +46,7 @@ Good: "The Salt Road | no reservation, no damage | shelve". Good: "Winter Birds 
 I give it a week of made-up returns, and no reserved book is ever on the shelve part of the list.
 
 ## 16. Success metrics <!-- field: success_metrics -->
-No reserved book shelved by mistake in a month. Every reserved book is on the holds shelf by 10:00 on the day it comes back.
+No reserved book shelved by mistake in a month. Every undamaged reserved book is on the holds shelf by 10:00 on the day it comes back.
 
 ## 17. Risk <!-- field: risk -->
 Partly reversible: a shelved reserved book can be found again, but the reader may already have been told it is lost.

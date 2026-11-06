@@ -43,10 +43,10 @@ Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a conditi
 Good: "Ironbridge Tales | no reservation | shelve". Good: "Small Wild Things | reserved | collection shelf". Bad: "Small Wild Things | reserved | shelve", because it is reserved (breaks Q01). Bad: "A Map of Rain | cover torn off | shelve", because the cover is torn off (breaks Q02).
 
 ## 15. Acceptance tests <!-- field: acceptance_tests -->
-I give it three made-up weekends, and every reserved book is on the collection shelf part of the list.
+I give it three made-up weekends, and every undamaged reserved book is on the collection shelf part of the list.
 
 ## 16. Success metrics <!-- field: success_metrics -->
-No Monday reservation missed in a quarter. Every weekend reserved book is on the collection shelf by 11:00 on Monday.
+No Monday reservation missed in a quarter. Every undamaged weekend reserved book is on the collection shelf by 11:00 on Monday.
 
 ## 17. Risk <!-- field: risk -->
 Partly reversible: a missed reservation can be fixed on Tuesday, but the reader has lost two days.

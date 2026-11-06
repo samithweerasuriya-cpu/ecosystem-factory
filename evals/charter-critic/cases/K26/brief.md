@@ -43,10 +43,10 @@ Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage 
 Good: "Garden of Stones | none | shelve". Good: "The Last Lighthouse | reserved | pick-up shelf". Bad: "The Last Lighthouse | reserved | shelve", although it is reserved (breaks Q01). Bad: "Clay and Kiln | loose pages | shelve", although the note says loose pages (breaks Q02).
 
 ## 15. Acceptance tests <!-- field: acceptance_tests -->
-I give it ten made-up nights of the bin, and every reserved book is under pick-up shelf.
+I give it ten made-up nights of the bin, and every undamaged reserved book is under pick-up shelf.
 
 ## 16. Success metrics <!-- field: success_metrics -->
-No reader told a book is waiting when it is not, over a month. Every reserved book is on the pick-up shelf when the doors open.
+No reader told a book is waiting when it is not, over a month. Every undamaged reserved book is on the pick-up shelf when the doors open.
 
 ## 17. Risk <!-- field: risk -->
 Reversible: the shelvers can move a book again the same day. Readers of this library only.

@@ -43,7 +43,7 @@ Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage 
 Good: "Harbour Lights | no reservation, no damage | shelve". Good: "The Glass Orchard | reserved | reservations shelf". Bad: "The Glass Orchard | reserved | shelve", when it is reserved (breaks Q01). Bad: "Ten Small Hills | torn page | shelve", when its note says torn page (breaks Q02).
 
 ## 15. Acceptance tests <!-- field: acceptance_tests -->
-I run two days of made-up chute returns through it, and every reserved book is on the reservations shelf part of the list.
+I run two days of made-up chute returns through it, and every undamaged reserved book is on the reservations shelf part of the list.
 
 ## 16. Success metrics <!-- field: success_metrics -->
 No reserved book on the open shelves in a month. Agent-checkable: faster triage.

@@ -46,7 +46,7 @@ Good: "Lanterns at Dusk | no reservation, home branch, no damage | shelve". Good
 I give it three made-up nights of returns, and no reserved book is on the shelve part of the list. I give it a night of returns with five Eastfield books, and all five are listed for the courier crate. I give it a class set with three copies missing, and it is flagged as an incomplete group loan, not shelved.
 
 ## 16. Success metrics <!-- field: success_metrics -->
-No reserved book on the open shelves in a month. Every reserved book is on the hold shelf before opening on the day after it comes back. No other branch's book is still here a week after it came back.
+No reserved book on the open shelves in a month. Every undamaged reserved book is on the hold shelf before opening on the day after it comes back. No other branch's book is still here a week after it came back.
 
 ## 17. Risk <!-- field: risk -->
 Partly reversible: a misplaced book can be found and moved, but a reader told their book is ready may make a wasted trip.

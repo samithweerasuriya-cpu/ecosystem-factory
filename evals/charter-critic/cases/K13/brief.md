@@ -22,7 +22,7 @@ In: the morning's drop-off tags in; a repair queue out. Out: bike sales, hire bi
 Drop-off forms typed into plain text: ticket number, bike, the customer's description of the fault, and the date they need it. About 20 each morning. Sample: dropoff-tags.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
-Bench minutes: the standard time a job takes, from the bench-time table. Torque: how tight a bolt is, in newton metres. Same-day job: a bike promised back by 17:30 the day it was dropped off.
+Bench minutes: the standard time a job takes, from the bench-time table. Torque: how tight a bolt is, in newton metres. Same-day job: a bike promised back by 17:30 the day it was dropped off. Bench time: the bench minutes open each day, from the bench-time table, used up in queue order.
 
 ## 9. Context pack <!-- field: context_inventory -->
 dropoff-tags.txt, synthetic, evidence for the input format. bench-times.txt, synthetic, evidence for bench minutes and the bench minutes open each day. torque-chart.txt, public (copied from a component maker's website), evidence for bolt torques.
