@@ -1,0 +1,1064 @@
+{
+  "suite": "charter-critic",
+  "mode": "quick",
+  "ts": "2026-11-10T07:28:40+00:00",
+  "model": "claude-opus-5-5",
+  "cli_version": "2.1.308 (Claude Code)",
+  "handoff_format": 2,
+  "models_reported": [
+    "claude-haiku-5-5",
+    "claude-opus-5-5"
+  ],
+  "agent": {
+    "path": ".claude/agents/charter-critic.md",
+    "sha256": "9d9cea0f04a1ea2898aafc9bfb52c47c2a19c4c2e693fcbfdcc0b4b4d8a0070a"
+  },
+  "rulebook": {
+    "path": "rules/charter-checklist.md",
+    "sha256": "a85648a32b93dbaca8102fb5489a0e785e225dd6602fddbdeef6122d81a0ea0d"
+  },
+  "thresholds": {
+    "recall_blocker_min": 1.0,
+    "recall_major_min": 0.8,
+    "false_fail_rate_max": 0.2,
+    "verdict_match_min": 0.85,
+    "invalid_output_rate_max": 0.05,
+    "false_finding_rate_max": 0.15
+  },
+  "threshold_failures": [],
+  "threshold_skipped": [],
+  "min_counts": {
+    "applies": true,
+    "need": {
+      "cases": 20,
+      "clean": 5
+    },
+    "have": {
+      "cases": 29,
+      "clean": 10
+    },
+    "met": true
+  },
+  "pass": true,
+  "metrics": {
+    "recall_per_rule": {
+      "CH01": 1.0,
+      "CH02": 1.0,
+      "CH03": 1.0,
+      "CH04": 1.0,
+      "CH05": 1.0,
+      "CH06": 1.0,
+      "CH07": 1.0,
+      "CH08": 1.0,
+      "CH09": 1.0,
+      "CH10": 1.0,
+      "CH11": 1.0,
+      "CH12": 1.0,
+      "CH13": 1.0,
+      "CH14": 1.0,
+      "CH15": 1.0,
+      "DR07": 1.0
+    },
+    "recall_blocker": 1.0,
+    "recall_major": 1.0,
+    "false_fail_rate": 0.0,
+    "verdict_match": 1.0,
+    "recall_per_run": 1.0,
+    "invalid_output_rate": 0.0,
+    "false_findings_all_runs": 1,
+    "findings_all_runs": 28,
+    "false_finding_rate": 0.036,
+    "cases": 29,
+    "clean_cases": 10,
+    "runs": 29,
+    "invalid_runs": 0,
+    "cases_passed": 28
+  },
+  "cases": [
+    {
+      "case": "K01",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH12"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12123,
+        "max": 12123,
+        "mean": 12123
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K02",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH03"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11877,
+        "max": 11877,
+        "mean": 11877
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K03",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH01"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11756,
+        "max": 11756,
+        "mean": 11756
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K04",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH04"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12295,
+        "max": 12295,
+        "mean": 12295
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K05",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH11"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11102,
+        "max": 11102,
+        "mean": 11102
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K06",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH02"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 10558,
+        "max": 10558,
+        "mean": 10558
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K07",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH12"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 13359,
+        "max": 13359,
+        "mean": 13359
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K08",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12646,
+        "max": 12646,
+        "mean": 12646
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K09",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 13641,
+        "max": 13641,
+        "mean": 13641
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K10",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH07"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12301,
+        "max": 12301,
+        "mean": 12301
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K11",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH02"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12582,
+        "max": 12582,
+        "mean": 12582
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K12",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH03"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12382,
+        "max": 12382,
+        "mean": 12382
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K13",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH07"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 13255,
+        "max": 13255,
+        "mean": 13255
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K14",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "DR07"
+      ],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 16250,
+        "max": 16250,
+        "mean": 16250
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K15",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 17993,
+        "max": 17993,
+        "mean": 17993
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K16",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH15"
+      ],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12338,
+        "max": 12338,
+        "mean": 12338
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K17",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH14"
+      ],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11084,
+        "max": 11084,
+        "mean": 11084
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K18",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH05"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11972,
+        "max": 11972,
+        "mean": 11972
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K19",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH03",
+        "DR07"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12960,
+        "max": 12960,
+        "mean": 12960
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K20",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11903,
+        "max": 11903,
+        "mean": 11903
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K21",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH01"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11848,
+        "max": 11848,
+        "mean": 11848
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K22",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH06",
+        "CH09"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 16891,
+        "max": 16891,
+        "mean": 16891
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K23",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH10"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12337,
+        "max": 12337,
+        "mean": 12337
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K24",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH08",
+        "CH10",
+        "CH13"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 15821,
+        "max": 15821,
+        "mean": 15821
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K25",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12266,
+        "max": 12266,
+        "mean": 12266
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K26",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 0,
+      "pass": false,
+      "invalid_runs": 0,
+      "found": [
+        "CH11",
+        "CH15"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        1
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11921,
+        "max": 11921,
+        "mean": 11921
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "K27",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12738,
+        "max": 12738,
+        "mean": 12738
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K28",
+      "kind": "clean",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 16035,
+        "max": 16035,
+        "mean": 16035
+      },
+      "cached_runs": 1
+    },
+    {
+      "case": "K29",
+      "kind": "planted",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CH04",
+        "CH14"
+      ],
+      "verdicts": [
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0
+      ],
+      "runs_recalled": "1 of 1",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 11707,
+        "max": 11707,
+        "mean": 11707
+      },
+      "cached_runs": 1
+    }
+  ],
+  "usage": {
+    "calls": 29,
+    "cached": 14,
+    "tokens_new": 198233,
+    "tokens_all": 375941,
+    "cost_usd_estimate_all": 3.383,
+    "estimate_tokens": 162132
+  },
+  "run_records": [
+    "27ef56df1c147e602997ebf0122a2507b090fc16ee5958e982fdfc0ac7b7f1cf",
+    "ae132e536855c54e1bf413a7513d5d007edb1f9a58a68687bfb5f7af7006913d",
+    "5bca1016231c015db9a40d18e6ff76eb41c7c8de9fdd568994a377c2fc436359",
+    "67ff14e32c8ad07920af863cf079024a9f4a30ef1dd80204003da4eb402306f2",
+    "0d658399c961a9eabd87cd27667d86ab0fb423ccc1d04e6c285520a07ae60dc4",
+    "ea2aaf0b3641b4e2bc3c10644a9afe7497e229eb040c5a3fda757299bbf91881",
+    "ddf89cb7e87e97f433b32d3ed6da32af8f96a9ef04c8e311ad0b2b0244efead5",
+    "7056c92a7ae5853146f1ae2217233191a162da3638d28a8ac57dd26b0c314ee3",
+    "23209a7e6039f78ec9a798d581b7e7bc81347849c6244f915c177ee3b10d1b49",
+    "79e41c75ced8a3f5337c88b3efbe5f25b1564f5d115cd9ec4aaf3d29f8420237",
+    "a04eacc93d95c3321cd128a034947c85cead8f07f1cddcfb484e373bdfbedd8f",
+    "f052a57088c2ec98c8f6abdfa95fad6a3d04e45271c4e53f2b53b4fbf68a6728",
+    "9cc1a812aa50c3d77fa28a500f3bedf9c0dc8e02ee542685c655403238d7f67d",
+    "6086c0a79408030bd5216b7ce49fceb3843f417f4029148a46c462a0f020d0a3",
+    "67229075450b34f23e3f28b37c3280ffdd2349ea227c3fa83ece4b315a281286",
+    "982cfe8e68bfe3e9b9a190db8dc877e27f612d5168b25d1d1cc2bf9dad0331b2",
+    "1acdea1ea5fa462ceb605c973ee12d0fa3ec4412f769bfac064e4308150c14ba",
+    "1c9fa4abefbcbecd533d9707a74b966696a62de0b7bd9f3272f9133d08949874",
+    "6f754176ce9f52ea29ad7540c4691ba1a82c1ba56ba81b88a101c206b09a3e73",
+    "00f15dc900ed22157d5144f462c293bf5b2751543eb6129b741b795888541282",
+    "a23b0c5cd28c56973cdecdb1e87c95910045e8354b0c96b57f868ab4070a7ae9",
+    "cb7704c09ddfd900f0057b29a6fae2f3b50eadec9ed09356dabd7a79a29d028e",
+    "cbda2a4b1a5301b0ce8ad00299fe7d63e454e5ee6b8ec1bd9dd7aac0e3a560ca",
+    "316d0790ea81d123ca8c4c5cf02cab866cc6aa4c8b5a294784dc0c284266856b",
+    "7d3e412abeb52cb605c5aa1bf52492e06a2f0d78029898c9031f41e0db2b86b0",
+    "e3dc8985f7bc5ec576dc92273a04f6136c160c21c8f0203621cbef4ff542835b",
+    "7cf0be133fb31fdc389438ca370047d1be2e405552ada36a63c74e2540a0a11c",
+    "c69c6466888495cb84791747922cea3136c92c501ce0baf7ff318e9543b37e63",
+    "a11ac806cd64457eede0a02a3b6181f95d56bfa3b098129432dbfa3e3e057ffb"
+  ],
+  "framework": {
+    ".claude/agents/charter-critic.md": "9d9cea0f04a1ea2898aafc9bfb52c47c2a19c4c2e693fcbfdcc0b4b4d8a0070a",
+    ".claude/agents/charter-verifier.md": "7995ad6e57ffd89ceb9821d7f68f4eec412b161defe63b2346f4858a067efa29",
+    ".claude/agents/charter-writer.md": "3f7aee7792bdd37125bfcda0d7a8dce438b3173dcc2bbf58452d7cd478dec4a0",
+    ".claude/agents/interviewer.md": "6935c834fad61bd2cdc95374c04d692900692404b8f47cbb22f2931eb3535852",
+    "rules/calibration-critic.md": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c",
+    "rules/charter-checklist.md": "a85648a32b93dbaca8102fb5489a0e785e225dd6602fddbdeef6122d81a0ea0d",
+    "rules/charter-verifier.md": "4861625598ab5b5bd7715d2e538e8aa07a4b85f51051c237172f17d88283ab2c",
+    "rules/check-evidence.md": "9e2ba12286c9cdfbb550ecc46724caea087c1fbc42a0b75c3b0b53346e4b962a",
+    "rules/check-refs.md": "7d9daaca1ba33af0df482528697fcc01aab53268c47af0e36a035c5e5766d105",
+    "rules/default-agent-rules.md": "3a690815306576b03d1312942275249cc7515674647781614cc2fc22fea63d8b",
+    "rules/demo-rulebook.md": "b7f2d0569807687c7874cd19ee778282fed2636a2e0a77f56cd11b854da6efa3",
+    "rules/gate-rules.md": "0221af685075221b7f98e03714aea25f3383e397d32a06e1321c9529ef68cbbe",
+    "rules/interview-guide.md": "a24ea5780a741f9270530330883585ee1b230db1020a85c4472383bcc37e0e59",
+    "rules/verifier-default.md": "2e97217afd1a14778893890495d190fc4a3d763cc75e0ac9c946815ad5e2b76f",
+    "schemas/blueprint.v0.md": "833eb31dfcebb51cd283c6c21a872b29b237218844325d0e39546c85cfb4971e",
+    "schemas/blueprint.v0.schema.json": "e7d7ba95ec3f538b9735a2a03ca984b1f70eb2b81247579df2db5d53a7e09fdb",
+    "schemas/charter.v0.md": "293f00460d0b614c47e9d9d851d55eb37990b1357fa8234a363255f71e38b336",
+    "schemas/charter.v0.schema.json": "0b5d428db9f33a371584e794b5356969cd1aed1c2b28b9c1df41517fd19e74d7",
+    "schemas/charter.v1.md": "a7b7ec4410fc41a9de76cbec3654d074d8b23eee2973692dd84eef6fba539017",
+    "schemas/charter.v1.schema.json": "cc91e6f5d7dc21f9701d18ff3cf5cde773fbc349ce0dd73ad7c2cef5ab085aac",
+    "schemas/examples/charter.v1.action-items.answers.json": "428799958d7929f5415007a7386d717f320c3166bac724d8f9a7c97da825c1b5",
+    "schemas/examples/charter.v1.action-items.json": "a3196068e122b1ca9eb884d465177dddfee6d39474a57158290e06c2f7cfcec9",
+    "schemas/examples/charter.v1.watering-rota.answers.json": "03fcf33f2959b5283d46dec78b37c2fdf0ce831fad716d7101880b21e62285f2",
+    "schemas/examples/charter.v1.watering-rota.json": "b11ea6e85b8fe23613961e863b5eca3c7c706bf8429895c21dae1605e17cfe45",
+    "schemas/findings.schema.json": "13f4421ce6edd3b0087d5267f781d5b752ab8cd6df846c5484fd3b83a762e120",
+    "schemas/interview-status.v1.schema.json": "aadccdba9e2f799e5bd97d1f101da1deb228e768f8e9e0a4113939512c47f25f",
+    "schemas/job.schema.json": "1819fce2e5d5dd7ef3f5509142e6bee52fe9bbd68852f783d4be0672b8892005",
+    "schemas/report-export.schema.json": "dcd593f7c74075843c22f96aca93226c6a82b8a89a91fd4d4068ca5fcb240cc0",
+    "schemas/route.schema.json": "d070a8821c96bfaccf7c09fb298494ba6e44fdec322d9cd864d6572d38924af9",
+    "config/caps.json": "c1f059bf798d116b253b97f0c7b19efac826f2ff50fb6889699da64b114bce60",
+    "config/context-pack.json": "3aaa7b50f48e509881a7cc034ac1fd75260f4855d419b3826d26452ac1cf48bb",
+    "config/data-classes.json": "859c3d91109d3454093b3ef57653e1363e2956cee2eb36cf3040ed7ec487d40b",
+    "config/doctor.json": "76d36855f5a0eb98cc9d527decb9d64073c86e97e1372b6ab3afe1b8a9ef6a42",
+    "config/evidence.json": "b94375391900ab9e67b328dfec2fc22750ab03b5c5745b9ef801fcf719d34755",
+    "config/gated-actions.json": "c26f4906c14bf8be5858b2c89937c4a475ba59d673fedd6e819e9bcf9ddd9cb0",
+    "config/gates.json": "07697eea11f2819cea0be5f7bf2cc66d116e13dadc192d9125f770daf546506d",
+    "config/invalid-reports.json": "cf48bdd27c938e95fdfe09712b6db36a9c7a546b9f4f9c55d3fb20261fcd7de5",
+    "config/models.json": "a26bd7990ccf457e5c5dd04cf090fc0ab4c6dcc5be45e4b1390c852149a045dc",
+    "config/outputs.json": "acd47d37fe41b78865a1a2cca1dccdfdf19cdace85b64039eca0ff16a8243117",
+    "config/protected-paths.json": "ff30b7eb7e22b351fed45132884bf6ddc44ea172950b153d7d0c0e14fb4891ec",
+    "config/publish.json": "5c304412e9a3f2b124cc970614c2f93d3dd4ba73903d959cf82ee0274635c3c1",
+    "config/readiness.json": "62050d8337c056e85109cd47195d4c785da8f74bb66982d5c891caa198724a50",
+    "config/reviewers.json": "d28168e50b402b57209d60712396ccffacd022a26a3a47ba59b56a41c5380220",
+    "config/routes.json": "61764d1f918d472ee38a15df1a8b59bd6edf130ece20cbbeafaefa55ce488956",
+    "config/scripts.json": "db16e6c394ecb50d24aed411a2336474e6e85664a985a02d560696a903617ed6"
+  },
+  "suite_fingerprint": {
+    "evals/charter-critic/suite.json": "94256ed73c79ef892601b3a74119d80cb1ab34b8428d9c78b47f6309baac8602",
+    "evals/charter-critic/cases/K01/answers-r1.md": "20bd81a933f2aa96df130f07e0fe5dd37f501a7cdc709b2491898d9a52dce879",
+    "evals/charter-critic/cases/K01/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K01/brief.md": "61063894e7b8a27a0964c91eb1f1ab3281125d307c98c8fe8e253222c51bed6b",
+    "evals/charter-critic/cases/K01/case.json": "2214ebbddc755e3e7925b02868cadb04fd273536f17983113557a046e74fa0f2",
+    "evals/charter-critic/cases/K01/charter.json": "6ad28d5cb8426b66017db5a2e04d277af8fb49ef723d5e4bb579919e4f0a7b22",
+    "evals/charter-critic/cases/K02/answers-r1.md": "b90cceb700c2dbd6bd370f558d9e4761bbeeb34a677498666fac52e5f58e95f4",
+    "evals/charter-critic/cases/K02/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K02/brief.md": "5ed4af847c82249039e0730ce6c800a0838690471b274ac310a95e06f0ea168b",
+    "evals/charter-critic/cases/K02/case.json": "d64362fdce4ad3888c83e38129c6f0d5654e7930830b11576b299b4b04aeaa12",
+    "evals/charter-critic/cases/K02/charter.json": "e4afeefc43b8fa2f21fdd2b9b39f1afa98696a18fafd942e9b6d2b64efd37c7d",
+    "evals/charter-critic/cases/K03/answers-r1.md": "5a916211eca91681664b33085ba369d61dabcd952484632989dba767f09b4123",
+    "evals/charter-critic/cases/K03/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K03/brief.md": "a175ade12e47fe8ef18fa8499c17e9c951252920e1bfb6f09b76da694cf58697",
+    "evals/charter-critic/cases/K03/case.json": "666dc31991361809baf960f39ec2b3e5e333ea6a8eb70de2a832af389394085f",
+    "evals/charter-critic/cases/K03/charter.json": "19eb8e585d1da9d086c53d3254d9c400c2b688a7ca556849078367c0afb9c1ff",
+    "evals/charter-critic/cases/K04/answers-r1.md": "58bd76431cd6e7fc6a7944aec07c06a3cc07cc9a3e0e6b7581f93f7334d118f2",
+    "evals/charter-critic/cases/K04/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K04/brief.md": "87944d8f0829107f4f0466c96c968568616f0b5da8e0cecd3005fd3f5f0e8e75",
+    "evals/charter-critic/cases/K04/case.json": "c793951647601e5ec3881acf2dceb2caff8ad200685ff2c17591f87088b35857",
+    "evals/charter-critic/cases/K04/charter.json": "3fc3ae16bc659f70d5c3ac4d2bf527f712768dfae0e1e58d9c6cf3d8020b6c8a",
+    "evals/charter-critic/cases/K05/answers-r1.md": "03f22d26af7d95baa64a9a34383519b685e7b1d4448bcc95aeab3fc0860d289d",
+    "evals/charter-critic/cases/K05/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K05/brief.md": "dd577e709be52ba4a2a1fc34a9ac282c4b5d18c6d46cce0dbf9ed85e35803826",
+    "evals/charter-critic/cases/K05/case.json": "d78acb460f82fbcd995329a26d3b400c00602a08ab7456ac143ffc0210c8f4aa",
+    "evals/charter-critic/cases/K05/charter.json": "99227ff606f45f5cec3a12e37e417040b8c2143dbe67b5e3c533afa35ee4d3c9",
+    "evals/charter-critic/cases/K06/answers-r1.md": "03f22d26af7d95baa64a9a34383519b685e7b1d4448bcc95aeab3fc0860d289d",
+    "evals/charter-critic/cases/K06/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K06/brief.md": "210c17c088521ff1755485dec98a7d094ac0c56ca94ce7381c458e1269898e74",
+    "evals/charter-critic/cases/K06/case.json": "47a77779e14be6ee5cad4f3db3abdfcfcd8b2e8af2bd8baf21113c8809c513f1",
+    "evals/charter-critic/cases/K06/charter.json": "206e59e10a2cf1464e63d3436e62abdbcba5dcd56bfd3a037cd40d5552a2391e",
+    "evals/charter-critic/cases/K07/answers-r1.md": "254493f0614232e65e25e2eb7e9aa63f311a3125f430c437fba26f4bedb2d25e",
+    "evals/charter-critic/cases/K07/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K07/brief.md": "b1dca1efc7093d654bb91a2afce959808a3f2eb12db18bcaa21b2261b98eecd7",
+    "evals/charter-critic/cases/K07/case.json": "eb6695772be1bcdc40964be995bd197d19f7bd3484438c81eb00bdedd4cd3089",
+    "evals/charter-critic/cases/K07/charter.json": "67b11d928f95fc12095ee620c6c21f2f9debeccde1961d2921f38ddcd33add08",
+    "evals/charter-critic/cases/K08/answers-r1.md": "8d702b0e32e4b9d77443c23f83b8eb09ebe0bcdfd3d4991de73764ecb788d69e",
+    "evals/charter-critic/cases/K08/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K08/brief.md": "f3a75110c42f9e87a9b561912b6d44a6dceb39cb59a62ee3ba2094a406fc2aeb",
+    "evals/charter-critic/cases/K08/case.json": "3c62cd8e9c14ce15c8de4f478877b487655bb4bb3ecfa70978dad263d4ed3396",
+    "evals/charter-critic/cases/K08/charter.json": "a9e63364da2e85d188b3ccf7424a1f87e58489e141115d6a0b9c6c3c8195e7cb",
+    "evals/charter-critic/cases/K09/answers-r1.md": "58bd76431cd6e7fc6a7944aec07c06a3cc07cc9a3e0e6b7581f93f7334d118f2",
+    "evals/charter-critic/cases/K09/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K09/brief.md": "87944d8f0829107f4f0466c96c968568616f0b5da8e0cecd3005fd3f5f0e8e75",
+    "evals/charter-critic/cases/K09/case.json": "eef9c56d1843ff1ab49538a20772f7d41cafa853e52bf6c50094e154b0ea7a68",
+    "evals/charter-critic/cases/K09/charter.json": "60a8925f2c210d4a78c38c361e78a7d2d7d9109ef63f54be6f35e9c6bc751ce6",
+    "evals/charter-critic/cases/K10/answers-r1.md": "f76fcb1dacfebc24f8d50aad7252b96daf22493c2e8976208a660c910b1291a7",
+    "evals/charter-critic/cases/K10/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K10/brief.md": "3e16f58ae79f66a26baf0c03a7bffb923114d7b6bd8c03fada9f30e230b25639",
+    "evals/charter-critic/cases/K10/case.json": "78cdee64675277d3d2c24f5225dfc3bac664812620870bc92c3fb6e50a533cee",
+    "evals/charter-critic/cases/K10/charter.json": "b69c929d3bf2a711f08cad6ce13e45473a18f74c8c78545dc6aae1613c3c035c",
+    "evals/charter-critic/cases/K11/answers-r1.md": "8d702b0e32e4b9d77443c23f83b8eb09ebe0bcdfd3d4991de73764ecb788d69e",
+    "evals/charter-critic/cases/K11/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K11/brief.md": "6c3d24e707912a8d437b393b668fe7dc88ab933bc9ec4b137e134f7c420ddb4c",
+    "evals/charter-critic/cases/K11/case.json": "90922f4934969d70ccee386806f569145c3f9e11b9efc84e8e7547e1c4acdb4a",
+    "evals/charter-critic/cases/K11/charter.json": "ae65104d7c5e8f9b6a83c8af2895882bbab5d8415e020250490f17e314567e67",
+    "evals/charter-critic/cases/K12/answers-r1.md": "2a2ef9a96b799cf99cba0109392718ad45fe9386e22ad6d967bdf519574a1e8f",
+    "evals/charter-critic/cases/K12/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K12/brief.md": "b5359d8877ff500bb4cdda12182dbf3672dbe372cff584b12d23d199b11ae824",
+    "evals/charter-critic/cases/K12/case.json": "911b5d0a04563ea61572ced08629b29e0ee5ee40961db31cd4bdd31796257d58",
+    "evals/charter-critic/cases/K12/charter.json": "756a65a82cad4c10d1169d068dafdf95b2566231e9d2cfa4cc69ec032d5b19a8",
+    "evals/charter-critic/cases/K13/answers-r1.md": "1334b09476e39001405484e8eb301f4c7601995faf25b8421e963b9a8379370b",
+    "evals/charter-critic/cases/K13/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K13/brief.md": "a217ecdb9aa60e92595b696b32117f8ea9e76949967e8715e248d0fa536e5360",
+    "evals/charter-critic/cases/K13/case.json": "7ee149ba937549c684193eb460b70aaec016e6be03d083d5b0ac8ecf5e5fe0aa",
+    "evals/charter-critic/cases/K13/charter.json": "8d1de5bd53c85241399b6c60e2bba6af887584c01db42a0f29fc678026214d58",
+    "evals/charter-critic/cases/K14/answers-r1.md": "8a9b7e7f822bed6e40b8bcf796c4b6b39f0b85900c4cb5a205926f1163a8c170",
+    "evals/charter-critic/cases/K14/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K14/brief.md": "8891a6e23744e3d7eb2a115b9cef4133c187fa1c3a247fc2ad1baed768499ca9",
+    "evals/charter-critic/cases/K14/case.json": "3ec3f1890266338fffc88c8ed5e0a449f02b4146a28536f1d12c711ea11a2365",
+    "evals/charter-critic/cases/K14/charter.json": "371a28c164ba5b1a5871fbb8e4c5ea6e61918d1004d309df2b1bf7c30e2c5f1a",
+    "evals/charter-critic/cases/K15/answers-r1.md": "1a651d0742813b229d898025cbcab38fcd59176810190e4f7e44f28dc56526c8",
+    "evals/charter-critic/cases/K15/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K15/brief.md": "29c464cc827dee68510dcab5018b8d9141792d1a8a8ed13b893edba49666de92",
+    "evals/charter-critic/cases/K15/case.json": "420f33e12d23fba73b0890ef614d26ca6da0c2c283676bd98bb928a343482d92",
+    "evals/charter-critic/cases/K15/charter.json": "08ec4223e3f57be0f8ed9bd1f536b560868fec2e6454000772e894cb342f8ff5",
+    "evals/charter-critic/cases/K16/answers-r1.md": "2a2ef9a96b799cf99cba0109392718ad45fe9386e22ad6d967bdf519574a1e8f",
+    "evals/charter-critic/cases/K16/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K16/brief.md": "4f7de6701d8e1fc3ed1223f190ad406f8d49f87f347296a37e874d011de4deca",
+    "evals/charter-critic/cases/K16/case.json": "db5b043aaf22cc0d3b07531f1ab69da0d6d2558ca6339aec9bf02d2d09a597f1",
+    "evals/charter-critic/cases/K16/charter.json": "91c3ee4a0c80e81d39c029742738c419fc53661885ad73df5ce31041cb65dc21",
+    "evals/charter-critic/cases/K17/answers-r1.md": "03f22d26af7d95baa64a9a34383519b685e7b1d4448bcc95aeab3fc0860d289d",
+    "evals/charter-critic/cases/K17/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K17/brief.md": "b9048e808fead71698b702a95c083a1f3a46ffbabfe8b260fe0f7fcdd1f08d28",
+    "evals/charter-critic/cases/K17/case.json": "2596547a87b2af8dee597739c62ff84350b3529381f0fc2b41d89064f092829a",
+    "evals/charter-critic/cases/K17/charter.json": "e989248ab7ba24aef9e205949f70a0f396bcc2be311d956466b7687a57173cb1",
+    "evals/charter-critic/cases/K18/answers-r1.md": "22d287f10f56747dc2fb0bbe45c808bcf70c2053c9894bbe7803a065dd922f84",
+    "evals/charter-critic/cases/K18/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K18/brief.md": "de53fb4b6b56009fc88a319cda9365239474b2e776fee8d9acc8c01c1c6df9ee",
+    "evals/charter-critic/cases/K18/case.json": "1a2adb4a5e7cc91464070a9066484e198019fdc4261bdea05685b138cb31d646",
+    "evals/charter-critic/cases/K18/charter.json": "3c18af43f74c5c1af49db9c5cacca5731410ddbc8b6ad4cebeb2e26f3b26dcb3",
+    "evals/charter-critic/cases/K19/answers-r1.md": "cdc2582ee761ad2aee2b5532b6e35044a56dd0673aacfb80d7c6cef96ff1a069",
+    "evals/charter-critic/cases/K19/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K19/brief.md": "98b9d586b65143d3bc2f9adc69fac56888e7ad96ac0023a9af0596ba41d6281f",
+    "evals/charter-critic/cases/K19/case.json": "2212012015ee630243c301c80a931d2cb6f1fa5332da9b268c6716fcf0773a31",
+    "evals/charter-critic/cases/K19/charter.json": "e73410e62aad8dd728f61fcfe82caea945a08e4c9f2dcde39063bb1d8d3e3484",
+    "evals/charter-critic/cases/K20/answers-r1.md": "b707981211a74bb53b99b39c169b1a35dd57034e9da06b9d71f21277d40905fd",
+    "evals/charter-critic/cases/K20/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K20/brief.md": "e438cc3b7d59da1fbb9d667dffe89fb958b329c188c95e11f040fc38f82e8dd1",
+    "evals/charter-critic/cases/K20/case.json": "45e3ebe5657c72354706b790666fc75cee70c0dd8b19e8fccd6918f6283dad42",
+    "evals/charter-critic/cases/K20/charter.json": "b9d24abd0aa6d995f8d267a4bb6905551a67d24b1782f7a79f7c4ac9fe852ef1",
+    "evals/charter-critic/cases/K21/answers-r1.md": "b707981211a74bb53b99b39c169b1a35dd57034e9da06b9d71f21277d40905fd",
+    "evals/charter-critic/cases/K21/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K21/brief.md": "e0863f6af0cbcf16dd47547261858c304e7d57601af60571a1ef8d5d833804a2",
+    "evals/charter-critic/cases/K21/case.json": "8ab85234044d419374b169ebd40b81c7d8165122ac7ab46275aa48e0e9281dd9",
+    "evals/charter-critic/cases/K21/charter.json": "642093e4fdc98c3b67e417ac0b4060ea4c5a2afa955eee9e0ab77d35462ac09b",
+    "evals/charter-critic/cases/K22/answers-r1.md": "1a651d0742813b229d898025cbcab38fcd59176810190e4f7e44f28dc56526c8",
+    "evals/charter-critic/cases/K22/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K22/brief.md": "29c464cc827dee68510dcab5018b8d9141792d1a8a8ed13b893edba49666de92",
+    "evals/charter-critic/cases/K22/case.json": "fc83eb2f57d3d7c75a0efdf943659f96420cf6a1e3abec0be48bed1154830353",
+    "evals/charter-critic/cases/K22/charter.json": "abc5002a2aeb23a3b52ccb2ee45f3c6a576d25b81e27ae0f4630ffcdc92e5cd6",
+    "evals/charter-critic/cases/K23/answers-r1.md": "7397390c4f47f770a84c566a322500eaa7c4eda221b9f76404b11214f5ab0631",
+    "evals/charter-critic/cases/K23/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K23/brief.md": "516e2147c19aca95ed4465bc1846a9a4a4c83c070245c95981702e0f918e371a",
+    "evals/charter-critic/cases/K23/case.json": "dd8229a9318d982a154f70eeb798d1b2e0e58278420ce17cf6ca0794e13f27a0",
+    "evals/charter-critic/cases/K23/charter.json": "51fa09df8349b8741b2f7a5a71a2e8914491afe166027568255a94df3459c23d",
+    "evals/charter-critic/cases/K24/answers-r1.md": "c845d67c4935fa3b874c9b2df7bdece6490a1f460eabf56d7fe943674274bec0",
+    "evals/charter-critic/cases/K24/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K24/brief.md": "6d0dbadf816a03b0542092b6125aedd54b6aad407f0f64d4a26cb84b6d718783",
+    "evals/charter-critic/cases/K24/case.json": "3d51e7e6cfaeec04502d78d3b0f3c3052d12c8149eaf9c1134c7cf7d99e7bc37",
+    "evals/charter-critic/cases/K24/charter.json": "318c696eec182f95a467e2a3b4a726e30054f281f3fb0b73b7179f65f8563195",
+    "evals/charter-critic/cases/K25/answers-r1.md": "beb0586801a3b11897726010d365c164ac393dd3e1ce4f922b28809bb54c242b",
+    "evals/charter-critic/cases/K25/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K25/brief.md": "c2cf16437d137c127c3924938d4feec06745b008a6d803671281364116bd6d2a",
+    "evals/charter-critic/cases/K25/case.json": "49cff4862250229c666310fa465b3d15c9958e333739934c0605786b740de5c6",
+    "evals/charter-critic/cases/K25/charter.json": "4536473f9c17e0432f1cf5b7f5d1fe77263fde4b808dec1513997d606cbf9037",
+    "evals/charter-critic/cases/K26/answers-r1.md": "c538d266bbe9e460edd23d2e603f0b3b1086b0ee9d75993e03128db920f16027",
+    "evals/charter-critic/cases/K26/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K26/brief.md": "5c873607d9bd14a5e6d5166844c7d1265da7853d41a712719e7c3ed80bd0d412",
+    "evals/charter-critic/cases/K26/case.json": "fda24f1b14c174f83bfc753f096545fc293ec954a5ecbd460747f38c28b5ec17",
+    "evals/charter-critic/cases/K26/charter.json": "d89dc4ccb5d54442e6f874105bbb035c5d4e301868af26e0becf3f3270ee8b57",
+    "evals/charter-critic/cases/K27/answers-r1.md": "f76fcb1dacfebc24f8d50aad7252b96daf22493c2e8976208a660c910b1291a7",
+    "evals/charter-critic/cases/K27/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K27/brief.md": "b3f1c6f02d52b03dee75061f3c7d8c9c8ea3d1d48fd5ee7e531f9213557b61b6",
+    "evals/charter-critic/cases/K27/case.json": "e133be7749e5118445d5d871d185ae04a17c8d4ab97a950c6fb63b25b6415648",
+    "evals/charter-critic/cases/K27/charter.json": "59186bb174c84fcda3bbb263b3dfb46797fa8d890c288f0a2744d0216910b9ed",
+    "evals/charter-critic/cases/K28/answers-r1.md": "c845d67c4935fa3b874c9b2df7bdece6490a1f460eabf56d7fe943674274bec0",
+    "evals/charter-critic/cases/K28/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K28/brief.md": "089073ed9c4cb066b809741f29a466c100f33399552445800c92d9040e6de8b8",
+    "evals/charter-critic/cases/K28/case.json": "b46e1f32ef609587a40854ec808a35b560d9c0d5427265b40fee547eda587855",
+    "evals/charter-critic/cases/K28/charter.json": "f77908c05d82779932318a6e7f710619e6d87118a97d42693b1c703c77cbe236",
+    "evals/charter-critic/cases/K29/answers-r1.md": "9da4eb0a99989853403d09dae5d13d273d65b595ed26bc50a33338ff9ea0a89f",
+    "evals/charter-critic/cases/K29/answers-r2.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-critic/cases/K29/brief.md": "0348707bf94b222395aa3f872220ff765d11bd6efb6ad25bbdca73c2d9b4575f",
+    "evals/charter-critic/cases/K29/case.json": "13481846e3c2a267e3a13ce99124827ce11e718644e777dbeff57a3aaa4bf053",
+    "evals/charter-critic/cases/K29/charter.json": "a235df88f24df2b233bcaedaaa89c3267e718eff3b01f30b4e4713abf7831bff",
+    "evals/charter-critic/keys/K01.json": "ab91c4dae9edfeb889fe0abb61d6ef4367be44cb029bf616dab0a6dbf3956249",
+    "evals/charter-critic/keys/K02.json": "cb6882a566c7745f47b00c9dbe6139adf220467e5533c3caa5e952fd134f8dce",
+    "evals/charter-critic/keys/K03.json": "fa29017cf7d635870a5b9adc762d297fabe2f8ef34aff9b2b4006a6228bd5048",
+    "evals/charter-critic/keys/K04.json": "fa62cd756cdaf570d2ad72ec75305774fcb93848978a5c673e476d4dc1f15963",
+    "evals/charter-critic/keys/K05.json": "b0c33ca2fb9b231598f4db280427f8d4fed337782750f344831833bd6c4100b5",
+    "evals/charter-critic/keys/K06.json": "b56eaaa939c3951e8dc4db3865d80e7c55a01a2482a468dd8d8489dfcf535bb8",
+    "evals/charter-critic/keys/K07.json": "9d42242c87274d910fa5d75c511c4c699b76b7a605f735f03bf1d1c3d1ccad77",
+    "evals/charter-critic/keys/K08.json": "aafce49736809665c174eebf7f02d8bb5db1c653ed3c10ca6980b713bb81aa34",
+    "evals/charter-critic/keys/K09.json": "595957bd0c260a5160457496142d1d60a3f205be1b84f16e33ae382ed39cc10a",
+    "evals/charter-critic/keys/K10.json": "e2f3f752f9696da431cbc1378910879c8cea27cce70b0e6d462e61866c75af0a",
+    "evals/charter-critic/keys/K11.json": "17f635c6e7337670f1ba9456fbfd495b2db0456fc9b48f9e6c1079093833ffd8",
+    "evals/charter-critic/keys/K12.json": "faa6f623ae4cbea174d755b7aaa512d11c8e7841369efea3287c4c99871bb976",
+    "evals/charter-critic/keys/K13.json": "26fd2f3f2aca237a1ec10e30a9be940ea511359c340a8a00c2850736e2ba3231",
+    "evals/charter-critic/keys/K14.json": "a6f3c69567a7022e5f6094164918d6c64555a54b52e7c1b5fec61b897d48bdfe",
+    "evals/charter-critic/keys/K15.json": "99304eee37f39c919715b70717bb7b92f3758b1c611dd4ac6a99aa27d2a3233f",
+    "evals/charter-critic/keys/K16.json": "2a63ece8f407d432ee8cdffa869c9f408562ed1c2194f763653b21c32f690848",
+    "evals/charter-critic/keys/K17.json": "846176f3020947f6e659ae233088f2144e857ee29e68ebff35ee87f940777164",
+    "evals/charter-critic/keys/K18.json": "becc5e420665416d13260452050f3119df31ae12976e2e57dd815b1e16c24f1d",
+    "evals/charter-critic/keys/K19.json": "fa15723b25e15677f39efc8d7e56f132b7063015f69c68d785cdc6edaeb3e6d7",
+    "evals/charter-critic/keys/K20.json": "c0e574822fa0b6596282a23494fcc781cf1f72b403b19e6c9d2b0e151188a328",
+    "evals/charter-critic/keys/K21.json": "5b1d33ecd963df878057eef4ba2fa71dbdfef3bc3d36e1b57ced92f82b5c8cc2",
+    "evals/charter-critic/keys/K22.json": "0c3b33d31f51ca43ddb671541d37acbd5f68bb4ef8112434227cb98b865cc851",
+    "evals/charter-critic/keys/K23.json": "a97679dade3898802b97c28ca9175d2302a91e366352c270794673afa90df03e",
+    "evals/charter-critic/keys/K24.json": "3ceb149f31e94e4f18fa288ea12af2790f4a69a8115ff2e4fae69f8a7acf921a",
+    "evals/charter-critic/keys/K25.json": "a278d4c84cae87a62eaab761d5465c2db1348ac9682ce18da50cb4281aada780",
+    "evals/charter-critic/keys/K26.json": "c2a70f1810db6872060eb926aade396295417b9961f29e839870905ccf402d25",
+    "evals/charter-critic/keys/K27.json": "569293ed798eee0ad02c633ae58713e1634c888b6a23ead7eb057a44b4445c67",
+    "evals/charter-critic/keys/K28.json": "7a9cf2fe7ac5e6a15881eb524830f56d4d426c6ffbe9c463ea2056711012e90b",
+    "evals/charter-critic/keys/K29.json": "12989a3e56fb68810545565b9767f03c0b17400ab16558a300c3eb69691dfed5",
+    "evals/thresholds.json": "e0e93353665e3e943a400204903dde00e1f022221258cbe8d2413fd03624a7a6",
+    "evals/run_evals.py": "ded1a5470ae8cb153600f6325f2c18719c02703fc587720620a03340739d5d1a",
+    "evals/jobsim.py": "3615beabd8e99c21703b35a7511815865c4a105ceee47cce646b17b3123bcda9",
+    "evals/replay_cli.py": "8e8eae8e9cb2fbfd257783b82360280c1a4a97bf2753e8509a92401ddb8ab605"
+  },
+  "revision": "Revised after first run (quick pass 2026-11-03): shared domain-base defects fixed in the cases, approver_role schema fact and the CH09/CV01-CV04 boundary added to the rulebook. Revision 2 after quick pass 2 (2026-11-04): rule-by-rule audit of all four bases, allowed data classes in the rulebook (lint-checked). Revision 3 after quick pass 3 (2026-11-05): class order, factory caps and the output-field definition in the rulebook; K01 and K16 reworked where the plant was arguable; three missed base defects fixed; critic instructions tuned (field-by-field check, CH09 boundary, CH14/CH15 scope). Revision 4 after quick pass 4 (2026-11-05): K29 reworked where the CH04 plant was arguable; K05 key expects CH11 only; bike refusals say where a refused form goes; K10/K27 AC01 given a verb; rulebook: examples judged on content, CH09 boundary in its own row, schema field names never CH14. Revision 5 after quick pass 5 (2026-11-05): library reserve-shelf targets limited to undamaged books; bike inputs gain a drop-off date (K19), output order reads 'queue order'; glossary entries for training and role (volunteer base) and bench time (bike base). Frozen from pass 6: a case changes only for a gate miss or a defect proven by the rule text. Revision 6 after quick pass 6 (2026-11-10), rule-proven fixes plus an audit of every sentence changed in revisions 2-6: bike rows 'per accepted drop-off form'; K15/K22 courier rows have no decision and a part-returned group loan's decision is an open question; library inputs identify every refused item; library Q01 'whose reservation flag is set'. See the build log."
+}
