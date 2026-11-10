@@ -19,7 +19,7 @@ Steps: a member of counter staff takes each book from the tray, checks the loans
 In: the counter tray's returns in; a sorted list (shelve, reserve shelf, repair crate) out. Out: reader accounts, book sales, the reading group sets.
 
 ## 7. Inputs <!-- field: inputs -->
-A plain-text export of the returns: barcode, title, condition note, reservation flag. About 90 a day. Sample: tray-returns.txt (made up).
+A plain-text export of the returns: barcode, title, condition note, reservation flag, and the loan type (single or reading group set). About 90 a day. Sample: tray-returns.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Reserve shelf: the shelf of reserved books waiting for their reader. Repair crate: the crate of books going to the repair volunteer on Fridays. Reservation flag: the export's yes or no for an open reservation. Check by hand: someone looks at the book before it is sorted.
@@ -37,7 +37,7 @@ keep default
 A list, one row per returned book: barcode, title, decision (shelve, reserve shelf, repair crate or check by hand) and the reason in one sentence. A line with a blank reservation flag is listed as 'check by hand'. It refuses to sort reading group sets. A book that is both reserved and damaged goes to the repair crate.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book whose reservation flag is set never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Ash and Ember | no reservation | shelve". Good: "The Tidal Clock | reserved | reserve shelf". Bad: "The Tidal Clock | reserved | shelve", when it has a reservation (breaks Q01). Bad: "North of Nowhere | broken spine | shelve", when the note says broken spine (breaks Q02).

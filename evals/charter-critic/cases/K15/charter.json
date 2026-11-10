@@ -16,7 +16,7 @@
         "target": "none",
         "check": "A script compares each row's decision with the reservation flag in the export (Q01).",
         "cites": [
-          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+          "[A:A01 \"Q01 a book whose reservation flag is set never goes to shelve (blocker).\"]"
         ]
       },
       {
@@ -142,7 +142,8 @@
       "Condition note",
       "Reservation flag",
       "Barcodes are six digits; each branch has its own range",
-      "A group loan shows 'set n of m' after the title"
+      "A group loan shows 'set n of m' after the title",
+      "Returned at (counter or mobile library)"
     ],
     "samples": [
       {
@@ -324,7 +325,7 @@
     ]
   },
   "output": {
-    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan' and the decision check by hand; a barcode in no branch's range gets 'check by hand'. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair trolley.",
+    "description": "One row per returned book, with a decision: shelve, hold shelf, repair trolley or check by hand, or no decision for a book listed for the courier crate. A book with a blank reservation flag is listed as 'check by hand', and it refuses to decide anything for another branch's books beyond listing them for the courier crate. A group loan returned in part gets the flag 'incomplete group loan' and is not shelved; its decision is open question OQ07. A barcode in no branch's range gets 'check by hand'. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair trolley.",
     "format": "List, one row per book",
     "fields": [
       {
@@ -366,10 +367,10 @@
     "rules": [
       {
         "id": "Q01",
-        "statement": "A book with a reservation flag never goes to shelve.",
+        "statement": "A book whose reservation flag is set never goes to shelve.",
         "severity": "blocker",
         "cites": [
-          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+          "[A:A01 \"Q01 a book whose reservation flag is set never goes to shelve (blocker).\"]"
         ]
       },
       {
@@ -597,6 +598,11 @@
     {
       "id": "OQ06",
       "question": "How many books come back on a typical day?",
+      "owner": "branch-manager"
+    },
+    {
+      "id": "OQ07",
+      "question": "Which decision does a group loan returned in part get: hold shelf, repair trolley or check by hand?",
       "owner": "branch-manager"
     }
   ],

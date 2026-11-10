@@ -19,7 +19,7 @@ Steps: a volunteer picks up each book from the pile, scans it, reads the reserva
 In: Saturday's and Sunday's returns in; a sorted list (shelve, collection shelf, damaged-books bag) out. Out: Monday's own returns, fines, the home delivery service.
 
 ## 7. Inputs <!-- field: inputs -->
-A plain-text export of the returns: barcode, title, condition note, reservation flag. About 200 each weekend. Sample: weekend-returns.txt (made up).
+A plain-text export of the returns: barcode, title, condition note, reservation flag, and the day it was returned. About 200 each weekend. Sample: weekend-returns.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Collection shelf: the shelf of reserved books waiting to be collected. Damaged-books bag: the bag of books going to the county repair service. Reservation flag: the export's yes or no for an open reservation. Check by hand: someone looks at the book before it is sorted.
@@ -37,7 +37,7 @@ keep default
 A list, one row per returned book: barcode, title, decision (shelve, collection shelf, damaged-books bag or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort Monday's own returns. A book that is both reserved and damaged goes to the damaged-books bag.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the damaged-books bag (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book whose reservation flag is set never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the damaged-books bag (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Ironbridge Tales | no reservation | shelve". Good: "Small Wild Things | reserved | collection shelf". Bad: "Small Wild Things | reserved | shelve", because it is reserved (breaks Q01). Bad: "A Map of Rain | cover torn off | shelve", because the cover is torn off (breaks Q02).

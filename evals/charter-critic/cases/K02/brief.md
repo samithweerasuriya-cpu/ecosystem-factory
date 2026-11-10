@@ -19,7 +19,7 @@ Steps: an assistant empties the chute crates, scans each book, reads the screen 
 In: the chute returns since the last list in; a sorted list (shelve, reservations shelf, mending crate) out. Out: overdue charges, donations, the local history room.
 
 ## 7. Inputs <!-- field: inputs -->
-A plain-text export of the returns: barcode, title, damage note, reservation flag. About 80 a day. Sample: chute-returns.txt (made up).
+A plain-text export of the returns: barcode, title, damage note, reservation flag, and whether the item is a loan or a donation. About 80 a day. Sample: chute-returns.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Reservations shelf: the shelf by the desk for books waiting for the reader who reserved them. Mending crate: the crate for books that need mending before they go out again. Reservation flag: the export's yes or no for an open reservation. Check by hand: someone looks at the book before it is sorted.
@@ -37,7 +37,7 @@ keep default
 A list, one row per returned book: barcode, title, decision (shelve, reservations shelf, mending crate or check by hand) and the reason in one sentence. A line with no title is listed as 'check by hand'. It refuses to sort donations. A book that is both reserved and damaged goes to the mending crate.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a damage note that is not blank sends the book to the mending crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book whose reservation flag is set never goes to shelve (blocker). Q02 a damage note that is not blank sends the book to the mending crate (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "Harbour Lights | no reservation, no damage | shelve". Good: "The Glass Orchard | reserved | reservations shelf". Bad: "The Glass Orchard | reserved | shelve", when it is reserved (breaks Q01). Bad: "Ten Small Hills | torn page | shelve", when its note says torn page (breaks Q02).

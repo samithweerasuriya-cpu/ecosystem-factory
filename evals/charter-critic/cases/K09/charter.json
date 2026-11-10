@@ -230,8 +230,8 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in queue order. A slip with no fault description is refused as 'ask the customer'. A refused slip produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
-    "format": "Table, one row per ticket, in queue order",
+    "description": "A repair queue, one row per accepted drop-off form, in queue order. A slip with no fault description is refused as 'ask the customer'. A refused slip produces no row in the queue; it goes on a refused list below the table as ticket | refusal.",
+    "format": "Table, one row per accepted ticket, in queue order",
     "fields": [
       {
         "name": "ticket",

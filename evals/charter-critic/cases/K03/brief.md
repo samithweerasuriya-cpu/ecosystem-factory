@@ -19,7 +19,7 @@ Steps: a volunteer takes each book off the trolley, looks it up for reservations
 In: the morning's returns in; a sorted list (shelve, holds shelf, repair box) out. Out: fines, new purchases, the mobile library.
 
 ## 7. Inputs <!-- field: inputs -->
-A plain-text export of the returns: barcode, title, condition note, reservation flag. About 120 a day. Sample: returns-sample.txt (made up).
+A plain-text export of the returns: barcode, title, condition note, reservation flag, and where it was returned (counter or mobile library). About 120 a day. Sample: returns-sample.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Holds shelf: the shelf behind the desk for books a reader has reserved. Repair box: the box of books waiting for tape, glue or a new cover. Reservation flag: the export's yes or no for an open reservation. Check by hand: a volunteer looks at the book before it is sorted.
@@ -37,7 +37,7 @@ keep default
 A list, one row per returned book: barcode, title, decision (shelve, holds shelf, repair box or check by hand) and the reason in one sentence. A book with a blank reservation flag is listed as 'check by hand'. It refuses to sort books from the mobile library. A book that is both reserved and damaged goes to the repair box.
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair box (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
+Q01 a book whose reservation flag is set never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair box (major). Q03 every row quotes the barcode from the export (major). Q04 the reason is one sentence (minor).
 
 ## 14. Examples <!-- field: examples -->
 Good: "The Salt Road | no reservation, no damage | shelve". Good: "Winter Birds | reserved | holds shelf". Bad: "Winter Birds | reserved | shelve", when its reservation flag is set (breaks Q01).

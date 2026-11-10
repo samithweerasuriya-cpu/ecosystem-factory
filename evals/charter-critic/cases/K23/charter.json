@@ -16,7 +16,7 @@
         "target": "none",
         "check": "A script compares each row's decision with the reservation flag in the export (Q01).",
         "cites": [
-          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+          "[A:A01 \"Q01 a book whose reservation flag is set never goes to shelve (blocker).\"]"
         ]
       },
       {
@@ -110,7 +110,8 @@
       "Barcode",
       "Title",
       "Condition note",
-      "Reservation flag"
+      "Reservation flag",
+      "Day returned"
     ],
     "samples": [
       {
@@ -254,10 +255,10 @@
     "rules": [
       {
         "id": "Q01",
-        "statement": "A book with a reservation flag never goes to shelve.",
+        "statement": "A book whose reservation flag is set never goes to shelve.",
         "severity": "blocker",
         "cites": [
-          "[A:A01 \"Q01 a book with a reservation flag never goes to shelve (blocker).\"]"
+          "[A:A01 \"Q01 a book whose reservation flag is set never goes to shelve (blocker).\"]"
         ]
       },
       {
