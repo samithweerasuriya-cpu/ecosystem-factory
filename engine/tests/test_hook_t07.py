@@ -353,15 +353,19 @@ class BlockLogTests(HookBase):
 
 
 class PermissionModeTests(HookBase):
-    """Rule 8 (0.23.0): only the default (ask) and plan modes pass; anything else, or no mode, is refused."""
+    """Rule 8 (0.23.0; auto from 0.24.0): only the default (ask), plan and auto modes pass; anything else, or no
+    mode, is refused."""
 
-    def test_default_and_plan_pass(self):
-        for mode in ("default", "plan"):
+    def test_default_plan_and_auto_pass(self):
+        for mode in ("default", "plan", "auto"):
             self.assertAllowed(self.call("Read", file_path="engine/labcore.py", mode=mode), mode)
             self.assertAllowed(self.call("Read", agent=True, file_path="engine/labcore.py", mode=mode), mode)
+            self.assertAllowed(self.call("Write", file_path="notes.md", mode=mode), mode)
+            self.assertAllowed(self.sh("ls", mode=mode), mode)
 
     def test_other_modes_and_a_missing_mode_are_refused_for_every_tool(self):
-        for mode in ("auto", "bypassPermissions", "acceptEdits", "dontAsk", "Default", "", None, 1, ["default"]):
+        for mode in ("bypassPermissions", "acceptEdits", "dontAsk", "manual", "Auto", "auto ", "Default", "", None, 1,
+                     ["auto"], ["default"]):
             for tool, ti in (("Read", {"file_path": "engine/labcore.py"}), ("Write", {"file_path": "notes.md"}),
                              ("Bash", {"command": "ls"}), ("mcp__docs__search_pages", {}),
                              ("Agent", {"run_in_background": False})):
@@ -373,10 +377,10 @@ class PermissionModeTests(HookBase):
         self.call("Read", file_path="engine/labcore.py", mode="plan")
         seen = json.loads((self.tmp / "private/logs/hook-mode.json").read_text(encoding="utf-8"))
         self.assertEqual((seen["mode"], seen["tool"], seen["subagent"]), ("plan", "Read", False))
-        self.call("Read", file_path="engine/labcore.py", mode="auto")
+        self.call("Read", file_path="engine/labcore.py", mode="bypassPermissions")
         rows = (self.tmp / "logs/blocked.jsonl").read_text(encoding="utf-8").splitlines()
-        self.assertEqual(json.loads(rows[-1])["mode"], "auto")
-        self.assertIn("permission mode 'auto'", json.loads(rows[-1])["reason"])
+        self.assertEqual(json.loads(rows[-1])["mode"], "bypassPermissions")
+        self.assertIn("permission mode 'bypassPermissions'", json.loads(rows[-1])["reason"])
 
     def test_mode_logs_stay_out_of_tracked_files(self):
         ignored = (REPO / ".gitignore").read_text(encoding="utf-8").splitlines()
@@ -386,6 +390,64 @@ class PermissionModeTests(HookBase):
     def test_shipped_settings_pin_the_default_mode(self):
         d = json.loads((REPO / ".claude/settings.json").read_text(encoding="utf-8"))
         self.assertEqual(d["permissions"]["defaultMode"], "default")
+
+
+class AutoModeBlocksTests(HookBase):
+    """0.24.0: auto mode skips the per-action prompt, never a block. Each block Samith listed is checked with the
+    hook receiving the auto mode value (the probe: the CLI sends permission_mode "auto")."""
+
+    def auto(self, tool, **kw):
+        return self.call(tool, mode="auto", **kw)
+
+    def test_git_push_is_blocked(self):
+        for tool, cmd in (("Bash", "git push origin main"), ("PowerShell", "git push origin main"),
+                          ("Bash", "git -C . push"), ("Bash", "git status && git push")):
+            self.assertBlocked(self.auto(tool, command=cmd), cmd)
+
+    def test_gate_py_and_human_only_actions_are_blocked(self):
+        for cmd in ("python engine/gate.py approve x", ".venv/Scripts/python.exe engine/gate.py lock",
+                    "python3 engine/gate.py readiness-override x", "python engine/gate.py reject x --feedback y"):
+            self.assertBlocked(self.auto("Bash", command=cmd), cmd)
+        self.assertBlocked(self.auto("PowerShell", command=".venv\\Scripts\\python.exe engine\\gate.py approve x"))
+        for path in (f"jobs/{J}/gates/approval.json", f"jobs/{J}/state.json", ".lab/OPERATE"):
+            self.assertBlocked(self.auto("Write", file_path=path, content="x"), path)
+
+    def test_no_write_and_source_roots_are_blocked(self):
+        for root in (self.outside / "ecosystems", self.outside / "source-lab"):
+            self.assertBlocked(self.auto("Write", file_path=str(root / "x.md"), content="x"), str(root))
+            self.assertBlocked(self.auto("Edit", file_path=str(root / "x.md"), old_string="a", new_string="b"))
+            self.assertBlocked(self.auto("Bash", command=f"echo x > \"{root}/x.md\""), str(root))
+
+    def test_protected_paths_are_blocked(self):
+        for path in (f"jobs/{J}/run.log.jsonl", f"jobs/{J}/inputs/a.md", "logs/blocked.jsonl", "logs/usage.jsonl",
+                     "cache/x.json"):
+            self.assertBlocked(self.auto("Write", file_path=path, content="x"), path)
+        self.assertBlocked(self.auto("Bash", command=f"echo x > jobs/{J}/state.json"))
+        self.operate()
+        for path in ("engine/labcore.py", ".claude/settings.json", "rules/x.md", "config/x.json"):
+            self.assertBlocked(self.auto("Write", file_path=path, content="x"), path)
+
+    def test_the_evidence_store_is_blocked_outside_its_script(self):
+        for path in (f"jobs/{J}/evidence/registry.json", "cache/evidence/abc.txt",
+                     f"private/jobs/{J}/evidence/cache/abc.txt"):
+            self.assertBlocked(self.auto("Write", file_path=path, content="x"), path)
+        self.assertBlocked(self.auto("Bash", command="echo x > cache/evidence/abc.txt"))
+
+    def test_background_subagents_during_a_job_are_blocked(self):
+        self.lc.set_active(self.lc.new_job("spec", "autojob", "x")["job_id"])
+        for tool in ("Agent", "Task"):
+            self.assertBlocked(self.auto(tool, description="x", subagent_type="Explore", prompt="x"), tool)
+            self.assertBlocked(self.auto(tool, description="x", subagent_type="Explore", prompt="x",
+                                         run_in_background=True), tool)
+
+    def test_the_settings_deny_list_is_kept(self):
+        deny = json.loads((REPO / ".claude/settings.json").read_text(encoding="utf-8"))["permissions"]["deny"]
+        for agent in ("interviewer", "charter-writer", "charter-critic", "charter-verifier"):
+            self.assertIn(f"Agent({agent})", deny)
+            self.assertIn(f"Task({agent})", deny)
+        for rule in ("Bash(git push *)", "PowerShell(git push *)", "Bash(python engine/gate.py *)",
+                     "PowerShell(.venv\\Scripts\\python.exe engine\\gate.py *)"):
+            self.assertIn(rule, deny)
 
 
 class LauncherTests(LabTestBase):

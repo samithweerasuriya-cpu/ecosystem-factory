@@ -19,7 +19,7 @@ A person with a problem should not have to design an agent system by hand. The f
 
 ## Guardrails
 
-- **Manual permission mode only**; no API key: usage stays on the subscription.
+- **Ask, plan or auto permission mode only**: the guard hook refuses bypass, accept-edits and don't-ask. Auto mode only skips the per-action prompt; every hook block still applies (pushes, gate actions, protected paths, the evidence store), and approvals stay in a human terminal. No API key: usage stays on the subscription.
 - **Agents never delegate**: only the main session does; every agent has an explicit tool list.
 - **Agents exchange structured data validated by script**; nobody fixes an agent's output by hand.
 - **Reviewers get the artifact, the rules and the owner's inputs**, never the author's reasoning, and apply rulebook severities as written.

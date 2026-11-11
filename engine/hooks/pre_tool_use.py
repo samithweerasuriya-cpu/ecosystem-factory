@@ -39,11 +39,13 @@ Rules
     explicitly to false. A background call returns before the subagent finishes, so the usage
     hook would see no figures; some apps run subagents in the background unless told otherwise,
     so a call that doesn't say is refused too.
- 8. Permission mode (0.23.0): every call needs the harness's permission_mode field set to default or plan
-    (.claude/settings.json pins defaultMode to default). auto, bypassPermissions, acceptEdits, dontAsk,
-    any other value and a missing field are refused, so nothing runs without the human's per-action
-    approval. The last mode seen goes to private/logs/hook-mode.json (git-ignored) for the doctor; blocked
-    calls log their mode too.
+ 8. Permission mode (0.23.0; auto added 0.24.0, Samith's decision 2026-11-11): every call needs the
+    harness's permission_mode field set to default, plan or auto (.claude/settings.json pins defaultMode to
+    default; the human switches a session to auto). bypassPermissions, acceptEdits, dontAsk, any other value
+    and a missing field are refused. Auto mode skips the per-action prompt, never these rules: every block
+    above (gate.py, git push, protected paths, no-write and source roots, the evidence store, subagent calls)
+    applies in every allowed mode. The last mode seen goes to private/logs/hook-mode.json (git-ignored) for
+    the doctor; blocked calls log their mode too.
 Limits: this is pattern-based analysis, not a sandbox. It stops accidents and prompt drift,
 not a determined attacker on your own machine: a path assembled at run time is not recognised,
 and inline interpreter code is judged by what it names and by its delete calls (rmtree, remove,
@@ -73,7 +75,7 @@ WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 READ_TOOLS = {"Read", "Grep", "Glob", "NotebookRead", "LS"}
 SHELL_TOOLS = {"Bash", "PowerShell", "Monitor"}
 AGENT_TOOLS = {"Agent", "Task"}
-ALLOWED_MODES = {"default", "plan"}     # 8. everything else, and a missing mode, is refused
+ALLOWED_MODES = {"default", "plan", "auto"}     # 8. everything else, and a missing mode, is refused
 
 SECRET_NAME = re.compile(r"^(\.env(\..*)?|master\.key)$", re.IGNORECASE)
 INTERPRETERS = {"python", "python3", "py", "python.exe", "python3.exe", "py.exe", "pythonw", "ruby", "node",
@@ -744,8 +746,8 @@ def check_mode(ctx):
     mode = ctx.data.get("permission_mode")
     if not isinstance(mode, str) or mode not in ALLOWED_MODES:
         shown = "missing" if mode is None else repr(mode)[:40]
-        raise Blocked(f"permission mode {shown} is not allowed: switch the session to the default (ask) mode or "
-                      "plan mode; auto, bypass, accept-edits and don't-ask modes are refused (manual mode only).")
+        raise Blocked(f"permission mode {shown} is not allowed: switch the session to the default (ask), plan or "
+                      "auto mode; bypass, accept-edits and don't-ask modes are refused.")
 
 
 def decide(data):

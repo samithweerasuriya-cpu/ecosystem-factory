@@ -97,7 +97,7 @@ Run the tests (the fast tier takes 10 to 25 minutes, depending on the machine):
 .venv\Scripts\python.exe engine\run_tests.py --fast
 ```
 
-Then open the folder in Claude Code (manual permission mode only) and start an intake:
+Then open the folder in Claude Code (ask, plan or auto permission mode; the guard hook refuses the others) and start an intake:
 
 ```
 /onboard

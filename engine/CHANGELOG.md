@@ -1,5 +1,14 @@
 # Engine changelog
 
+## 0.24.0 (2026-11-11)
+
+Auto permission mode allowed (Samith's decision, 2026-11-11: he approves the routine steps anyway).
+
+- Hook rule 8 (`engine/hooks/pre_tool_use.py`): the allowed modes are `default`, `plan` and `auto`. `bypassPermissions`, `acceptEdits`, `dontAsk`, any other value and a missing field are still refused (fail closed). Probe: CLI 2.1.308 offers `--permission-mode auto`, and the hook receives `permission_mode: "auto"` (a real block logged 2026-11-04).
+- Auto mode only skips the per-action prompt. Every other hook block applies in it: `git push`, `gate.py` and the other human-only actions, the no-write and source roots, protected paths, the evidence store outside its script, background subagent calls during a job. The settings deny list (factory agents, `gate.py`, `git push`) is unchanged.
+- `engine/doctor.py`: the permission-mode check accepts `auto`. The project pin stays `defaultMode: default`.
+- Tests: auto passes; `bypassPermissions` and unknown modes are refused; each block above is checked with the hook receiving `auto`.
+
 ## 0.23.2 (2026-11-05)
 
 Data-class order from config, for the critic suite's revision 3.

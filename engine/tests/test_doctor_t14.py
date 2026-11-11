@@ -303,7 +303,12 @@ class HookFailureTests(DoctorBase):
         (self.tmp / "private/logs/hook-mode.json").write_text(json.dumps({"mode": "default"}), encoding="utf-8")
         self.set_mode(".claude/settings.json", "default", base=self.home)       # user settings: allowed mode
         self.assertEqual(self.status("permission_mode"), "OK")
-        self.set_mode(".claude/settings.json", "auto", base=self.home)          # user settings: refused mode
+        self.set_mode(".claude/settings.json", "auto", base=self.home)          # user settings: auto is allowed
+        self.assertEqual(self.status("permission_mode"), "OK")
+        (self.tmp / "private/logs/hook-mode.json").write_text(json.dumps({"mode": "auto"}), encoding="utf-8")
+        self.assertEqual(self.status("permission_mode"), "OK")                  # last mode seen: auto
+        (self.tmp / "private/logs/hook-mode.json").write_text(json.dumps({"mode": "default"}), encoding="utf-8")
+        self.set_mode(".claude/settings.json", "bypassPermissions", base=self.home)  # user settings: refused mode
         self.assertEqual(self.status("permission_mode"), "WARN")
         self.set_mode(".claude/settings.local.json", "bypassPermissions")       # project local override
         r = self.results()["permission_mode"]

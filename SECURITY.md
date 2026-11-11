@@ -1,6 +1,6 @@
 # Security Policy
 
-Ecosystem Factory is a personal, open-source project that runs locally for a single user. Its safety rests on a small set of guarantees: fail-closed hooks, human-only approval gates, approvals bound to exact file contents, and evaluations that must pass before go-live. A report that breaks any of those is exactly what this policy is for.
+Ecosystem Factory is a personal, open-source project that runs locally for a single user. Its safety rests on a small set of guarantees: fail-closed hooks that apply in every allowed permission mode (ask, plan and auto; bypass, accept-edits and don't-ask are refused), human-only approval gates, approvals bound to exact file contents, and evaluations that must pass before go-live. A report that breaks any of those is exactly what this policy is for.
 
 ## Supported versions
 

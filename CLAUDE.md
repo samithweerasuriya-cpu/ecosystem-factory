@@ -82,7 +82,7 @@ Only do work that belongs to the current phase. If asked for later-phase work, n
 - Every job has a usage ceiling; stop and report when it is hit.
 - Never put secrets in files, code, commits or chat.
 - Do not set or rely on `ANTHROPIC_API_KEY`. Usage stays on the Claude subscription.
-- Manual mode only. No auto or bypass permission modes.
+- Ask (default), plan or auto permission mode only (auto allowed by Samith's decision, 2026-11-11). Never bypass, accept-edits or don't-ask. Auto mode skips the prompt, never a rule: everything here and every hook block still applies.
 - Every agent loop has a per-cycle and a per-job cap, enforced by the engine, not by you.
 - Agents exchange structured data validated by script. You never fix an agent's output yourself.
 - Every agent has an explicit `tools` list without `Agent`; only the main session delegates.

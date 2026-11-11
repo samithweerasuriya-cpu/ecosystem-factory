@@ -507,7 +507,7 @@
   "risk": {
     "reversibility": "partly",
     "blast_radius": "external",
-    "notes": "A misplaced book can be found and moved, but a reader told their book is ready may make a wasted trip. Readers of this branch are affected, and other branches wait longer for their books. Nothing is written to any system, so every decision can be undone before the books are moved. The worst case is a reader told a book is ready that has gone back on the open shelves. Group loans that come back in part are the second risk, so the list flags them rather than shelving them.",
+    "notes": "A misplaced book can be found and moved, but a reader told their book is ready may make a wasted trip. Readers of this branch are affected, and other branches wait longer for their books. Nothing is written to any system, so every decision can be undone before the books are moved.",
     "cites": [
       "[A:A01 \"Partly reversible\"]",
       "[A:A02 \"Readers with reservations at this branch, about three hundred a month, and the other branches waiting for their books.\"]"

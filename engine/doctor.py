@@ -358,7 +358,7 @@ def check_hooks(ctx):
     return out
 
 
-ALLOWED_MODES = ("default", "plan")     # the guard hook's rule 8
+ALLOWED_MODES = ("default", "plan", "auto")     # the guard hook's rule 8
 
 
 def check_permission_mode(ctx):
@@ -375,7 +375,7 @@ def check_permission_mode(ctx):
             (warnings if label.startswith("user") else problems).append(f"{label} set defaultMode {mode!r}")
     seen = load(ctx.root / "private" / "logs" / "hook-mode.json").get("mode", "none recorded")
     seen_note = f"; last mode the hook saw: {seen}" + ("" if seen in ALLOWED_MODES + ("none recorded",) else
-                                                        " (refused: switch the session to the ask mode)")
+                                                        " (refused: switch the session to the ask or auto mode)")
     if problems:
         return result("permission_mode", "hooks", FAIL, "; ".join(problems) + seen_note,
                       "restore .claude/settings.json (git checkout -- .claude/settings.json), remove the override, "
@@ -385,7 +385,8 @@ def check_permission_mode(ctx):
                       "hook refuses that mode anyway)" + seen_note,
                       "remove defaultMode from your user settings yourself (the doctor never changes it)")
     return result("permission_mode", "hooks", OK if seen in ALLOWED_MODES + ("none recorded",) else WARN,
-                  "defaultMode pinned to default; the hook refuses auto, bypass, accept-edits and don't-ask" + seen_note)
+                  "defaultMode pinned to default; the hook allows ask, plan and auto and refuses bypass, "
+                  "accept-edits and don't-ask" + seen_note)
 
 
 # ---------- 3. user-level and stray files ----------
