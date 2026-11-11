@@ -105,8 +105,7 @@
       "The coordinator sorts the slips by hand.",
       "The coordinator estimates each job from memory.",
       "The coordinator writes the queue on a whiteboard.",
-      "Parts are ordered on Mondays from one supplier.",
-      "Long wheel builds are started when a volunteer is free."
+      "Parts are ordered on Mondays from one supplier."
     ],
     "problems": [
       "Estimates from memory are often an hour out.",
@@ -311,7 +310,7 @@
     ]
   },
   "output": {
-    "description": "A repair queue, one row per drop-off form, in working order. A slip with no fault description is refused as 'ask the customer'. A job over 90 bench minutes is shown on both of its days; a bike waiting for a part is listed at the end with no promised date.",
+    "description": "A repair queue, one row per drop-off form, in working order. A slip with no fault description is refused as 'ask the customer'. A job over 90 bench minutes is shown on both of its days; a bike waiting for a part has no promised date until its part arrives.",
     "format": "Table, one row per ticket, in queue order",
     "fields": [
       {
@@ -352,7 +351,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]"
+      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]",
+      "[S:S02 §whole file]"
     ]
   },
   "quality_rulebook": {

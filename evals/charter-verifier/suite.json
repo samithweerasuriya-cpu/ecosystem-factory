@@ -1,5 +1,6 @@
 {
   "_doc": "Evaluation suite for the charter-verifier (T2.5; case design in the T2.5 row of the build plan). Synthetic, domain-neutral charters for four made-up problems. Each case gives the owner's answers (the brief as A01, then each answer round), the context files, the evidence pack (built by registering the context files in a real job) and the charter under review. Rule 8 pairs: S3 and S4. Misleading-source cases: four planted, two clean.",
+  "revision": "Revised after the first quick pass (2026-11-10): sentence-by-sentence audit of every charter against its own case's sources (CV01-CV09); fixed only proven defects, with no planted defect and no key changed: goal lines rewritten from each case's own brief; unsupported process, metric and risk details removed or made an open question; hall token caps set to the owner's 200,000; bike job types cite the bench table. See the build log.",
   "agent": ".claude/agents/charter-verifier.md",
   "rulebook": "rules/charter-verifier.md",
   "kind": "reviewer"

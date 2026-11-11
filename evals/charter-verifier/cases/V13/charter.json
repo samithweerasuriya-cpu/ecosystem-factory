@@ -3,7 +3,7 @@
   "slug": "repair-shed",
   "title": "Repair shed queue",
   "goal": {
-    "text": "The project coordinator gets a repair queue each Saturday afternoon, so nobody is promised a bike back before the work can be done.",
+    "text": "The shed coordinator gets a repair queue each evening, so nobody is promised a bike back before the work can be done.",
     "cites": [
       "[A:A01 \"so nobody is promised a bike back before the work can be done\"]"
     ]

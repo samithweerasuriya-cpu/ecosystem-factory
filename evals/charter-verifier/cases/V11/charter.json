@@ -3,7 +3,7 @@
   "slug": "bike-clinic",
   "title": "Bike clinic queue",
   "goal": {
-    "text": "The project coordinator gets a repair queue each Saturday afternoon, so nobody is promised a bike back before the work can be done.",
+    "text": "The clinic lead gets a repair queue each Tuesday night, so nobody is promised a bike back before the work can be done.",
     "cites": [
       "[A:A01 \"so nobody is promised a bike back before the work can be done\"]"
     ]
@@ -78,9 +78,7 @@
     "steps": [
       "The coordinator sorts the slips by hand.",
       "The coordinator estimates each job from memory.",
-      "The coordinator writes the queue on a whiteboard.",
-      "Parts are ordered on Mondays from one supplier.",
-      "Long wheel builds are started when a volunteer is free."
+      "The coordinator writes the queue on a whiteboard."
     ],
     "problems": [
       "Estimates from memory are often an hour out.",
@@ -254,7 +252,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]"
+      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]",
+      "[S:S02 §whole file]"
     ]
   },
   "quality_rulebook": {

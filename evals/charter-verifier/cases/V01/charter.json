@@ -260,7 +260,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A form with no fault description is refused as 'ask the customer'.\"]"
+      "[A:A01 \"A form with no fault description is refused as 'ask the customer'.\"]",
+      "[S:S02 §whole file]"
     ]
   },
   "quality_rulebook": {

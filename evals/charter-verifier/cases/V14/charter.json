@@ -3,7 +3,7 @@
   "slug": "clubhouse-bookings",
   "title": "Clubhouse booking checker",
   "goal": {
-    "text": "The pavilion manager gets a checked list of requests each Wednesday, so clubs stop arriving to a locked or double-booked pavilion.",
+    "text": "The clubhouse manager gets a checked list of requests each Wednesday, so clubs stop arriving to a locked or double-booked pavilion.",
     "cites": [
       "[A:A01 \"so clubs stop arriving to a locked or double-booked pavilion\"]"
     ]
@@ -32,7 +32,7 @@
     "outcome": [
       {
         "id": "M03",
-        "metric": "Late replies (over a week)",
+        "metric": "Late replies",
         "target": "no more than two a week",
         "cites": [
           "[A:A01 \"No more than two late replies a week.\"]"

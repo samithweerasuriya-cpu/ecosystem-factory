@@ -3,7 +3,7 @@
   "slug": "saturday-queue",
   "title": "Saturday repair queue",
   "goal": {
-    "text": "The project coordinator gets a repair queue each Saturday afternoon, so nobody is promised a bike back before the work can be done.",
+    "text": "The session lead gets a repair queue each Saturday at noon, so nobody is promised a bike back before the work can be done.",
     "cites": [
       "[A:A01 \"so nobody is promised a bike back before the work can be done\"]"
     ]
@@ -252,7 +252,8 @@
       }
     ],
     "cites": [
-      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]"
+      "[A:A01 \"A slip with no fault description is refused as 'ask the customer'.\"]",
+      "[S:S02 §whole file]"
     ]
   },
   "quality_rulebook": {
