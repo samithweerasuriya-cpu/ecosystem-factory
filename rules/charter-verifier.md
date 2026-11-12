@@ -34,6 +34,10 @@ Where rules stop (each defect is reported under the rule that covers it):
   or out of scope).
 - **CV02 and CV04.** CV04 = a whole field with no source, filled in instead of raised as an open question. CV02 = a
   fact no source states, added to a field that is otherwise supported.
+- **CV09 and CV01.** CV09 = a field the owner left at the default, holding the default values and citing the answer
+  that kept them, but not recorded as the kept default: the cite does not quote the answer's words that kept it (a
+  bare cite, or a quote of other words). CV01 starts where the cited answer did not keep that default at all (another
+  answer, or one about another field), so it does not support the field.
 
 Reserved rule (fixed severity: a correct list never fails on it):
 
