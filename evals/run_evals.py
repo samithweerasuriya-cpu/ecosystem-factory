@@ -2,7 +2,7 @@
 """Evaluation runner (stdlib only, T0.13). Scores an agent on its suite's cases, headless.
 
   python evals/run_evals.py run <suite> [--quick | --smoke | --discrimination] [--estimate-only] [--no-cache]
-                                [--cases E001,E002]
+                                [--cases E001,E002] [--keep-failed]
   python evals/run_evals.py stale          # every reason gate.py lock would refuse now (exit 1 if any)
   python evals/run_evals.py spend          # the running token total against the ceiling (T2.5 item 7)
   python evals/run_evals.py spend-start --since YYYY-MM-DD --ceiling TOKENS --name NAME [--recreate]
@@ -28,6 +28,9 @@ A suite is evals/<suite>/ (suite.json, cases/<id>/, keys/<id>.json); see engine/
   cache/evals/<suite>/runs/<record id>.json (the ID is a digest of the record; never overwritten), and the
   report lists the IDs in "run_records". engine/evalcheck.py refuses a report whose records are missing,
   changed, miscounted or do not add up to its tokens.
+- Kept jobs (interview and charter suites): a run whose job hit an infra error keeps its job folder and the
+  copy's logs/ in cache/evals/<suite>/kept/<case>-run<n>-<time>/ (untracked); the report's case row names it.
+  --keep-failed keeps every failed run's job too (for diagnosis; the report is unchanged otherwise).
 - Scoring (reviewers): output must be one JSON object (first character "{", last "}"), pass the
   findings schema and the severity lock, and copy the given IDs; otherwise the run is invalid. A case
   counts a rule as found, or its verdict as matched, when a majority of its runs agree
@@ -529,6 +532,43 @@ def cache_key(s, prompt, model, cli, n):
     return evalcheck.digest(s["agent_spec"]["sha256"], prompt, model, cli, n)
 
 
+JOB_RUN_CODE = ("evals/jobsim.py", "evals/run_evals.py", "evals/replay_cli.py")
+
+
+def job_run_key(s, case, model, cli, n, framework):
+    """The cache key of one interview or charter run (T2.5, Samith's option a): a quick run is reused as run 1 of a
+    full run only when every input matches: the case's files, its key, the rulebook, the agent, the handoff format,
+    every file a job copy runs (agents, rules, schemas, config, engine, templates), the scoring code, the model, the
+    CLI and the run number. Any change gives a new key, so the run is made fresh."""
+    files = {lc.rel(f): lc.sha256_path(f) for f in sorted(Path(case["dir"]).rglob("*"))
+             if f.is_file() and "__pycache__" not in f.parts}
+    copy_code = {}
+    for d in ("engine", "templates"):
+        for f in sorted((lc.ROOT / d).rglob("*")):
+            if f.is_file() and "__pycache__" not in f.parts and "tests" not in f.relative_to(lc.ROOT / d).parts \
+                    and not f.name.endswith(".local.json"):
+                copy_code[lc.rel(f)] = lc.sha256_path(f)
+    for p in JOB_RUN_CODE:
+        copy_code[p] = lc.sha256_path(lc.ROOT / p) if (lc.ROOT / p).is_file() else None
+    key_file = s["dir"] / "keys" / f"{case['id']}.json"
+    return evalcheck.digest("job-run-v1", s["kind"], s["agent_spec"]["sha256"],
+                            lc.sha256_path(lc.ROOT / s["rulebook"]), json.dumps(files, sort_keys=True),
+                            lc.sha256_path(key_file), lc.HANDOFF_FORMAT, json.dumps(framework, sort_keys=True),
+                            json.dumps(copy_code, sort_keys=True), model, cli, n)
+
+
+def job_cache_file(name, key):
+    return cache_dir(name) / "jobs" / f"{key}.json"
+
+
+def save_job_cache(f, rec, acceptance=None):
+    """The reusable part of a job run: its record (no copy, no cache flag) and, for a charter run that was the
+    draft, its first-pass acceptance."""
+    body = {k: v for k, v in rec.items() if not k.startswith("_") and k != "cached"}
+    f.parent.mkdir(parents=True, exist_ok=True)
+    lc.save_json(f, {"rec": body, "acceptance": acceptance})
+
+
 def save_run_record(suite, rec):
     """Keep this run's record as its own file named by its digest; returns the record ID. A cache file can be
     overwritten by a later run with the same key, so a report points at these files, never at the cache."""
@@ -696,7 +736,8 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
             if problem:
                 raise Refused(f"suite {name}: a weaker-model run sets the model through the job copy's default, "
                               f"but {problem}")
-        return run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only)
+        return run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only,
+                        use_cache)
     plan, est_tokens, est_seconds = [], 0, 0
     for c in cases:
         prompt = build_prompt(s, c)
@@ -833,20 +874,30 @@ def save_report(name, mode, report):
     return path
 
 
-def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only):
+def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, model, framework, only, use_cache=True):
     """An interview or charter suite (T2.5, evals/jobsim.py): every run drives a real job in its own temporary
-    factory copy; no cache (a run is many calls). A report passes only when every case passes and the kind's limits
-    in evals/thresholds.json hold (T2.5 item 5; a metric that can't be calculated fails, item 8)."""
+    factory copy. Quick and full runs are cached by job_run_key (Samith's option a): a quick run whose inputs all
+    match is reused as run 1 of a full run (and a charter draft's first-pass acceptance with it); smoke and
+    weaker-model runs, and --no-cache, always make new runs. A report passes only when every case passes and the
+    kind's limits in evals/thresholds.json hold (T2.5 item 5; a metric that can't be calculated fails, item 8)."""
     est_calls = {"interview": 8, "charter": 1}[s["kind"]]
     est_tokens = est_seconds = 0
+    usable = use_cache and mode in ("quick", "full")
+    hits = {}
     for c in cases:
         text = "\n".join(f.read_text(encoding="utf-8", errors="replace") for f in sorted(c["dir"].rglob("*"))
                          if f.is_file())
         e = agent_call.estimate(s["agent_spec"], text + s["rulebook_text"])
         calls = c.get("est_calls", 1 if c.get("single_call") else est_calls)
-        est_tokens += e["tokens"] * calls * n_runs
-        est_seconds += e["seconds"] * calls * n_runs
-    out(f"Suite {name} ({mode}): {len(cases)} case(s) x {n_runs} run(s), each a job in its own factory copy.")
+        for n in range(1, n_runs + 1):
+            f = job_cache_file(name, job_run_key(s, c, model, cli, n, framework))
+            hits[(c["id"], n)] = (f, lc.load_json(f) if usable and f.is_file() else None)
+            if hits[(c["id"], n)][1] is None:
+                est_tokens += e["tokens"] * calls
+                est_seconds += e["seconds"] * calls
+    cached_n = sum(1 for v in hits.values() if v[1] is not None)
+    out(f"Suite {name} ({mode}): {len(cases)} case(s) x {n_runs} run(s), each a job in its own factory copy"
+        f"{f'; {cached_n} run(s) reused from the cache (every input unchanged)' if cached_n else ''}.")
     out(f"Estimate: about {est_tokens:,} tokens and {round(est_seconds / 60, 1)} minutes (model {model}, CLI {cli}); "
         f"first-pass acceptance and end-to-end jobs come on top.")
     if estimate_only:
@@ -871,29 +922,59 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
             for n in range(1, n_runs + 1):
                 if stopped:
                     break
+                f, hit = hits[(c["id"], n)]
+                if hit is not None:
+                    rec = {**hit["rec"], "cached": True}
+                    if hit.get("acceptance") is not None:
+                        rec["_acceptance"] = {**hit["acceptance"], "cached": True}
+                    sc = rec["score"]
+                    out(f"  {c['id']} run {n}: {sc['outcome']} {'pass' if sc['pass'] else 'FAIL'} "
+                        f"tokens={rec['usage']['total']} (reused: every input unchanged)")
+                    results[c["id"]].append(rec)
+                    continue
                 if s["kind"] == "interview":
                     rec = jobsim.run_interview(c, n, cmd=cmd, model=weaker)
                 else:
                     rec = jobsim.run_charter(c, n, cmd=cmd, keep=True, model=weaker)
+                if usable and not rec.get("infra_errors"):             # an infra failure is never reused
+                    rec["_cache"] = f
+                    if s["kind"] == "interview":
+                        save_job_cache(f, rec)
                 spent += rec["usage"]["total"]
                 spend_add(name, mode, f"{c['id']} run {n}", rec["usage"]["total"])
                 sc = rec["score"]
                 out(f"  {c['id']} run {n}: {sc['outcome']} {'pass' if sc['pass'] else 'FAIL'} "
                     f"tokens={rec['usage']['total']}")
+                if rec.get("kept"):
+                    why = f"infra error ({'; '.join(rec['infra_errors'])})" if rec.get("infra_errors") else "failed run"
+                    out(f"    {why}; job kept in {rec['kept']}")
                 results[c["id"]].append(rec)
                 if spent >= ceiling:
                     stopped = f"token ceiling reached ({spent:,} >= {ceiling:,})"
             if s["kind"] == "charter" and results[c["id"]] and not stopped:
-                draft = jobsim.pick_draft(results[c["id"]], maj)
-                for r in results[c["id"]]:
+                rs = results[c["id"]]
+                draft = jobsim.pick_draft(rs, maj)
+                if draft is not None and draft.get("cached") and "_acceptance" not in draft:
+                    live = [r for r in rs if r.get("_copy") and r.get("_output")]   # a reused run has no copy left
+                    draft = next((r for r in live if r["score"]["pass"]), live[0] if live else None)
+                for r in rs:
                     if r is not draft and r.get("_copy"):
                         jobsim.remove_copy(r.pop("_copy"))
-                acceptance[c["id"]] = jobsim.first_pass(draft, c["key"], cmd=cmd) if draft else \
-                    {"accepted": False, "state": "no draft", "verdicts": [], "tokens": 0}
-                spent += acceptance[c["id"]]["tokens"]
-                spend_add(name, mode, f"{c['id']} first-pass acceptance", acceptance[c["id"]]["tokens"])
+                if draft is not None and "_acceptance" in draft:
+                    acceptance[c["id"]] = draft["_acceptance"]                  # reused with its draft
+                else:
+                    acceptance[c["id"]] = jobsim.first_pass(draft, c["key"], cmd=cmd, case=c) if draft else \
+                        {"accepted": False, "state": "no draft", "verdicts": [], "tokens": 0}
+                    spent += acceptance[c["id"]]["tokens"]
+                    spend_add(name, mode, f"{c['id']} first-pass acceptance", acceptance[c["id"]]["tokens"])
+                for r in rs:                       # cache the new runs now: the draft carries its acceptance
+                    if r.get("_cache"):
+                        save_job_cache(r["_cache"], r, acceptance[c["id"]] if r is draft else None)
                 out(f"  {c['id']} first-pass acceptance: {'accepted' if acceptance[c['id']]['accepted'] else 'not accepted'} "
                     f"({acceptance[c['id']]['state']})")
+                if acceptance[c["id"]].get("kept"):
+                    out(f"    first-pass acceptance {'infra error' if acceptance[c['id']].get('infra_errors') else 'not accepted'}; "
+                        f"job kept in {acceptance[c['id']]['kept']}")
     except jobsim.LeakStop as e:
         out(f"LEAK: {e}. Stopped; no report written.")
         return None, 2
@@ -930,9 +1011,12 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
         "thresholds": th[s["kind"]], "threshold_failures": fails, "threshold_skipped": skipped, "min_counts": mc,
         "pass": not fails and metrics["runs"] > 0 and metrics["cases_passed"] == metrics["cases"],
         "metrics": metrics, "cases": per_case,
-        "usage": {"calls": len(usage_runs), "cached": 0, "tokens_new": sum(r["usage"]["total"] for r in usage_runs),
+        "usage": {"calls": len(usage_runs), "cached": sum(1 for r in usage_runs if r.get("cached")),
+                  "tokens_new": sum(r["usage"]["total"] for r in usage_runs if not r.get("cached")),
                   "tokens_all": sum(r["usage"]["total"] for r in usage_runs),
-                  "tokens_acceptance": sum(a["tokens"] for a in acceptance.values()), "estimate_tokens": est_tokens},
+                  "tokens_acceptance": sum(a["tokens"] for a in acceptance.values() if not a.get("cached")),
+                  "tokens_acceptance_reused": sum(a["tokens"] for a in acceptance.values() if a.get("cached")),
+                  "estimate_tokens": est_tokens},
         "run_records": run_records,
         "framework": framework, "suite_fingerprint": s["fingerprint"],
     }
@@ -975,6 +1059,7 @@ def main(argv=None):
     r.add_argument("--estimate-only", action="store_true")
     r.add_argument("--no-cache", action="store_true")
     r.add_argument("--cases")
+    r.add_argument("--keep-failed", action="store_true")
     sub.add_parser("stale")
     sub.add_parser("spend")
     st = sub.add_parser("spend-start")
@@ -1003,6 +1088,7 @@ def main(argv=None):
             return 1 if problems else 0
         mode = ("quick" if args.quick else "smoke" if args.smoke else "discrimination" if args.discrimination
                 else "full")
+        jobsim.KEEP_FAILED = args.keep_failed
         _, code = run(args.suite, mode, args.estimate_only, not args.no_cache,
                       set(args.cases.split(",")) if args.cases else None)
         return code

@@ -86,10 +86,10 @@ class JobSimBase(IntakeBase):
         key.update(over)
         return key
 
-    def interview(self, cid="P1", key=None, case=None, mode="quick", out=None):
+    def interview(self, cid="P1", key=None, case=None, mode="quick", out=None, use_cache=True):
         self.suite("interviews", "interview", "interviewer")
         self.case("interviews", cid, case or {}, key or self.persona_key())
-        return self.re.run("interviews", mode, out=out or (lambda *_: None))
+        return self.re.run("interviews", mode, use_cache=use_cache, out=out or (lambda *_: None))
 
 
 class CopyTests(JobSimBase):
@@ -274,10 +274,54 @@ class InterviewRunTests(JobSimBase):
         (self.tmp / "responses.json").unlink()
         shutil.rmtree(self.tmp / "evals/interviews")
         self.fake("interviewer", self.status(self.job, playback=None))
-        rep, code = self.interview(key=key, case={"single_call": True, "kind": "false_ready"})
+        rep, code = self.interview(key=key, case={"single_call": True, "kind": "false_ready"},
+                                   use_cache=False)          # same inputs, another fake agent: the cache can't see it
         self.assertEqual((code, rep["cases"][0]["outcomes"], rep["metrics"]["false_ready_rate"]),
                          (1, ["false_ready"], 1.0))
         self.assertIn("false_ready_rate 1.0 (threshold 0)", rep["threshold_failures"])
+
+    def reuse_case(self):
+        key = self.persona_key(probe_fields=["success_metrics"], expect={"outcome": "not_ready"}, injections=[])
+        self.fake("interviewer", self.ask("success_metrics"))
+        rep, _ = self.interview(key=key, case={"single_call": True, "kind": "false_ready"})
+        self.assertEqual(rep["usage"]["cached"], 0)
+        return key
+
+    def test_a_quick_run_is_reused_as_run_1_of_a_full_run(self):
+        """Samith's option a: every input unchanged, so the full run makes runs 2 and 3 only."""
+        self.reuse_case()
+        before = len(self.calls())
+        out = []
+        rep, _ = self.re.run("interviews", "full", out=out.append)
+        c = rep["cases"][0]
+        self.assertEqual((rep["usage"]["cached"], c["cached_runs"], rep["metrics"]["runs"]), (1, 1, 3))
+        self.assertEqual(len(self.calls()) - before, 2)                       # one call per new single-call run
+        self.assertLessEqual(rep["usage"]["tokens_new"], rep["usage"]["tokens_all"])   # the reused run is not new spend
+        self.assertIsNone(importlib.import_module("evalcheck").record_problem(rep))
+        self.assertTrue(any("reused" in line for line in out), out)
+
+    def test_any_changed_input_forces_a_fresh_run(self):
+        key = self.reuse_case()
+        changes = {
+            "case file": lambda: (self.tmp / "evals/interviews/cases/P1/brief.md").write_text(
+                "Shift swap helper for a volunteer rota (synthetic), changed.", encoding="utf-8"),
+            "key": lambda: self.dump("evals/interviews/keys/P1.json", {**key, "leak_terms": ["hidden reference", "x9"]}),
+            "rulebook": lambda: (self.tmp / "rules/interview-guide.md").write_text(
+                (self.tmp / "rules/interview-guide.md").read_text(encoding="utf-8") + "\n", encoding="utf-8"),
+            "agent": lambda: (self.tmp / ".claude/agents/interviewer.md").write_text(
+                (self.tmp / ".claude/agents/interviewer.md").read_text(encoding="utf-8") + "\n", encoding="utf-8"),
+            "engine (handoff code)": lambda: (self.tmp / "engine/labcore.py").write_text(
+                (self.tmp / "engine/labcore.py").read_text(encoding="utf-8") + "\n# changed\n", encoding="utf-8"),
+            "template": lambda: self.write("templates/intake/extra-template.md", "A new template line."),
+        }
+        for what, change in changes.items():
+            change()
+            rep, _ = self.re.run("interviews", "quick", out=lambda *_: None)
+            self.assertEqual(rep["usage"]["cached"], 0, f"{what}: must make a fresh run")
+            rep, _ = self.re.run("interviews", "quick", out=lambda *_: None)
+            self.assertEqual(rep["usage"]["cached"], 1, f"{what}: the fresh run is reused once nothing changes")
+        rep, _ = self.re.run("interviews", "quick", use_cache=False, out=lambda *_: None)
+        self.assertEqual(rep["usage"]["cached"], 0, "--no-cache")
 
     def test_a_weaker_model_run_sets_the_model_in_each_copy_only_and_never_counts(self):
         """T2.5 item a (suite design rule 5): the job copy's default model is the weaker one; the factory's is not
@@ -410,6 +454,61 @@ class CharterRunTests(JobSimBase):
         self.assertEqual((code, c["pass"], c["invented_per_run"], rep["metrics"]["invented_cases"]), (1, False, [1], 1))
         fpa = c["first_pass_acceptance"]
         self.assertEqual((fpa["accepted"], fpa["state"], fpa["verdicts"]), (False, "REVISING", ["fail"]))
+
+    def test_an_infra_error_keeps_the_job_folder_and_the_report_names_it(self):
+        self.charter_case()
+        self.fake("charter-writer", "not an object", "still not an object")          # invalid twice: infra_error
+        out = []
+        rep, code = self.re.run("charters", "quick", out=out.append)
+        c = rep["cases"][0]
+        self.assertEqual((code, c["outcomes"]), (1, ["infra_error"]))
+        self.assertEqual(len(c["kept"]), 1, c)
+        self.assertTrue(c["kept"][0].startswith("cache/evals/charters/kept/W1-run1-"), c["kept"])
+        self.assertTrue(any("charter-writer" in e for e in c["infra_errors"]), c)
+        kept = self.tmp / c["kept"][0]
+        self.assertTrue((kept / "job" / "state.json").is_file())
+        self.assertTrue((kept / "job" / "run.log.jsonl").is_file())
+        self.assertIn("infra_error", (kept / "job" / "run.log.jsonl").read_text(encoding="utf-8"))
+        self.assertTrue(any(c["kept"][0] in line for line in out), out)
+        self.assertIn("cache/", (REPO / ".gitignore").read_text(encoding="utf-8").splitlines())   # never tracked
+
+    def test_a_run_with_no_infra_error_keeps_nothing(self):
+        self.charter_case()
+        self.fake("charter-writer", self.charter())
+        self.fake("charter-critic", self.review("charter-critic", "fail"))
+        rep, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        self.assertNotIn("kept", rep["cases"][0])
+        self.assertFalse((self.tmp / "cache/evals/charters/kept").exists())
+
+    def test_a_reused_draft_brings_its_first_pass_acceptance_and_no_reviewer_runs_again(self):
+        self.charter_case()
+        self.fake("charter-writer", self.charter())
+        self.fake("charter-critic", self.review("charter-critic", "pass"))
+        self.fake("charter-verifier", self.review("charter-verifier", "pass"))
+        rep, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        self.assertTrue(rep["cases"][0]["first_pass_acceptance"]["accepted"])
+        before = len(self.calls())
+        rep, _ = self.re.run("charters", "full", out=lambda *_: None)
+        c = rep["cases"][0]
+        self.assertEqual((c["cached_runs"], rep["usage"]["cached"]), (1, 1))
+        self.assertEqual(len(self.calls()) - before, 2)               # runs 2 and 3: writer only, no reviewer
+        fpa = c["first_pass_acceptance"]
+        self.assertEqual((fpa["accepted"], fpa.get("cached")), (True, True))
+        self.assertEqual(rep["usage"]["tokens_acceptance"], 0)
+        self.assertIsNone(importlib.import_module("evalcheck").record_problem(rep))
+
+    def test_keep_failed_also_keeps_a_failed_first_pass(self):
+        self.charter_case()
+        self.fake("charter-writer", self.charter())
+        self.fake("charter-critic", self.review("charter-critic", "fail"))
+        self.js.KEEP_FAILED = True
+        self.addCleanup(setattr, self.js, "KEEP_FAILED", False)
+        rep, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        fpa = rep["cases"][0]["first_pass_acceptance"]
+        self.assertEqual(fpa["accepted"], False)
+        kept = self.tmp / fpa["kept"]
+        self.assertTrue(any(p.name == "run.log.jsonl" for p in kept.rglob("*")), fpa)
+        self.assertTrue(any("reviews" in p.parts for p in kept.rglob("*")), fpa)     # the critic's findings are there
 
     def test_a_needs_input_case_matches_the_exact_question(self):
         key = {"canary": "zebracorn", "expect": "needs_input", "question": {"accept": ["who approves a swap"]}}

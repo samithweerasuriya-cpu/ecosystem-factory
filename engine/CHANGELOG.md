@@ -1,5 +1,13 @@
 # Engine changelog
 
+## 0.25.0 (2026-11-13)
+
+Evaluation runs for the writer and interviewer suites: kept jobs and run reuse (Samith's decisions, 2026-11-13).
+
+- `evals/jobsim.py`: a run whose job hits an infra error keeps its job folder (state, call log, saved and rejected answers) and the copy's `logs/` in `cache/evals/<suite>/kept/<case>-run<n>-<time>/` (untracked). The run record and the report's case row name it, with each error; first-pass acceptance does the same. `run_evals.py run ... --keep-failed` also keeps every failed run's job, for diagnosis.
+- `evals/run_evals.py`: interview and charter runs are cached, like reviewer runs, so a quick run is reused as run 1 of a full run. The cache key covers the case's files, its key, the rulebook, the agent, the handoff format, every file a job copy runs (agents, rules, schemas, config, engine, templates), the scoring code, the model, the CLI and the run number. Any change gives a fresh run. A reused charter draft brings its first-pass acceptance, so no reviewer runs again. Smoke and weaker-model runs, `--no-cache` and runs with an infra error are never reused. The report counts reused runs (`usage.cached`, `cached_runs` per case), and `tokens_new` leaves them out.
+- Tests: infra error kept and named; a clean run keeps nothing; `--keep-failed` keeps a failed first pass with the critic's review; quick reused as full run 1; each changed input (case file, key, rulebook, agent, engine, template) and `--no-cache` forces a fresh run; a reused draft's acceptance is reused.
+
 ## 0.24.0 (2026-11-11)
 
 Auto permission mode allowed (Samith's decision, 2026-11-11: he approves the routine steps anyway).

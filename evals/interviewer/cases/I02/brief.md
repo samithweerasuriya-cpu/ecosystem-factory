@@ -7,7 +7,7 @@ Bike kitchen job board
 bike-kitchen-jobs
 
 ## 3. Goal <!-- field: goal -->
-At the community bike kitchen, people bring bikes in on open evenings and a volunteer mechanic helps them fix it. When this works, the evening's lead gets the night's jobs sorted by stand and by the parts they need, so each visitor is matched to a mechanic who can do the job within the first half hour.
+At the community bike kitchen, people bring bikes in on open evenings and a volunteer mechanic helps them fix it. When this works, the evening's lead gets the night's jobs sorted by the skill and the parts they need, so each visitor is matched to a mechanic who can do the job within the first half hour.
 
 ## 4. Users and stakeholders <!-- field: users_and_stakeholders -->
 Volunteer mechanics (users: pick their next job from the list). Evening lead (approver: checks the list before the doors open). Visitors (stakeholders: want their bike fixed the same evening). Parts volunteer (stakeholder: keeps the second-hand parts bins stocked).
@@ -16,7 +16,7 @@ Volunteer mechanics (users: pick their next job from the list). Evening lead (ap
 Steps: visitors write their name and the problem on the whiteboard by the door; the evening lead reads the board and sends each visitor to a free stand; the mechanic at the stand looks at the bike and fetches parts from the bins.
 
 ## 6. Scope <!-- field: scope -->
-In: one evening's sign-in sheet; a list of jobs with stand, mechanic skill and parts needed. Also in: matching each job to a mechanic who has signed off that skill.
+In: one evening's sign-in sheet; a list of jobs with mechanic skill and parts needed. Also in: matching each job to a mechanic who has signed off that skill.
 
 ## 7. Inputs <!-- field: inputs -->
 The evening's sign-in sheet typed into plain text: visitor first name, bike type, problem in the visitor's words. About 20 an evening. Sample: signin-sheet.txt (made up).

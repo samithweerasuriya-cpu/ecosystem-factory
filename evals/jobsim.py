@@ -19,6 +19,7 @@ loop in CLAUDE.md. The hidden key stays on the runner's side; the persona reveal
   (evals/replay_cli.py, no model call) and the readiness script, or from a job folder authored with the case
   (fixture, e.g. a job whose readiness override is already recorded), copied as it is.
 """
+import datetime
 import json
 import re
 import secrets
@@ -44,6 +45,7 @@ SIMULATED_RESUMES = 1                     # the one simulated human resume at th
 STEP_TIMEOUT = 120                                 # seconds for one state.py step or engine function in the copy
 CALL_TIMEOUT = agent_call.DEFAULT_TIMEOUT          # seconds for one agent call (tests set less)
 _COPIES = {}                                       # resolved copy path -> marker token (this process only)
+KEEP_FAILED = False                                # run_evals --keep-failed: keep every failed run's job, not only infra errors
 
 
 class SimError(lc.LabError):
@@ -374,6 +376,8 @@ def drive(root, job, key, persona, rec, until, max_calls=None, cmd=None):
             r = call_job(root, job, agent, cmd)
             rec["calls"] += 1
             rec["last_status"] = r["status"]
+            if r["status"] == "infra_error":
+                rec.setdefault("infra_errors", []).append(f"{agent}: {r.get('error')}")
             if r["status"] == "error":
                 raise SimError(f"{job}: {agent}: {r.get('error')}")
             if r["status"] != "done":
@@ -412,6 +416,34 @@ def new_job(root, case):
 
 def new_record(case, n):
     return {"case": case["id"], "run": n, "calls": 0, "answers": 0, "resumes": 0, "last_status": None}
+
+
+def kept_dir(case):
+    """Where a run's job is kept after an infra error: cache/evals/<suite>/kept/ (git-ignored, hook-protected)."""
+    return lc.ROOT / "cache" / "evals" / Path(case["dir"]).parent.parent.name / "kept"
+
+
+def keep_on_infra_error(root, job, case, rec, failed=False):
+    """An evaluation job that hit an infra error keeps its job folder (state, call log, handoffs, saved and
+    rejected answers) and the copy's logs/, so the cause can be read after the copy is removed. With KEEP_FAILED
+    (run_evals --keep-failed) a failed run is kept too. Records the folder (repo-relative) in the run record;
+    does nothing otherwise."""
+    if root is None or not (rec.get("infra_errors") or (KEEP_FAILED and failed)):
+        return None
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    base = kept_dir(case) / f"{case['id']}-run{rec['run']}-{stamp}"
+    dest, n = base, 1
+    while dest.exists():                                          # never overwrite an earlier kept run
+        n += 1
+        dest = base.with_name(f"{base.name}-{n}")
+    src = root / "jobs" / job
+    if src.is_dir():
+        shutil.copytree(src, dest / "job")
+    if (root / "logs").is_dir():
+        shutil.copytree(root / "logs", dest / "logs")
+    dest.mkdir(parents=True, exist_ok=True)
+    rec["kept"] = lc.rel(dest)
+    return rec["kept"]
 
 
 def job_usage(st, agent=None):
@@ -455,6 +487,7 @@ def run_interview(case, n, cmd=None, model=None):
             rec["score"]["end_to_end"] = end_to_end(root, st, key)
         rec["usage"], rec["models"] = usage_record(st)
         rec["status"] = "done"
+        keep_on_infra_error(root, job, case, rec, failed=not rec["score"]["pass"])
         return rec
     except SimTimeout as e:
         raise timed_out(case, n, e) from None
@@ -563,7 +596,8 @@ def aggregate_interview(cases, results, maj):
                          "playback_corrections": [sc.get("playback_corrections", 0) for sc in scores],
                          "end_to_end": [sc.get("end_to_end") for sc in scores if sc.get("end_to_end")] or None,
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3) if rs else None,
-                         "tokens": tokens_of(rs)})
+                         "tokens": tokens_of(rs), "cached_runs": sum(1 for r in rs if r.get("cached")),
+                         **kept_rows(rs)})
     t = totals
     metrics = {
         "field_recall": round(t["hit"] / t["ref"], 3) if t["ref"] else None, "fields_recalled": f"{t['hit']} of {t['ref']}",
@@ -715,6 +749,9 @@ def run_charter(case, n, cmd=None, keep=False, model=None):
         rec.update(score=score_charter(root, st, r, key), status="done")
         rec["score"].update(calls=calls, invalid_calls=invalid)
         rec["usage"], rec["models"] = usage_record(st)
+        if r["status"] == "infra_error":
+            rec["infra_errors"] = [f"charter-writer: {r.get('error')}"]
+        keep_on_infra_error(root, job, case, rec, failed=not rec["score"]["pass"])
         if keep:
             rec["_copy"], rec["_job"], rec["_output"] = root, job, r.get("output")
             root = None
@@ -726,9 +763,17 @@ def run_charter(case, n, cmd=None, keep=False, model=None):
             remove_copy(root)
 
 
-def first_pass(rec, key, cmd=None):
+def kept_rows(rs):
+    """Per-case report fields for runs that hit an infra error: each error and the kept job folder."""
+    errs = [e for r in rs for e in r.get("infra_errors", [])]
+    kept = [r["kept"] for r in rs if r.get("kept")]
+    return {"infra_errors": errs, "kept": kept} if errs or kept else {}
+
+
+def first_pass(rec, key, cmd=None, case=None):
     """First-pass acceptance (T2.5): the draft goes once through the critic and the verifier; accepted when the
-    job reaches the gate with no revision. Returns {"accepted", "state", "verdicts", "tokens"}."""
+    job reaches the gate with no revision. Returns {"accepted", "state", "verdicts", "tokens"}, plus the infra
+    errors and the kept job folder when a reviewer call hit one (case gives the suite folder)."""
     root, job = rec.pop("_copy"), rec["_job"]
     try:
         if not rec.get("_output"):
@@ -736,13 +781,17 @@ def first_pass(rec, key, cmd=None):
         before = job_usage(load_state(root, job))[0]
         after_call(root, job, load_state(root, job), rec["_output"]["path"])
         stop = lambda st: st["state"] in ("REVISING", "GATE")          # noqa: E731
-        outcome = drive(root, job, key, Persona({}), new_record({"id": rec["case"]}, rec["run"]), stop, cmd=cmd)
+        fp = new_record({"id": rec["case"]}, rec["run"])
+        outcome = drive(root, job, key, Persona({}), fp, stop, cmd=cmd)
         st = load_state(root, job)
         verdicts = [json.loads((root / c["output"]["path"]).read_text(encoding="utf-8")).get("verdict")
                     for c in st["calls"] if c.get("agent") in ("charter-critic", "charter-verifier") and c.get("output")]
-        return {"accepted": st["state"] == "GATE" and st["counters"].get("lifetime_revisions", 0) == 0,
-                "state": st["state"] if outcome == "until" else outcome, "verdicts": verdicts,
-                "tokens": job_usage(st)[0] - before}
+        res = {"accepted": st["state"] == "GATE" and st["counters"].get("lifetime_revisions", 0) == 0,
+               "state": st["state"] if outcome == "until" else outcome, "verdicts": verdicts,
+               "tokens": job_usage(st)[0] - before}
+        if case is not None and keep_on_infra_error(root, job, case, fp, failed=not res["accepted"]):
+            res.update(infra_errors=fp.get("infra_errors", []), kept=fp["kept"])
+        return res
     except SimTimeout as e:
         raise timed_out({"id": rec["case"], "kind": "first-pass acceptance"}, rec["run"], e) from None
     finally:
@@ -769,7 +818,8 @@ def aggregate_charter(cases, results, maj):
                          "invented_per_run": [sc["invented"] for sc in scores],
                          "question_ok": [sc["question_ok"] for sc in scores],
                          "agreement": round(max(passed, len(rs) - passed) / len(rs), 3) if rs else None,
-                         "tokens": tokens_of(rs)})
+                         "tokens": tokens_of(rs), "cached_runs": sum(1 for r in rs if r.get("cached")),
+                         **kept_rows(rs)})
     metrics = {
         "field_accuracy": round(total["ok"] / total["fields"], 3) if total["fields"] else None,
         "fields_correct": f"{total['ok']} of {total['fields']}", "invented_cases": total["inv_cases"],
