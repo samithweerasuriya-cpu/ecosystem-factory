@@ -497,6 +497,22 @@ class CharterRunTests(JobSimBase):
         self.assertEqual(rep["usage"]["tokens_acceptance"], 0)
         self.assertIsNone(importlib.import_module("evalcheck").record_problem(rep))
 
+    def test_the_rebuilt_spend_total_equals_every_call_made(self):
+        """Samith, 2026-11-16: first-pass reviewer calls are in the run records, so the total rebuilt from the
+        records (spend-start) equals the sum of every call; a reused run is counted once."""
+        self.charter_case()
+        self.fake("charter-writer", self.charter())
+        self.fake("charter-critic", self.review("charter-critic", "pass"))
+        self.fake("charter-verifier", self.review("charter-verifier", "pass"))
+        rep, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        rep2, _ = self.re.run("charters", "full", out=lambda *_: None)            # run 1 reused, runs 2-3 new
+        per_call = self.lc.usage_from_tokens({"input_tokens": 2, "output_tokens": 325, "cache_read_input_tokens": 0,
+                                              "cache_creation_input_tokens": 617})["total"]   # what the fake reports
+        calls = per_call * len(self.calls())                                     # every call the fake CLI answered
+        self.assertGreater(rep["usage"]["tokens_acceptance"], 0)
+        rebuilt, _ = self.re.records_since("2000-01-01")
+        self.assertEqual(rebuilt, calls)
+
     def test_keep_failed_also_keeps_a_failed_first_pass(self):
         self.charter_case()
         self.fake("charter-writer", self.charter())

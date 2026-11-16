@@ -646,12 +646,15 @@ def spend_add(suite, mode, what, tokens):
 
 
 def records_since(since):
-    """(tokens, records) over every suite's run records written on or after the date (file time, UTC)."""
+    """(tokens, records) over every suite's run records written on or after the date (file time, UTC): each run's
+    calls plus, on a charter draft's record, its first-pass reviewer calls (acceptance_usage). A reused run shares
+    its record file, so it is counted once."""
     day = datetime.datetime.strptime(since, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc)
     tokens = n = 0
     for f in sorted((lc.ROOT / "cache" / "evals").glob("*/runs/*.json")):
         if datetime.datetime.fromtimestamp(f.stat().st_mtime, datetime.timezone.utc) >= day:
-            tokens += ((lc.load_json(f).get("usage") or {}).get("total") or 0)
+            rec = lc.load_json(f)
+            tokens += ((rec.get("usage") or {}).get("total") or 0) + ((rec.get("acceptance_usage") or {}).get("total") or 0)
             n += 1
     return tokens, n
 
@@ -967,6 +970,8 @@ def run_jobs(name, s, cases, mode, n_runs, th, estimate_only, out, cmd, cli, mod
                         {"accepted": False, "state": "no draft", "verdicts": [], "tokens": 0}
                     spent += acceptance[c["id"]]["tokens"]
                     spend_add(name, mode, f"{c['id']} first-pass acceptance", acceptance[c["id"]]["tokens"])
+                    if draft is not None:          # the reviewer calls on this draft, so the records hold every call
+                        draft["acceptance_usage"] = {"total": acceptance[c["id"]]["tokens"]}
                 for r in rs:                       # cache the new runs now: the draft carries its acceptance
                     if r.get("_cache"):
                         save_job_cache(r["_cache"], r, acceptance[c["id"]] if r is draft else None)

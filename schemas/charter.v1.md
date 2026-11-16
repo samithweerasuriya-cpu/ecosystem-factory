@@ -7,7 +7,9 @@
 
 v1 replaces the thin v0 charter for every new job; v0 stays only for the Phase 1 thin version. Fields not listed here are rejected; anything unparseable fails.
 
-**Citations.** Every section and every list item has `cites`: one or more citations in the evidence module's format (`rules/check-evidence.md`). `[A:<id>]` or `[A:<id> "exact words"]` cites one of the approver's recorded answers (IDs `A01`, `A02`… as `state.py input` gives them); `[S:<id> §<location>]` or with `"exact words"` cites a file in the context inventory. A charter has no `[G:…]` citations: nothing is approved before it. Quotes are at most 25 words (`config/evidence.json`).
+**Citations.** Every section and every list item has `cites`: one or more citations in the evidence module's format (`rules/check-evidence.md`). `[A:<id>]` or `[A:<id> "exact words"]` cites one of the approver's recorded answers (IDs `A01`, `A02`… as `state.py input` gives them); `[S:<id> §<location>]` or with `"exact words"` cites a file in the context inventory. A charter has no `[G:…]` citations: nothing is approved before it. Quotes are at most 25 words (`config/evidence.json`). A quote can't contain a double quote character: when the words contain one, quote a shorter stretch without it, or cite the answer without a quote.
+
+**Formats** (checked by `schemas/charter.v1.schema.json`). Every text value is at least 3 characters. A list is a JSON array even with one item (for example `inputs.constraints`). A role in `users_and_stakeholders` and an open question's `owner` are written in lowercase letters, digits and hyphens, starting with a letter, 2–41 characters (for example `returns-volunteer`).
 
 **Unknowns.** A charter never says "TBD" or "don't know". Every unknown is an entry in `open_questions`, with an owner. ("Don't know yet" is fine in the T2.2 problem brief; the charter writer turns it into an open question.)
 
@@ -20,10 +22,10 @@ v1 replaces the thin v0 charter for every new job; v0 stays only for the Phase 1
 | `goal` | `text`, `cites` | yes | What changes for people when this works. |
 | `success_metrics.agent_checkable` | list | yes | Each `id` (`M01`…), `metric`, `target`, `check` (how a script or reviewer measures it), `cites`. |
 | `success_metrics.outcome` | list | yes | Each `id`, `metric`, `target`, `cites`: what the people involved notice; not checkable by an agent. |
-| `users_and_stakeholders` | list | yes | Each `role` (a role name, never a person's name), `relation` (`user`, `approver`, `stakeholder`), `interest`, `cites`. At least one user and one approver. |
+| `users_and_stakeholders` | list | yes | Each `role` (a role name in lowercase with hyphens, never a person's name), `relation` (`user`, `approver`, `stakeholder`), `interest`, `cites`. At least one user and one approver. |
 | `current_process` | `steps`, `problems`, `cites` | yes | How it is done today and what goes wrong. |
 | `scope` | `in`, `out`, `cites` | yes | At least one item each. |
-| `inputs` | object | yes | `description`, `format`, `constraints`, `samples` (each `source`: a context-inventory ID, and `description`), `cites`. |
+| `inputs` | object | yes | `description`, `format`, `constraints` (a list), `samples` (each `source`: a context-inventory ID, and `description`), `cites`. |
 | `glossary` | list | yes | Each `term`, `meaning`, `cites`. May be empty. |
 | `acceptance_tests` | list | yes | Each `id` (`T01`…), `words` (the problem owner's own answer to "how will you know it worked?"), `cites`. |
 | `context_inventory` | list | yes | Every file in the context pack: `id` (`S01`…), `path` (inside the job folder, e.g. `inputs/context/notes.txt`), `classification`, `evidence_for`. May be empty. Quotes from these files are checked at job time by `engine/evidence.py`. |

@@ -159,6 +159,30 @@ class WatchdogTests(unittest.TestCase):
         pid = int((self.tests / "grandchild.pid").read_text())
         self.assertFalse(alive(pid), "the hung test's own child process was left running")
 
+    def test_a_stop_names_the_running_processes_the_stack_and_the_last_output(self):
+        """Samith, 2026-11-16: the stop message says what was still running, where the test waited and what it
+        printed last. The details go to the message only; the record is unchanged."""
+        (self.tests / "test_planted_talk.py").write_text(
+            "import subprocess, sys, time, unittest\nfrom pathlib import Path\n"
+            "class Talk(unittest.TestCase):\n    def test_waits(self):\n"
+            "        print('LAST-WORDS-MARKER', flush=True)\n"
+            "        p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(300)'])\n"
+            "        (Path(__file__).parent / 'grandchild.pid').write_text(str(p.pid))\n"
+            "        p.wait()\n", encoding="utf-8")
+        lines = []
+        code, rec = run_tests.supervise(repo=self.repo, start_dirs=[self.tests], out=lines.append, fast=True,
+                                        test_timeout=6, run_timeout=120)
+        out = "\n".join(lines)
+        self.assertEqual(code, 2)
+        self.assertEqual(set(rec["timed_out"]), {"kind", "test", "limit_s"})
+        grandchild = (self.tests / "grandchild.pid").read_text()
+        self.assertIn("Processes running when it was stopped", out)
+        self.assertRegex(out, rf"\n    {grandchild}  \d+ s  .*sleep\(300\)", out)
+        self.assertIn("Python stack of the test process", out)
+        self.assertIn("test_waits", out)                                   # the frame the test was waiting in
+        self.assertIn("LAST-WORDS-MARKER", out)
+        self.assertFalse(alive(int(grandchild)))
+
     def test_full_tier_timeout_overwrites_the_full_record_as_failed(self):
         code, rec, _ = self.supervise("hang", test_timeout=3)
         self.assertEqual(code, 2)

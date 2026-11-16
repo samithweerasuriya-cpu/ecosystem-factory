@@ -22,7 +22,9 @@ engine version, tier, tests, failures, skipped, guard result, the UTC time and, 
 timed_out (kind, test, limit), plus the run time and the 10 slowest tests and modules, also printed (T2.5). Both are written after the guard's second fingerprint, so they never fail
 the guard; both are untracked.
 """
+import collections
 import datetime
+import faulthandler
 import hashlib
 import json
 import os
@@ -30,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -132,9 +135,13 @@ class HeartbeatResult(unittest.TextTestResult):
         super().__init__(*a, **kw)
         self.durations, self.modules, self._module = {}, {}, None
 
+    stacks, dump_after = None, None
+
     def stopTest(self, test):
         super().stopTest(test)
         self.durations[test.id()] = time.time() - self._started
+        if self.stacks is not None:
+            faulthandler.cancel_dump_traceback_later()
 
     def close_module(self, now=None):
         if self._module:
@@ -153,6 +160,10 @@ class HeartbeatResult(unittest.TextTestResult):
                                          + len(self.unexpectedSuccesses), "skipped": len(self.skipped)})
         except OSError:
             pass  # the watcher is reading it; the next test writes again, and the run limit still applies
+        if self.stacks is not None:                      # where a hung test waits, written just before the stop
+            self.stacks.write(f"\n=== {test.id()} ===\n")
+            self.stacks.flush()
+            faulthandler.dump_traceback_later(self.dump_after, repeat=False, file=self.stacks)
         super().startTest(test)
 
 
@@ -164,6 +175,9 @@ def child(argv):
     folders = [argv[i + 1] for i, a in enumerate(argv) if a == "--start-dir"] or None
     suite, skipped = collect("--fast" in argv, folders)
     HeartbeatResult.heartbeat = heartbeat
+    if "--dump-after" in argv:
+        HeartbeatResult.dump_after = float(argv[argv.index("--dump-after") + 1])
+        HeartbeatResult.stacks = open(heartbeat.parent / "stacks.txt", "w", encoding="utf-8")
     result = unittest.TextTestRunner(verbosity=2 if "-v" in argv else 1, stream=sys.stderr,
                                      resultclass=HeartbeatResult).run(suite)
     result.close_module()
@@ -196,6 +210,77 @@ def kill_tree(proc):
         proc.kill()
 
 
+TAIL_CHARS = 2000      # the child's last output kept for a stop message
+
+
+def process_tree(root_pid):
+    """[(pid, seconds running or None, command line)] for root_pid and every process under it, oldest first, read
+    just before a hung child is stopped (read-only; any failure gives one line saying why)."""
+    try:
+        if os.name == "nt":
+            ps = ("Get-CimInstance Win32_Process | ForEach-Object { [pscustomobject]@{ p = $_.ProcessId; "
+                  "pp = $_.ParentProcessId; age = if ($_.CreationDate) { [int]((Get-Date) - $_.CreationDate)"
+                  ".TotalSeconds } else { $null }; cmd = $_.CommandLine } } | ConvertTo-Json -Compress")
+            r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], capture_output=True,
+                               text=True, timeout=60, stdin=subprocess.DEVNULL)
+            rows = [(int(x["p"]), int(x["pp"]), x.get("age"), x.get("cmd") or "") for x in json.loads(r.stdout or "[]")]
+        else:
+            r = subprocess.run(["ps", "-eo", "pid=,ppid=,etimes=,args="], capture_output=True, text=True, timeout=60,
+                               stdin=subprocess.DEVNULL)
+            rows = []
+            for line in r.stdout.splitlines():
+                parts = line.split(None, 3)
+                if len(parts) >= 3:
+                    rows.append((int(parts[0]), int(parts[1]), int(parts[2]), parts[3] if len(parts) > 3 else ""))
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as e:
+        return [(None, None, f"process list unavailable: {type(e).__name__}: {e}"[:300])]
+    children = collections.defaultdict(list)
+    for pid, ppid, age, cmd in rows:
+        children[ppid].append((pid, age, cmd))
+    found, todo = [], [r for r in rows if r[0] == root_pid][:1]
+    todo = [(p, a, c) for p, _, a, c in todo]
+    while todo:
+        item = todo.pop()
+        found.append(item)
+        todo.extend(children.get(item[0], []))
+    return sorted(found, key=lambda x: -(x[1] or 0))
+
+
+def last_dump(path):
+    """The last test's section of the child's stack file (faulthandler output), or None."""
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    part = text.rsplit("\n=== ", 1)[-1]
+    return part if "Thread" in part or "Stack" in part or "File " in part else None
+
+
+class Tail:
+    """Forwards the child's output to this terminal as it comes and keeps its last TAIL_CHARS characters."""
+
+    def __init__(self, stream, to):
+        self.buf, self.to = collections.deque(maxlen=TAIL_CHARS), to
+        self.thread = threading.Thread(target=self.pump, args=(stream,), daemon=True)
+        self.thread.start()
+
+    def pump(self, stream):
+        while True:
+            chunk = stream.read1(4096) if hasattr(stream, "read1") else stream.read(4096)
+            if not chunk:
+                return
+            text = chunk.decode("utf-8", errors="replace")
+            self.buf.extend(text)
+            try:
+                self.to.write(text)
+                self.to.flush()
+            except (OSError, ValueError):
+                pass
+
+    def text(self):
+        return "".join(self.buf)
+
+
 def _read(path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -209,17 +294,24 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
     child_output: where the child's test output goes (default: this terminal)."""
     tmp = Path(tempfile.mkdtemp(prefix="run-tests-"))
     heartbeat, results = tmp / "heartbeat.json", tmp / "results.json"
-    cmd = [sys.executable, str(Path(__file__).resolve()), "--child", str(heartbeat), str(results)]
+    cmd = [sys.executable, "-u", str(Path(__file__).resolve()), "--child", str(heartbeat), str(results)]
+    # -u: the child's own output is unbuffered, so progress arrives as it comes through the watcher's pipe
     cmd += ["--fast"] * fast + ["-v"] * verbose
+    cmd += ["--dump-after", str(max(test_timeout * 0.9, test_timeout - 30))]
     for d in start_dirs or ():
         cmd += ["--start-dir", str(d)]
-    timed_out, hb = None, None
+    timed_out, hb, tail, details = None, None, None, {}       # details: for the stop message only, not the record
 
     def run():
-        nonlocal timed_out, hb
+        nonlocal timed_out, hb, tail
         start = time.time()
-        proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=child_output, stderr=child_output,
+        piped = child_output is None
+        proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE if piped else child_output,
+                                stderr=subprocess.STDOUT if piped else child_output,
                                 start_new_session=os.name != "nt")
+        if piped:
+            tail = Tail(proc.stdout, sys.stdout)
         while proc.poll() is None:
             time.sleep(POLL)
             hb = _read(heartbeat) or hb
@@ -229,8 +321,14 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
             elif hb and now - hb["started"] > test_timeout:
                 timed_out = {"kind": "test", "test": hb["test"], "limit_s": test_timeout}
             if timed_out:
+                details.update(processes=process_tree(proc.pid),          # read before anything is stopped
+                               stack=last_dump(tmp / "stacks.txt"))
                 kill_tree(proc)
                 break
+        if tail is not None:
+            tail.thread.join(timeout=10)
+            if not tail.thread.is_alive():
+                proc.stdout.close()
         return proc.returncode
 
     began = time.time()
@@ -243,6 +341,18 @@ def supervise(repo=REPO, fast=False, verbose=False, test_timeout=TEST_TIMEOUT, r
         out(f"\nTIMEOUT: {timed_out['test'] or 'no test had started'} - the "
             + ("test ran" if timed_out["kind"] == "test" else "run ran")
             + f" over {timed_out['limit_s']} s. Stopped it and every process it started.")
+        out("  Processes running when it was stopped (process ID, seconds running, command), oldest first:")
+        for pid, age, pcmd in details.get("processes") or [(None, None, "none found")]:
+            out(f"    {pid if pid is not None else '-'}  {age if age is not None else '?'} s  {' '.join(str(pcmd).split())[:300]}")
+        stack = details.get("stack")
+        out("  Python stack of the test process shortly before the stop:"
+            + ("" if stack else " not recorded (the test started before the dump time, or the file was unreadable)"))
+        for line in (stack or "").strip().splitlines()[:60]:
+            out(f"    {line}")
+        last = tail.text().strip() if tail is not None else ""
+        out(f"  Last output (up to {TAIL_CHARS:,} characters):" + ("" if last else " none captured"))
+        for line in last.splitlines()[-25:]:
+            out(f"    {line}")
         hb = hb or {}
         counts = {"tests": hb.get("done", 0) + (1 if hb.get("test") else 0),
                   "failures": hb.get("failures", 0) + 1, "skipped": hb.get("skipped", 0)}

@@ -31,7 +31,8 @@ architect can design from it without asking questions. Precise, traceable, nothi
 1. Fill every field of charter v1 in the order of `schemas/charter.v1.md`. `schema_version` is `"1"`. Leave out
    `answers_ref`: in a job the script checks every `[A:…]` against the recorded answers.
 2. Cite every section and list item: `[A:A03]` or `[A:A03 "exact words"]` for an answer, `[S:S01 §line 4]` or
-   with exact words for a context file. Quotes are word for word and at most 25 words.
+   with exact words for a context file. Quotes are word for word and at most 25 words. A quote can't contain a
+   double quote character: when the words contain one, quote a shorter stretch without it, or cite without a quote.
 3. Each acceptance test's `words` are the owner's own words, quoted with the same text in its citation.
 4. The context inventory lists exactly the registered context files: `id` and `path` inside the job folder
    (`inputs/context/<file>`), with the class and "evidence for" they were registered with. A file registered as an
@@ -44,7 +45,9 @@ architect can design from it without asking questions. Precise, traceable, nothi
    (below) instead of guessing. If you disagree with a finding, keep the text; the reviewer re-judges.
 
 # Answer
-Either the charter as one JSON object, or, when only the owner can settle something:
+Ask only when a required field can't be filled from the answers and context files; any other gap becomes an
+open question (rule 6), never a question. Either the charter as one JSON object, or, when only the owner can settle a
+required field:
 `{"status": "needs_input", "job_id": "<JOB>", "questions": ["..."]}` with 1 to 3 questions of at most 300
 characters, each naming the field and the finding it settles. A question round counts against the job's caps.
 

@@ -1,5 +1,14 @@
 # Engine changelog
 
+## 0.26.0 (2026-11-16)
+
+Writer fix, spend records and watchdog details (Samith's decisions, 2026-11-16).
+
+- `schemas/charter.v1.md` (the writer's rules only: no reviewer handoff includes it) now states the formats the schema checks: every text at least 3 characters, a list is an array even with one item (`inputs.constraints`), and roles and owners are written in lowercase with hyphens. It also says a quote can't contain a double quote character.
+- `.claude/agents/charter-writer.md`: a quote whose words contain a double quote is replaced by a shorter stretch or by a cite without a quote. The writer asks only when a required field can't be filled; any other gap becomes an open question.
+- `evals/run_evals.py`: a charter draft's run record carries its first-pass reviewer calls (`acceptance_usage`), and `spend-start` adds them when it rebuilds the total from the records. Test: the rebuilt total equals every call made, with a reused run counted once.
+- `engine/run_tests.py`: when the watchdog stops a hung test, its message lists every process still running under the test process (process ID, seconds running, command), the test process's Python stack shortly before the stop (faulthandler) and its last 2,000 characters of output. The record is unchanged. Test added.
+
 ## 0.25.0 (2026-11-13)
 
 Evaluation runs for the writer and interviewer suites: kept jobs and run reuse (Samith's decisions, 2026-11-13).
