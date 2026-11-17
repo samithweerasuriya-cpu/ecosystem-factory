@@ -29,7 +29,8 @@ severity lock and the verdict rule), with the job ID (reviewers: also reviewer, 
 copied exactly from the handoff. A valid answer is saved by the script as a new file in the stage's output
 folder (drafts: the next version after the one in state.json; never overwritten) and its sha256 goes on the
 call record; labcore.verify_outputs re-checks it before every later use. An invalid answer is kept in
-<job>/rejected/<call>.txt (audit only, never a handoff input), recorded as a repair (invalid_output) and
+<job>/rejected/<call>.txt (audit only, never a handoff input) with the script's problem list beside it
+(<call>.problems.json; the first problems also go on the call note and the infra error), recorded as a repair (invalid_output) and
 asked again once, with only the sanitized problem list (path, rule, value cut to 40 characters, control
 characters removed). Invalid again: infra_error. The main session never repairs an answer.
 Questions (T1.5): an agent marked needs_input: true in config/outputs.json (never a reviewer) may answer
@@ -562,12 +563,29 @@ def output_target(job_id, h, st, agent_name, item, call_id):
     return target
 
 
-def save_rejected(job_id, call_id, text):
-    """The invalid answer as received, for audit only (no handoff lists rejected/)."""
+def problem_rows(problems):
+    """The script's problem list as data: path, rule and a cleaned value (as in the re-ask), never a message text."""
+    return [{"path": clean(path, PATH_CHARS), "rule": clean(rule, 200),
+             "value": None if value is None else clean(value, VALUE_CHARS)} for path, rule, value in problems]
+
+
+def problems_summary(problems, most=5):
+    """One line naming the first problems (path: rule), for the call note and the infra error."""
+    rows = problem_rows(problems)
+    text = "; ".join(f"{r['path']}: {r['rule']}" for r in rows[:most])
+    return text + (f"; and {len(rows) - most} more" if len(rows) > most else "")
+
+
+def save_rejected(job_id, call_id, text, problems=()):
+    """The invalid answer as received, for audit only (no handoff lists rejected/), with the script's problem list
+    beside it (<call>.problems.json), so the cause can be read later, in a kept evaluation job too."""
     p = lc.job_dir(job_id) / "rejected" / f"{call_id}.txt"
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "x", encoding="utf-8", newline="") as fh:
         fh.write(text if isinstance(text, str) else "(no answer text)")
+    with open(p.with_suffix(".problems.json"), "x", encoding="utf-8", newline="\n") as fh:
+        json.dump({"call": call_id, "problems": problem_rows(problems)}, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
     return lc.rel(p)
 
 
@@ -628,15 +646,16 @@ def call_job(job_id, agent_file, item=None, workspace=None, timeout=DEFAULT_TIME
                               actor="script")
                 return {**result, "output": output, "status": "stopped", "state": st["state"]}
             return {**result, "output": output}
-        note = f"invalid output ({len(problems)} problem(s)), attempt {attempt}"
+        note = f"invalid output ({len(problems)} problem(s)), attempt {attempt}: {problems_summary(problems)}"
         _, result["ceiling"] = lc.record_result(job_id, cid, "failed", usage=res["usage"], source=source, note=note,
-                                                rejected=save_rejected(job_id, cid, res["text"]))
+                                                rejected=save_rejected(job_id, cid, res["text"], problems))
         result.update(status="invalid_output", error=note, problems=problems)
         if result["ceiling"]:
             return result
         if attempt == 2:
-            lc.apply(job_id, "infra_error", note="invalid output after one re-ask", actor="script")
-            return {**result, "status": "infra_error", "error": "invalid output after one re-ask"}
+            err = f"invalid output after one re-ask: {problems_summary(problems)}"
+            lc.apply(job_id, "infra_error", note=err, actor="script")
+            return {**result, "status": "infra_error", "error": err}
         lc.apply(job_id, "repair", reason="invalid_output", note=note, actor="script")  # CapExceeded at the repairs cap
         prompt = base + reask_text(problems)
 

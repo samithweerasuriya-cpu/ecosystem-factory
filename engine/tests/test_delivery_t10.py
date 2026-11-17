@@ -118,7 +118,7 @@ class RejectionAndFailureTests(DeliveryBase):
         ds.main_path_to_gate(d)
         lc.reject_gate(d.job, "Treat DM04 as major: tighten the wording.")
         self.assertEqual((d.status()["state"], d.status()["stage"]), ("REVISING", "demo-writer"))
-        v3 = (self.tmp / f"jobs/{d.job}/drafts/v2.md").read_text().replace("North leads", "North is first")
+        v3 = (self.tmp / f"jobs/{d.job}/drafts/v2.md").read_text(encoding="utf-8").replace("North leads", "North is first")
         d.agent("demo-writer", {"v3.md": v3})
         d.event("revised", "--artifact", f"jobs/{d.job}/drafts/v3.md")
         d.review("demo-critic", "pass")

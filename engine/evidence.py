@@ -14,7 +14,8 @@ Derived from the author's earlier private labs (source registry, citation format
 
 Rules (rules/check-evidence.md): E01 unknown source, E02 not stored by the fetch script or unfetchable
 backing a fact, E03 quote not verbatim, E04 claim type rule (fact: rank; decision: answers or approved
-artifact), E05 quote too long, E06 stored copy missing or changed.
+artifact), E05 quote too long, E06 stored copy missing or changed, E07 citation not readable (fails closed).
+A JSON artifact is checked as its decoded string values, never as raw JSON text.
 Where things live: the tracked registry, fetch log and quote index in <job>/evidence/; page text in
 an untracked cache: cache/evidence/ for synthetic and public jobs, <job>/evidence/cache/ for internal
 jobs (inside private/). Only this script writes them (the hook blocks every other write).
@@ -42,6 +43,10 @@ import labcore as lc  # noqa: E402
 import check_refs  # noqa: E402
 
 CITE_RE = re.compile(r"\[(S|A|G):([A-Za-z0-9._-]+)(?:\s*§\s*([^\]\"“”]*?))?\s*(?:[\"“]([^\"”]*)[\"”])?\s*\]")
+CITE_START_RE = re.compile(r"\[\s*[SAG]\s*:", re.I)      # anything that opens like a citation must parse in full (E07)
+RANK_RE = re.compile(r"\brank\s*(?:[:=]\s*)?(\w+)", re.I)
+RANK_WORDS = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+CONTEXT_PACK_RANK = 2       # Samith, 2026-11-16: an intake job's context-pack files, unless the brief's source policy ranks them
 SENTENCE_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 DEFAULTS = {"enabled": True, "claim_types": {"fact": {"cites": ["S"], "max_rank": 4, "high_confidence": True},
                                              "decision": {"cites": ["A", "G"], "high_confidence": True}},
@@ -283,7 +288,7 @@ def _register(job_id, kind, where, title, rank, text, raw, status, reason, extra
     if same:
         return same
     if status == "stored":
-        (cache_dir(job_id) / f"{sha}.txt").write_text(text, encoding="utf-8")
+        write_stored(job_id, sha, text)
     entry = {"id": next_id(reg), "kind": kind, **where, "title": title[:200], "rank": rank, "fetched_at": lc.now(),
              "sha256": sha, "status": status, "reason": reason, "bytes": len(raw), **extra}
     prior = [s for s in reg["sources"] if (s.get("url") or s.get("path")) == key]
@@ -305,17 +310,83 @@ def register(job_id, path, title=None):
     raw = p.read_bytes()
     rel = lc.rel(p)
     page_title, text, status, reason = convert(raw, "", p.name, cfg)
-    rank = int(cfg.get("files", {}).get(rel, 5))
+    rank = file_rank(job_id, rel, cfg)
     return _register(job_id, kind="file", where={"path": rel}, title=title or page_title or p.name, rank=rank,
                      text=text, raw=raw, status=status, reason=reason, extra={})
 
 
+def file_rank(job_id, rel, cfg):
+    """The rank of a registered file. config/evidence.json `files` first. In an intake job, a file in the owner's
+    context pack (the job's inputs/context/) takes the rank the brief's source policy gives it, else rank 2
+    (Samith's decision, 2026-11-16). Everything else, including the approver's answers, is rank 5. Web pages keep
+    the domain table (rank_for_host)."""
+    files = cfg.get("files", {})
+    if rel in files:
+        return int(files[rel])
+    try:
+        st = lc.load_state(job_id)
+        context = (lc.job_dir(job_id) / "inputs" / "context").resolve()
+    except lc.LabError:
+        return 5
+    p = (lc.ROOT / rel).resolve()
+    if st.get("type") != "intake" or not p.is_relative_to(context):
+        return 5
+    given = brief_file_rank(st, p.name, p.relative_to(context).as_posix())
+    return CONTEXT_PACK_RANK if given is None else given
+
+
+def brief_source_policy(st):
+    """The source-policy answer of the job's latest brief (an input holding the brief's source_policy section),
+    or None. A template brief's answer is the text after "**Your answer:**"; a short brief's is the whole section."""
+    for i in reversed(st.get("inputs", [])):
+        p = lc.ROOT / i["path"]
+        text = p.read_text(encoding="utf-8", errors="replace") if p.is_file() else ""
+        m = re.search(r"^##[^\n]*<!-- field: source_policy -->[^\n]*\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+        if m:
+            body = m.group(1)
+            return body.split("**Your answer:**", 1)[1] if "**Your answer:**" in body else body
+    return None
+
+
+def brief_file_rank(st, name, sub):
+    """The rank the brief's source policy gives a context file: lines naming the file (its name or its path in the
+    context pack) and a rank. None when no line names the file with a rank. Fails closed: a rank that is not 1 to 5,
+    or two different ranks, gives rank 5 (an unreadable rank never makes a source stronger)."""
+    policy = brief_source_policy(st)
+    if not policy:
+        return None
+    ranks, unreadable = set(), False
+    for line in policy.splitlines():
+        low = line.casefold()
+        if name.casefold() not in low and sub.casefold() not in low:
+            continue
+        for word in RANK_RE.findall(line):
+            if word.casefold() in RANK_WORDS:
+                ranks.add(RANK_WORDS[word.casefold()])
+            else:
+                unreadable = True
+    if unreadable or len(ranks) > 1:
+        return 5
+    return ranks.pop() if ranks else None
+
+
 def stored_text(job_id, entry):
+    """The stored copy, if its fingerprint matches. Read byte for byte (a copy written with CRLF line ends stays
+    CRLF); a copy cached before 0.27.0 was written with newline translation, so its translated-back text is tried
+    second."""
     f = cache_dir(job_id) / f"{entry['sha256']}.txt"
     if not f.exists():
         return None
-    text = f.read_text(encoding="utf-8")
-    return text if hashlib.sha256(text.encode("utf-8")).hexdigest() == entry["sha256"] else None
+    for text in (f.read_bytes().decode("utf-8", errors="replace"), f.read_text(encoding="utf-8", errors="replace")):
+        if hashlib.sha256(text.encode("utf-8")).hexdigest() == entry["sha256"]:
+            return text
+    return None
+
+
+def write_stored(job_id, sha, text):
+    """Write a stored copy byte for byte (no newline translation), so its fingerprint holds on every platform."""
+    with open(cache_dir(job_id) / f"{sha}.txt", "w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
 
 
 def refetch(job_id, _opener=None):
@@ -335,7 +406,7 @@ def refetch(job_id, _opener=None):
                 raw, ctype = resp.read(cfg["max_fetch_bytes"] + 1), resp.headers.get_content_type()
             text = convert(raw, ctype, urllib.parse.urlsplit(s["final_url"]).path, cfg)[1]
         if hashlib.sha256(text.encode("utf-8")).hexdigest() == s["sha256"]:
-            (cache_dir(job_id) / f"{s['sha256']}.txt").write_text(text, encoding="utf-8")
+            write_stored(job_id, s["sha256"], text)
             out.append((s["id"], "restored"))
         else:
             s["status"], s["reason"] = "changed", f"content changed since {s['fetched_at']} (re-fetched {lc.now()})"
@@ -346,8 +417,39 @@ def refetch(job_id, _opener=None):
 
 # ---------- checking an artifact ----------
 
+def _json_strings(node, path):
+    """(JSON path, decoded string) for every string value in a JSON document, in document order."""
+    if isinstance(node, str):
+        yield path, node
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            yield from _json_strings(v, f"{path}.{k}")
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from _json_strings(v, f"{path}[{i}]")
+
+
+def artifact_lines(where, text):
+    """(location, line) pairs to check. A JSON file is read as its decoded string values, never as raw JSON text
+    (whose escaped quote marks break the citation form); the location is the file and the JSON path. A JSON file
+    that does not parse gives one (location, None) pair. Any other file is read line by line (file:line)."""
+    if where.lower().endswith(".json"):
+        try:
+            doc = json.loads(text)
+        except ValueError:
+            yield f"{where}:$", None
+            return
+        for path, s in _json_strings(doc, "$"):
+            lines = s.splitlines()
+            for n, line in enumerate(lines, 1):
+                yield (f"{where}:{path}" if len(lines) == 1 else f"{where}:{path} line {n}"), line
+        return
+    for n, line in enumerate(text.splitlines(), 1):
+        yield f"{where}:{n}", line
+
+
 def check(job_id, artifact):
-    """(problems, uncited sentences, quotes) for an artifact version. Problems use rules E01-E06."""
+    """(problems, uncited sentences, quotes) for an artifact version. Problems use rules E01-E07."""
     cfg = config()
     st = lc.load_state(job_id)
     reg = {s["id"]: s for s in load_registry(job_id)["sources"]}
@@ -360,8 +462,14 @@ def check(job_id, artifact):
         problems.append({"rule": rule, "location": loc, "issue": issue})
 
     for where, text in check_refs.artifact_texts(lc.ROOT, artifact):
-        for n, line in enumerate(text.splitlines(), 1):
-            loc = f"{where}:{n}"
+        for loc, line in artifact_lines(where, text):
+            if line is None:
+                problem("E07", loc, "the artifact is not readable JSON, so its citations cannot be checked")
+                continue
+            parsed = {m.start() for m in CITE_RE.finditer(line)}
+            for m in CITE_START_RE.finditer(line):
+                if m.start() not in parsed:          # fail closed: a citation the check cannot read never passes
+                    problem("E07", loc, f"citation not in a readable form: {line[m.start():m.start() + 80]!r}")
             for m in CITE_RE.finditer(line):
                 kind, sid, location, quote = m.group(1), m.group(2), (m.group(3) or "").strip(), m.group(4)
                 if quote is not None and len(quote.split()) > max_words:
@@ -381,8 +489,9 @@ def check(job_id, artifact):
                     if body is None:
                         problem("E06", loc, f"stored copy of {sid} is missing or changed; run evidence.py refetch")
                         continue
-                    if s["rank"] > fact["max_rank"]:
-                        problem("E04", loc, f"{sid} has rank {s['rank']}; a fact needs rank {fact['max_rank']} or better")
+                    rank = file_rank(job_id, s["path"], cfg) if s["kind"] == "file" else s["rank"]
+                    if rank > fact["max_rank"]:
+                        problem("E04", loc, f"{sid} has rank {rank}; a fact needs rank {fact['max_rank']} or better")
                     if quote is not None:
                         quotes.append({"source": sid, "location": location, "quote": quote, "sha256": s["sha256"], "at": loc})
                         if normalise(quote) not in normalise(body):
@@ -418,7 +527,7 @@ def check(job_id, artifact):
 
 def findings_doc(job_id, artifact, version, problems):
     return {"job_id": job_id, "reviewer": "check-evidence", "artifact_path": artifact, "artifact_version": version,
-            "verdict": "fail" if problems else "pass", "rules_checked": ["E01", "E02", "E03", "E04", "E05", "E06"],
+            "verdict": "fail" if problems else "pass", "rules_checked": ["E01", "E02", "E03", "E04", "E05", "E06", "E07"],
             "findings": [{"id": f"F-{i:02d}", "rule": p["rule"], "severity": "blocker", "location": p["location"],
                           "issue": p["issue"], "fix": "Cite a stored source that supports the claim, fix the quote, "
                           "or turn the claim into an open question."} for i, p in enumerate(problems, 1)],

@@ -135,7 +135,8 @@ context pack; (3) specifications and contracts; (4) official documentation on th
 else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
 sources, never decided silently.
 *Why this default:* when two sources disagree, agents need a rule for which one wins instead of picking one quietly.
-*Guidance:* change a rank, or name official sites or files, if your problem needs it.
+*Guidance:* change a rank, or name official sites or files, if your problem needs it. Files in your context pack are
+rank 2 unless you give one its own rank, on a line naming the file and the rank (for example "notes.txt: rank 4").
 
 **Your answer:** keep default
 

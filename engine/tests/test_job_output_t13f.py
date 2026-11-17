@@ -228,12 +228,31 @@ class InvalidTests(JobOutputBase):
         for q in quoted:
             self.assertLessEqual(len(json.loads(q[:-1])), 40 + len(" [cut]"))
 
+    def test_every_rejected_answer_keeps_its_problem_list_sanitized(self):
+        # T2.5 engine D: the cause of a rejection is kept beside the answer and named in the infra error
+        j = self.at_writer()
+        bad = json.dumps({"job_id": j, "items": [{"action": "x", "status": INJECTION + "\x07"}]})
+        self.answers(j, [bad, bad])
+        r = self.ac.call_job(j, self.files["writer"])
+        self.assertEqual(r["status"], "infra_error")
+        self.assertIn("$.items[0].status: enum", r["error"])
+        for c in self.lc.load_state(j)["calls"]:
+            p = (self.tmp / c["rejected"]).with_suffix(".problems.json")
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            self.assertEqual(doc["call"], c["id"])
+            self.assertIn({"path": "$.items[0].status", "rule": "enum"}, [
+                {k: v for k, v in row.items() if k != "value"} for row in doc["problems"]])
+            raw = p.read_text(encoding="utf-8")
+            self.assertNotIn(INJECTION, raw)                                    # values cut as in the re-ask
+            self.assertNotIn("\\u0007", raw)
+
     def test_a_status_needs_input_line_is_invalid_output(self):
         # T1.5: questions come as the needs_input JSON object (test_job_loop_t15); the old text line is invalid
         j = self.at_writer()
         self.answers(j, ["STATUS: needs_input\nQ1: Which meeting?"])
         r = self.ac.call_job(j, self.files["writer"])
-        self.assertEqual((r["status"], r["error"]), ("infra_error", "invalid output after one re-ask"))
+        self.assertEqual((r["status"], r["error"]), ("infra_error", "invalid output after one re-ask: $: not one bare "
+                                                     "JSON object: the first character must be { and the last }"))
         self.assertEqual(len(self.calls()), 2)
         st = self.lc.load_state(j)
         self.assertEqual((st["counters"]["infra_errors"], st["counters"]["repairs"]), (1, 1))

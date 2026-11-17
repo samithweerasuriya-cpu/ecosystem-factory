@@ -28,13 +28,22 @@ Main hall: the large room with the stage. Craft room: the small room with sinks.
 requests-week.txt, synthetic, evidence for the input format.
 
 ## 10. Data classification <!-- field: data_classification -->
-keep default
+*Default:* **synthetic**.
+
+**Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-keep default
+*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
+context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
+else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
+sources, never decided silently.
+
+**Your answer:** keep default
 
 ## 12. Output format <!-- field: output -->
-keep default
+*Default:* a structured object (JSON) with named fields, checked by a script, plus a short readable summary for you.
+
+**Your answer:** keep default
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 no proposed booking overlaps another booking for the same room (blocker). Q02 every row quotes the request it came from (major). Q03 a request outside opening hours (09:00 to 22:00) is refused, with the reason (major).
@@ -58,7 +67,10 @@ Reads the request e-mails as text. Writes to the hall's shared calendar.
 I check the list each Sunday, and nothing goes in the calendar until I have approved it.
 
 ## 20. Limits <!-- field: caps -->
-keep default
+*Default:* the factory's limits: 2 reviewer revision rounds, 3 revisions before the gate, 3 gate rejections, 25 agent
+calls and 350,000 tokens or 20 agent minutes per job.
+
+**Your answer:** keep default
 
 ## 21. Open questions <!-- field: open_questions -->
 Should the trustees' own meetings go through the list? Owner: hall trustees.

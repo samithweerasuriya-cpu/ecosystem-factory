@@ -75,10 +75,11 @@ class EvidenceBase(LabTestBase):
         caps.update(kw)
         self.dump("config/caps.json", caps)
 
-    def writer_job(self, slug="evidence", cls="synthetic"):
-        """A spec job at its writing stage, with an open writer call and its handoff id."""
+    def writer_job(self, slug="evidence", cls="synthetic", jtype="spec"):
+        """A spec job (or another route with the spec stages) at its writing stage, with an open writer call and
+        its handoff id."""
         lc = self.lc
-        j = lc.new_job("spec", slug, "x", cls=cls)["job_id"]
+        j = lc.new_job(jtype, slug, "x", cls=cls)["job_id"]
         lc.apply(j, "dispatch")
         lc.handoff(j); c = lc.record_call(j, "researcher")["calls"][-1]
         lc.record_result(j, c["id"], "done")
@@ -316,6 +317,127 @@ class CheckTests(EvidenceBase):
         self.assertEqual(st["state"], "REVIEW")                                          # a hint list, not a failure
         un = json.loads((self.lc.job_dir(j) / "evidence/uncited-v1.json").read_text())
         self.assertEqual([s["sentence"] for s in un["sentences"]], ["Revenue grew 12% last year."])
+
+
+class JsonArtifactTests(EvidenceBase):
+    """T2.5 engine A: a JSON artifact is checked as its decoded strings; a citation the check can't read fails."""
+
+    def probe(self, doc, inputs=(), raw=None):
+        j, hid = self.writer_job()
+        self.fetch(j, hid)
+        for data in inputs:
+            self.lc.record_input(j, "-", "synthetic", data=data)
+        path = self.write(f"jobs/{j}/drafts/probe.json", raw if raw is not None else json.dumps(doc))
+        problems, _, quotes = self.ev.check(j, path)
+        return [p["rule"] for p in problems], problems, quotes
+
+    def test_quotes_inside_escaped_quote_marks_are_read_and_pass(self):
+        doc = {"cap": {"text": "Orders stop at 42.", "cites": ['[S:S01 §Limits "The widget limit is 42 items per order"]',
+                                                               '[A:A01 "stop at the limit"]']}}
+        self.assertIn('\\"The widget limit', json.dumps(doc))                             # the raw text escapes them
+        rules, problems, quotes = self.probe(doc, inputs=[b"Please stop at the limit.\n"])
+        self.assertEqual(rules, [], problems)
+        self.assertEqual([q["quote"] for q in quotes], ["The widget limit is 42 items per order", "stop at the limit"])
+        self.assertEqual(quotes[0]["at"].split(":", 1)[1], "$.cap.cites[0]")
+
+    def test_an_answer_cite_with_a_quote_is_checked(self):
+        doc = {"decision": {"text": "Hard stop.", "cites": ['[A:A01 "stop when the order is full"]']}}
+        rules, problems, _ = self.probe(doc, inputs=[b"Please stop at the limit.\n"])
+        self.assertEqual(rules, ["E03"])                                                 # was never matched in raw JSON
+        self.assertIn("input A01", problems[0]["issue"])
+
+    def test_a_citation_that_does_not_parse_fails_closed(self):
+        for text in ['[A:A01 "she said "stop" there"]', "[S:S01 §Limits", "[ s : S01 ]"]:
+            with self.subTest(text):
+                rules, problems, _ = self.probe({"cites": [text]}, inputs=[b"she said stop there\n"])
+                self.assertIn("E07", rules)
+        j, hid = self.writer_job(slug="mdprobe")
+        md = self.write(f"jobs/{j}/drafts/probe.md", 'We stop [A:A01 "she said "stop" there"].\n')
+        self.assertIn("E07", [p["rule"] for p in self.ev.check(j, md)[0]])                # in Markdown too
+
+    def test_a_json_artifact_that_does_not_parse_fails(self):
+        rules, _, _ = self.probe(None, raw='{"cites": ["[S:S01 §Limits]"]')
+        self.assertEqual(rules, ["E07"])
+
+    def test_a_failing_json_draft_goes_back_with_e07_before_any_reviewer(self):
+        j, hid = self.writer_job(slug="jsonready")
+        call = next(c for c in self.lc.load_state(j)["calls"] if c["status"] == "open")
+        self.lc.record_result(j, call["id"], "done")
+        st = self.lc.apply(j, "artifact_ready", artifact=self.write(f"jobs/{j}/drafts/v1.json",
+                                                                    json.dumps({"cites": ["[S:S01 §x"]})))
+        self.assertEqual((st["state"], st["last_failed_by"]), ("REVISING", "check-evidence"))
+        self.assertEqual(self.findings(j), ["E07"])
+
+
+class ContextPackRankTests(EvidenceBase):
+    """T2.5 engine B (Samith, 2026-11-16): in an intake job, a context-pack file is rank 2 unless the brief's source
+    policy ranks it; web pages keep the domain table (rank 5 if unlisted); answers stay rank 5."""
+
+    FACT = "The widget limit is 42 items per order"
+
+    def setUp(self):
+        super().setUp()
+        routes = json.loads((self.tmp / "config/routes.json").read_text(encoding="utf-8"))
+        routes["routes"]["intake"] = dict(routes["routes"]["spec"])                   # the job type is what counts
+        self.dump("config/routes.json", routes)
+        self.set_evidence(domains={})                                                  # every web page unlisted
+        self.src = self.tmp / "drop"
+        self.src.mkdir(exist_ok=True)
+
+    def intake(self, slug, brief=None):
+        j, hid = self.writer_job(slug=slug, jtype="intake")
+        if brief is not None:
+            self.lc.record_input(j, "-", "synthetic", data=brief.encode("utf-8"))
+        (self.src / "sample.txt").write_bytes(f"Made-up sample.\n{self.FACT}.\n".encode("utf-8"))
+        _, rec = self.lc.record_context(j, str(self.src / "sample.txt"), "synthetic", "the input format")
+        return j, hid, rec
+
+    def check(self, j, cite):
+        return [p["rule"] for p in self.ev.check(j, self.write(f"jobs/{j}/drafts/probe.json",
+                                                               json.dumps({"fact": {"text": "x", "cites": [cite]}})))[0]]
+
+    def test_a_sample_file_can_back_a_fact_and_an_unlisted_web_page_cannot(self):
+        j, hid, rec = self.intake("ctxrank")
+        self.assertEqual(self.ev.load_registry(j)["sources"][0]["rank"], 2)
+        self.assertEqual(self.check(j, f'[S:{rec["id"]} §line 2 "{self.FACT}"]'), [])
+        web = self.fetch(j, hid)
+        self.assertEqual(web["rank"], 5)
+        self.assertEqual(self.check(j, f'[S:{web["id"]} §Limits "{self.FACT}"]'), ["E04"])
+
+    def test_the_briefs_source_policy_rank_wins_and_an_unreadable_one_fails_closed(self):
+        policy = "## 11. Source policy <!-- field: source_policy -->\n{}\n\n## 12. Output format <!-- field: output -->\nx\n"
+        for slug, line, want in (("ctxfour", "sample.txt: rank 4", []), ("ctxfive", "sample.txt is rank 5", ["E04"]),
+                                 ("ctxbad", "sample.txt: rank 2 or rank 5", ["E04"]),
+                                 ("ctxword", "sample.txt rank high", ["E04"]), ("ctxnone", "keep default", [])):
+            with self.subTest(line):
+                j, hid, rec = self.intake(slug, brief=policy.format(line))
+                self.assertEqual(self.check(j, f'[S:{rec["id"]} §line 2 "{self.FACT}"]'), want)
+
+    def test_a_context_file_with_crlf_line_ends_keeps_its_stored_copy(self):
+        # before 0.27.0 the cache write doubled each CR on Windows, so such a file was always E06
+        j, hid = self.writer_job(slug="ctxcrlf", jtype="intake")
+        (self.src / "crlf.txt").write_bytes(f"Made-up sample.\r\n{self.FACT}.\r\n".encode("utf-8"))
+        _, rec = self.lc.record_context(j, str(self.src / "crlf.txt"), "synthetic", "the input format")
+        self.assertEqual(self.check(j, f'[S:{rec["id"]} §line 2 "{self.FACT}"]'), [])
+        stored = next(iter((self.tmp / "cache/evidence").glob(f"{self.ev.load_registry(j)['sources'][0]['sha256']}.txt")))
+        self.assertIn(b"\r\n", stored.read_bytes())
+        self.assertNotIn(b"\r\r\n", stored.read_bytes())
+
+    def test_a_copy_cached_before_0_27_with_translated_newlines_still_reads(self):
+        j, hid, rec = self.intake("ctxlegacy")
+        e = self.ev.load_registry(j)["sources"][0]
+        f = self.tmp / "cache/evidence" / f"{e['sha256']}.txt"
+        f.write_bytes(f.read_bytes().replace(b"\n", b"\r\n"))                       # as a Windows text-mode write left it
+        self.assertEqual(self.check(j, f'[S:{rec["id"]} §line 2 "{self.FACT}"]'), [])
+
+    def test_outside_intake_and_for_answers_files_stay_rank_5(self):
+        j, hid = self.writer_job(slug="ctxspec")
+        (self.src / "sample.txt").write_bytes(f"{self.FACT}.\n".encode("utf-8"))
+        _, rec = self.lc.record_context(j, str(self.src / "sample.txt"), "synthetic", "the input format")
+        self.assertEqual(self.check(j, f'[S:{rec["id"]} §line 1 "{self.FACT}"]'), ["E04"])
+        j2, hid2, _ = self.intake("ctxanswer")
+        _, ans = self.lc.record_input(j2, "-", "synthetic", data=f"{self.FACT}.\n".encode("utf-8"))
+        self.assertEqual(self.ev.register(j2, ans["path"])["rank"], 5)
 
 
 class StoreProtectionTests(EvidenceBase):

@@ -28,13 +28,22 @@ Distribution: the 14:00-17:00 shift when food parcels are handed out. Collection
 swap-messages.txt, synthetic, evidence for the input format. volunteer-handbook.txt, synthetic, evidence for shift and role rules.
 
 ## 10. Data classification <!-- field: data_classification -->
-keep default
+*Default:* **synthetic**.
+
+**Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-keep default
+*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
+context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
+else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
+sources, never decided silently.
+
+**Your answer:** keep default
 
 ## 12. Output format <!-- field: output -->
-keep default
+*Default:* a structured object (JSON) with named fields, checked by a script, plus a short readable summary for you.
+
+**Your answer:** keep default
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a distribution shift keeps at least one volunteer with a valid hygiene certificate after the swap (blocker). Q02 the evening collection run keeps a driver with a valid driving check (blocker). Q03 a swap asked for less than 24 hours before the shift is refused (major). Q04 a swap is only between two volunteers in the same role (major). Q05 a sickness call is never treated as a swap (major). Q06 every row quotes the swap message (major). Q07 a swap for a shift more than 14 days ahead is refused (major). Q08 the reason is one sentence (minor).
@@ -55,10 +64,15 @@ Don't know yet.
 Reads the swap messages, the certificate list and the driving list as text. Writes nothing: the coordinator updates the rota board by hand.
 
 ## 19. Gates <!-- field: gates -->
-keep default
+*Default:* one human gate: you approve the final output before it is used or written anywhere.
+
+**Your answer:** keep default
 
 ## 20. Limits <!-- field: caps -->
-keep default
+*Default:* the factory's limits: 2 reviewer revision rounds, 3 revisions before the gate, 3 gate rejections, 25 agent
+calls and 350,000 tokens or 20 agent minutes per job.
+
+**Your answer:** keep default
 
 ## 21. Open questions <!-- field: open_questions -->
 Can a shift lead swap with an ordinary volunteer if another lead covers? Owner: volunteer coordinator. Does a volunteer shadowing their first shifts count as a swap partner? Owner: shift leads. Should Saturday shifts follow the same 24-hour rule? Owner: volunteer coordinator.

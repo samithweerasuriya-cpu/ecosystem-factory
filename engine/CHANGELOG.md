@@ -1,5 +1,16 @@
 # Engine changelog
 
+## 0.27.0 (2026-11-16)
+
+Evidence check fixes, context-pack rank and rejection causes (Samith's decisions, 2026-11-16).
+
+- `engine/evidence.py` (A): a JSON artifact is checked as its decoded string values, never as raw JSON text, so quotes inside escaped quote marks are read as written; the location is the file and the JSON path. New rule E07 (`rules/check-evidence.md`): text that opens like a citation (`[S:`, `[A:`, `[G:`) but does not parse in full, or a JSON artifact that does not parse, is a blocker; nothing passes unchecked. Before, an answer cite with a quote in a JSON draft was never matched (its quote went unchecked), and a context cite with a location kept a stray backslash in its quote (a false E03).
+- `engine/evidence.py` (B): in an intake job, a file in the owner's context pack (`inputs/context/`) is rank 2, unless the brief's source policy gives it a rank (a line naming the file and "rank N"; an unreadable or conflicting rank counts as rank 5). `config/evidence.json` `files` still wins; web pages keep the domain table (rank 5 if unlisted); answers and files outside intake stay rank 5. The rank is worked out again at each check, so a later brief answer counts. Recorded in `rules/check-evidence.md`, `config/evidence.json` and the brief template's source-policy guidance.
+- `engine/agent_call.py` (D): every rejected answer keeps the script's problem list beside it (`rejected/<call>.problems.json`: path, rule and a cleaned value, as in the re-ask), so a kept evaluation job shows why; the call note and the infra error name the first problems.
+- `engine/evidence.py`: stored copies are written and read byte for byte. Before, on Windows, a context file with CRLF line ends was cached with each CR doubled, so its fingerprint never matched and every cite to it failed E06 (hidden until now because those cites were never parsed in JSON drafts). A copy cached by an earlier version still reads.
+- Test fixes, no check loosened: a demo test read a UTF-8 draft with the platform encoding (its `§` became `Â§`, which E07 now catches); a test read "the first file" in `rejected/`, which now also holds the problem list; an exact infra error message.
+- Tests: decoded quotes pass; an answer cite with a wrong quote fails (E03); unparseable cites and an unparseable JSON draft fail (E07), also through `artifact_ready`; a sample file backs a fact and an unlisted web page does not; the brief's rank wins, an unreadable one fails closed; outside intake and for answers files stay rank 5; a rejected answer's problem list is kept, sanitized.
+
 ## 0.26.0 (2026-11-16)
 
 Writer fix, spend records and watchdog details (Samith's decisions, 2026-11-16).

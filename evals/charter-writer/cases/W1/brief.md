@@ -28,13 +28,22 @@ Reserved shelf: the shelf by the desk for books a reader has reserved. Repair bi
 returns-sample.txt, synthetic, evidence for the input format.
 
 ## 10. Data classification <!-- field: data_classification -->
-keep default
+*Default:* **synthetic**.
+
+**Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-keep default
+*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
+context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
+else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
+sources, never decided silently.
+
+**Your answer:** keep default
 
 ## 12. Output format <!-- field: output -->
-keep default
+*Default:* a structured object (JSON) with named fields, checked by a script, plus a short readable summary for you.
+
+**Your answer:** keep default
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 a book with a reservation flag never goes to shelve (blocker). Q02 a condition note that mentions damage sends the book to the repair bin (major). Q03 every row quotes the barcode from the export (major).
@@ -55,10 +64,15 @@ Don't know yet.
 Reads the returns export. Writes nothing: the volunteers move the books by hand.
 
 ## 19. Gates <!-- field: gates -->
-keep default
+*Default:* one human gate: you approve the final output before it is used or written anywhere.
+
+**Your answer:** keep default
 
 ## 20. Limits <!-- field: caps -->
-keep default
+*Default:* the factory's limits: 2 reviewer revision rounds, 3 revisions before the gate, 3 gate rejections, 25 agent
+calls and 350,000 tokens or 20 agent minutes per job.
+
+**Your answer:** keep default
 
 ## 21. Open questions <!-- field: open_questions -->
 Should books reserved at another branch go on our reserved shelf? Owner: branch supervisor.

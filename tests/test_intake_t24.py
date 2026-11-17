@@ -215,7 +215,7 @@ class InterviewTests(IntakeBase):
         self.respond(j, self.playback(j, "word " * 501), self.ask(j, "Q?"))
         r = self.ac.call_job(j, self.agent["interviewer"])
         self.assertEqual(r["status"], "needs_input")                       # the re-ask answered with questions
-        rejected = (self.tmp / f"jobs/{j}/rejected").iterdir()
+        rejected = (self.tmp / f"jobs/{j}/rejected").glob("*.txt")                # the answer, beside its problems
         self.assertIn("word word", next(rejected).read_text(encoding="utf-8"))
         spec = dict(self.ac.output_spec("charter-writer"))
         probs = self.ac.question_problems(json.loads(self.playback(j)), spec, j)

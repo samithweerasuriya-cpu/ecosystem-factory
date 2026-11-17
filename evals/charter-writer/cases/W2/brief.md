@@ -28,13 +28,22 @@ Slot: one morning or afternoon walking session. Walker: a volunteer who walks th
 None.
 
 ## 10. Data classification <!-- field: data_classification -->
-keep default
+*Default:* **synthetic**.
+
+**Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-keep default
+*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
+context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
+else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
+sources, never decided silently.
+
+**Your answer:** keep default
 
 ## 12. Output format <!-- field: output -->
-keep default
+*Default:* a structured object (JSON) with named fields, checked by a script, plus a short readable summary for you.
+
+**Your answer:** keep default
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
 Q01 every slot keeps at least one walker after the swaps (blocker). Q02 a swap for a slot more than 14 days ahead is refused (major). Q03 every row quotes its request (major).
@@ -55,10 +64,15 @@ Don't know yet.
 Reads the swap messages as text. Writes nothing: the rota on the kennel door is updated by hand.
 
 ## 19. Gates <!-- field: gates -->
-keep default
+*Default:* one human gate: you approve the final output before it is used or written anywhere.
+
+**Your answer:** keep default
 
 ## 20. Limits <!-- field: caps -->
-keep default
+*Default:* the factory's limits: 2 reviewer revision rounds, 3 revisions before the gate, 3 gate rejections, 25 agent
+calls and 350,000 tokens or 20 agent minutes per job.
+
+**Your answer:** keep default
 
 ## 21. Open questions <!-- field: open_questions -->
 Can a volunteer from the cat room take a dog-walking slot? Owner: shelter manager.

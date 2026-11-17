@@ -28,16 +28,28 @@ Mending pile: the shelf of books waiting for tape or glue.
 None.
 
 ## 10. Data classification <!-- field: data_classification -->
-keep default
+*Default:* **synthetic**.
+
+**Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-keep default
+*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
+context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
+else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
+sources, never decided silently.
+
+**Your answer:** keep default
 
 ## 12. Output format <!-- field: output -->
-keep default
+*Default:* a structured object (JSON) with named fields, checked by a script, plus a short readable summary for you.
+
+**Your answer:** keep default
 
 ## 13. Quality rules <!-- field: quality_rulebook -->
-keep default
+*Default (starter rules):* Q01 every output item traces to an input (major); Q02 nothing is invented (blocker);
+Q03 every required field is filled, or the gap is raised as an open question (major).
+
+**Your answer:** keep default
 
 ## 14. Examples <!-- field: examples -->
 Good: "The Quiet Owl | class 3 | no note | shelve". Good: "Rainy Day Games | class 1 | cover torn | mending pile". Bad: "Rainy Day Games | class 1 | cover torn | shelve, glued on 2099-02-03", because the mending date is not in the list (breaks Q02). Bad: "Moon Boat | shelve", because no book of that title is in the list (breaks Q01).
@@ -55,10 +67,15 @@ Don't know yet.
 Reads the typed returns list. Writes nothing: the helpers move the books.
 
 ## 19. Gates <!-- field: gates -->
-keep default
+*Default:* one human gate: you approve the final output before it is used or written anywhere.
+
+**Your answer:** keep default
 
 ## 20. Limits <!-- field: caps -->
-keep default
+*Default:* the factory's limits: 2 reviewer revision rounds, 3 revisions before the gate, 3 gate rejections, 25 agent
+calls and 350,000 tokens or 20 agent minutes per job.
+
+**Your answer:** keep default
 
 ## 21. Open questions <!-- field: open_questions -->
 Should books from the staff room go through the same list? Owner: school librarian.
