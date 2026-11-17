@@ -85,7 +85,7 @@ Problems: takes two evenings; repeats under different spellings slip through; la
 
 *Why it matters:* the design needs to know what arrives, in what format, and with what limits.
 *Guidance:* describe the input, its format and any constraints. Put two or three real-length samples (synthetic is fine)
-in the context pack and name them here.
+in the context pack and name them here. If you have no sample, say why: the charter records that reason.
 *Example:* Plain-text e-mails, one suggestion or several per message, up to about 40 a month. Samples: three months
 of made-up e-mails (`suggestions-sample.txt`).
 
@@ -130,10 +130,18 @@ are not allowed.
 
 **Label:** defaults offered
 
-*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
-context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
-else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
-sources, never decided silently.
+*Default:* five ranks, strongest first (the source policy template in `schemas/charter.v1.md`, word for word):
+
+| Rank | What | Use for |
+|---|---|---|
+| 1 | The problem owner's own decisions and approved documents | Goals, scope, rules, terminology |
+| 2 | Internal reference documents in the context pack | How things work here |
+| 3 | Specifications and contracts | Exact names, fields, formats |
+| 4 | Official documentation published by the maker of a product, on its own domain, and verified findings | Product behaviour |
+| 5 | Everything else (third-party pages, community posts, earlier AI-assisted analyses, meeting summaries) | Leads only; never the only support for a claim |
+
+Confidence: **high** needs a stored source of rank 4 or better with a word-for-word quote; **medium** a reputable secondary source; **low** is inferred or backed by one weak source. Conflicts: the higher rank wins within its own area; newer beats older within a rank only when the newer source covers the point; a conflict the ranks settle is applied and disclosed with both citations; one they do not settle is reported and escalated with both citations; agents never pick a side silently; agent output never becomes a source.
+
 *Why this default:* when two sources disagree, agents need a rule for which one wins instead of picking one quietly.
 *Guidance:* change a rank, or name official sites or files, if your problem needs it. Files in your context pack are
 rank 2 unless you give one its own rank, on a line naming the file and the rank (for example "notes.txt: rank 4").

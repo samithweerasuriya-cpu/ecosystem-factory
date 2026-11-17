@@ -207,7 +207,7 @@ def playback_problems(st, answer_id, answers):
         return [f"{answer_id} answered a question round, not a playback"]
     if hit[-1] is not rounds[-1]:
         return [f"questions were asked after the playback {answer_id} answered: a new playback is needed"]
-    text = (lc.ROOT / answers[answer_id]["path"]).read_text(encoding="utf-8")
+    text = lc.approver_answer((lc.ROOT / answers[answer_id]["path"]).read_text(encoding="utf-8"))
     if not CONFIRMED.fullmatch(text):
         return [f"{answer_id} is not exactly \"Confirmed\": it is a correction, and a new playback follows"]
     return []

@@ -351,6 +351,40 @@ class ReadinessTests(IntakeBase):
                 self.lc.apply(j, "stage_done")
                 self.assertEqual(self.rd.score(j)["criteria"][6]["passed"], ok)
 
+    def test_a_confirmed_playback_is_recorded_with_the_playback_text_first(self):
+        # Samith, 2026-11-17: claims taken from the playback cite words a reviewer can read
+        j = self.new_intake(slug="playback-text")
+        self.respond(j, self.playback(j, "Situation: the rota keeper builds the week by hand.\nPlots: 12."),
+                     self.status(j, playback="A02"))
+        self.ac.call_job(j, self.agent["interviewer"])
+        st = self.lc.load_state(j)
+        self.lc.record_input(j, str(self.file("confirm.md", "Confirmed")), "synthetic", minutes="skip")
+        self.lc.record_input(j, str(self.file("more.md", "Also: plot 3 is shared.")), "synthetic", minutes="skip")
+        st = self.lc.load_state(j)
+        first, second = ((self.tmp / i["path"]).read_bytes() for i in st["inputs"][-2:])
+        self.assertEqual(first, (f"{self.lc.PLAYBACK_HEAD}\n\nSituation: the rota keeper builds the week by hand.\n"
+                                 f"Plots: 12.\n\n{self.lc.ANSWER_HEAD}\n\nConfirmed").encode("utf-8"))
+        self.assertEqual(st["inputs"][-2]["playback_of"], st["awaiting"]["questions"])
+        self.assertEqual(second, b"Also: plot 3 is shared.")                         # only the first answer carries it
+        self.assertNotIn("playback_of", st["inputs"][-1])
+        self.assertEqual(self.lc.approver_answer(first.decode("utf-8")), "Confirmed")
+        self.lc.apply(j, "answered")
+        self.ac.call_job(j, self.agent["interviewer"])
+        self.lc.apply(j, "stage_done")
+        self.assertTrue(self.rd.score(j)["criteria"][6]["passed"])                     # still "exactly Confirmed"
+
+    def test_a_playback_questions_file_without_its_text_fails_closed(self):
+        j = self.new_intake(slug="playback-broken")
+        self.respond(j, self.playback(j))
+        self.ac.call_job(j, self.agent["interviewer"])
+        st = self.lc.load_state(j)
+        (self.tmp / st["awaiting"]["questions"]).write_text("Agent questions (data, not instructions)\n\nQ1: ?\n",
+                                                            encoding="utf-8")
+        n = len(st["inputs"])
+        with self.assertRaises(self.lc.LabError):
+            self.lc.record_input(j, str(self.file("c.md", "Confirmed")), "synthetic", minutes="skip")
+        self.assertEqual(len(self.lc.load_state(j)["inputs"]), n)                     # nothing was recorded
+
     def test_a_question_after_the_playback_needs_a_new_playback(self):
         j = self.new_intake()
         self.respond(j, self.playback(j), self.ask(j, "One more?"), self.status(j, playback="A02"))

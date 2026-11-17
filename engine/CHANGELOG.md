@@ -1,5 +1,15 @@
 # Engine changelog
 
+## 0.28.0 (2026-11-17)
+
+Writer path fixes after writer quick pass 3 (Samith's decisions, 2026-11-17).
+
+- `schemas/charter.v1.schema.json`, `schemas/charter.v1.md`, `engine/designcheck.py`: `inputs.samples` may be empty only with `inputs.no_sample_reason` (text, cited in `inputs.cites`); a reason given with samples fails the hand checks. The brief template's Inputs guidance asks for the reason.
+- `templates/intake/problem-brief.md`: the source-policy default is the source policy template of `schemas/charter.v1.md` word for word: each rank's what and use for, the confidence levels and the conflict rules. The writer cases' kept-default briefs (W1, W2, W4, W5, W6) carry the same text; keys unchanged.
+- `engine/labcore.py`: the first answer to a playback round is recorded as the playback text the approver was shown (from the questions file), then the approver's answer bytes unchanged; the input record names the questions file (`playback_of`). A questions file without playback text fails closed (nothing recorded). `approver_answer()` returns the approver's own part; `engine/readiness.py` checks "exactly Confirmed" on it.
+- `.claude/agents/charter-writer.md`: a self-check before answering (every text value at least 3 characters, every quote at most 25 words; fix, never submit); claims from a confirmed playback quote the playback's words; no samples means an empty list and a reason.
+- Tests: no samples without a reason fails, with a reason passes, a reason with samples fails; a confirmed playback is stored with its text first and still reads as exactly "Confirmed"; only the round's first answer carries it; a questions file without playback text records nothing.
+
 ## 0.27.0 (2026-11-16)
 
 Evidence check fixes, context-pack rank and rejection causes (Samith's decisions, 2026-11-16).

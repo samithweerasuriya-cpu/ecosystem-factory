@@ -7,7 +7,7 @@
 
 v1 replaces the thin v0 charter for every new job; v0 stays only for the Phase 1 thin version. Fields not listed here are rejected; anything unparseable fails.
 
-**Citations.** Every section and every list item has `cites`: one or more citations in the evidence module's format (`rules/check-evidence.md`). `[A:<id>]` or `[A:<id> "exact words"]` cites one of the approver's recorded answers (IDs `A01`, `A02`… as `state.py input` gives them); `[S:<id> §<location>]` or with `"exact words"` cites a file in the context inventory. A charter has no `[G:…]` citations: nothing is approved before it. Quotes are at most 25 words (`config/evidence.json`). A quote can't contain a double quote character: when the words contain one, quote a shorter stretch without it, or cite the answer without a quote.
+**Citations.** Every section and every list item has `cites`: one or more citations in the evidence module's format (`rules/check-evidence.md`). `[A:<id>]` or `[A:<id> "exact words"]` cites one of the approver's recorded answers (IDs `A01`, `A02`… as `state.py input` gives them); `[S:<id> §<location>]` or with `"exact words"` cites a file in the context inventory. A charter has no `[G:…]` citations: nothing is approved before it. Quotes are at most 25 words (`config/evidence.json`). A quote can't contain a double quote character: when the words contain one, quote a shorter stretch without it, or cite the answer without a quote. The answer that confirms a playback is recorded as the playback text the approver was shown, then the approver's answer (`engine/labcore.py` `record_input`): a claim taken from the playback quotes the playback's words from that answer.
 
 **Formats** (checked by `schemas/charter.v1.schema.json`). Every text value is at least 3 characters. A list is a JSON array even with one item (for example `inputs.constraints`). A role in `users_and_stakeholders` and an open question's `owner` are written in lowercase letters, digits and hyphens, starting with a letter, 2–41 characters (for example `returns-volunteer`).
 
@@ -25,7 +25,7 @@ v1 replaces the thin v0 charter for every new job; v0 stays only for the Phase 1
 | `users_and_stakeholders` | list | yes | Each `role` (a role name in lowercase with hyphens, never a person's name), `relation` (`user`, `approver`, `stakeholder`), `interest`, `cites`. At least one user and one approver. |
 | `current_process` | `steps`, `problems`, `cites` | yes | How it is done today and what goes wrong. |
 | `scope` | `in`, `out`, `cites` | yes | At least one item each. |
-| `inputs` | object | yes | `description`, `format`, `constraints` (a list), `samples` (each `source`: a context-inventory ID, and `description`), `cites`. |
+| `inputs` | object | yes | `description`, `format`, `constraints` (a list), `samples` (each `source`: a context-inventory ID, and `description`), `cites`. `samples` may be empty only with `no_sample_reason` (text: why there is no sample, for example the context pack is empty; cited in `cites`); `no_sample_reason` is never given with samples. |
 | `glossary` | list | yes | Each `term`, `meaning`, `cites`. May be empty. |
 | `acceptance_tests` | list | yes | Each `id` (`T01`…), `words` (the problem owner's own answer to "how will you know it worked?"), `cites`. |
 | `context_inventory` | list | yes | Every file in the context pack: `id` (`S01`…), `path` (inside the job folder, e.g. `inputs/context/notes.txt`), `classification`, `evidence_for`. May be empty. Quotes from these files are checked at job time by `engine/evidence.py`. |
@@ -60,7 +60,7 @@ Confidence: **high** needs a stored source of rank 4 or better with a word-for-w
 - IDs are unique (metrics, acceptance tests, context files, rules, examples, gates, systems, open questions, acceptance criteria).
 - Every citation is well formed, is `[A:…]` or `[S:…]`, and its quote is at most 25 words. Every `[S:…]` names a context-inventory file; with `answers_ref`, every `[A:…]` names an answer and every quote is word for word in it.
 - Every acceptance test's `words` are quoted from an answer (`[A:<id> "<the same words>"]`).
-- Every input sample names a context-inventory file.
+- Every input sample names a context-inventory file. No samples needs `inputs.no_sample_reason` (schema); a reason with samples fails.
 - The charter's class and every context file's class are in `config/data-classes.json`, and no file is classed above the charter.
 - Ranks are exactly 1 to 5; every official file is in the context inventory.
 - `users_and_stakeholders` has a user and an approver; every open question's owner is one of its roles.

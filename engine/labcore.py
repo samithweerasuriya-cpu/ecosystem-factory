@@ -948,12 +948,40 @@ def record_minutes(job_id, action, minutes, source="gate.py"):
     return rec
 
 
+PLAYBACK_HEAD = "## Playback (as the approver was shown it)"
+ANSWER_HEAD = "## The approver's answer"
+
+
+def playback_text(questions_path):
+    """The playback lines of a playback questions file (between "Kind: playback" and the fixed last question).
+    Fails closed: a file without them raises, and nothing is recorded."""
+    text = (ROOT / questions_path).read_text(encoding="utf-8")
+    start, end = text.find("\nKind: playback\n"), text.rfind("\nQ1: ")
+    body = text[start + len("\nKind: playback\n"):end].strip("\n") if 0 <= start < end else ""
+    if not body.strip():
+        raise LabError(f"{questions_path} holds no playback text; nothing was recorded")
+    return body
+
+
+def approver_answer(text):
+    """The approver's own words in a recorded answer: after ANSWER_HEAD in a confirmed-playback answer, else all."""
+    if text.startswith(PLAYBACK_HEAD) and f"\n{ANSWER_HEAD}\n" in text:
+        return text.split(f"\n{ANSWER_HEAD}\n", 1)[1].lstrip("\n")
+    return text
+
+
 def record_input(job_id, source, cls, note=None, data=None, minutes=None, minutes_source=None):
     """Store the approver's text verbatim (bytes copied unchanged) and register it with an ID. minutes (T2.4):
-    the approver's active minutes on it, a number or 'skip'; None records none (the CLI requires one)."""
+    the approver's active minutes on it, a number or 'skip'; None records none (the CLI requires one).
+    The first answer to a playback round (Samith, 2026-11-17) is stored as the playback text the approver was shown,
+    then the approver's answer bytes unchanged, so a claim taken from a confirmed playback cites words a reviewer
+    can read; approver_answer() gives back the approver's own part."""
     st = load_state(job_id)
     if st["state"] in TERMINAL:
         raise LabError(f"{job_id} is terminal ({st['state']})")
+    aw = st.get("awaiting") or {}
+    playback_of = (aw["questions"] if st["state"] == "AWAITING_INPUT" and aw.get("kind") == "playback"
+                   and len(st["inputs"]) == aw.get("inputs_before") else None)
     d = input_dir(job_id, cls)
     if cls == "internal" and data is None:
         src = Path(source).resolve()
@@ -962,6 +990,8 @@ def record_input(job_id, source, cls, note=None, data=None, minutes=None, minute
             raise LabError("internal input source is inside the repo outside private/, where Git could track it; "
                            "pipe it on stdin ('-') or keep the source under private/")
     raw = data if data is not None else Path(source).read_bytes()
+    if playback_of:
+        raw = (f"{PLAYBACK_HEAD}\n\n{playback_text(playback_of)}\n\n{ANSWER_HEAD}\n\n").encode("utf-8") + raw
     n = len(st["inputs"]) + 1
     iid = f"A{n:02d}"
     name = Path(source).name if source and source != "-" else "answer.md"
@@ -970,6 +1000,8 @@ def record_input(job_id, source, cls, note=None, data=None, minutes=None, minute
     dest.write_bytes(raw)
     rec = {"id": iid, "class": cls, "path": rel(dest), "sha256": hashlib.sha256(raw).hexdigest(),
            "note": note, "recorded": now()}
+    if playback_of:
+        rec["playback_of"] = playback_of
     if minutes is not None:
         rec.update(minutes_fields(minutes, minutes_source or "reported via orchestrator"))
     st["inputs"].append(rec)

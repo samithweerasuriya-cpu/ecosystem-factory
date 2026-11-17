@@ -33,10 +33,17 @@ returns-sample.txt, synthetic, evidence for the input format.
 **Your answer:** keep default
 
 ## 11. Source policy <!-- field: source_policy -->
-*Default:* five ranks, strongest first: (1) your own decisions and approved documents; (2) reference documents in the
-context pack; (3) specifications and contracts; (4) official documentation on the maker's own site; (5) everything
-else, used as leads only. A higher rank wins in its own area; a conflict the ranks don't settle is reported with both
-sources, never decided silently.
+*Default:* five ranks, strongest first:
+
+| Rank | What | Use for |
+|---|---|---|
+| 1 | The problem owner's own decisions and approved documents | Goals, scope, rules, terminology |
+| 2 | Internal reference documents in the context pack | How things work here |
+| 3 | Specifications and contracts | Exact names, fields, formats |
+| 4 | Official documentation published by the maker of a product, on its own domain, and verified findings | Product behaviour |
+| 5 | Everything else (third-party pages, community posts, earlier AI-assisted analyses, meeting summaries) | Leads only; never the only support for a claim |
+
+Confidence: **high** needs a stored source of rank 4 or better with a word-for-word quote; **medium** a reputable secondary source; **low** is inferred or backed by one weak source. Conflicts: the higher rank wins within its own area; newer beats older within a rank only when the newer source covers the point; a conflict the ranks settle is applied and disclosed with both citations; one they do not settle is reported and escalated with both citations; agents never pick a side silently; agent output never becomes a source.
 
 **Your answer:** keep default
 

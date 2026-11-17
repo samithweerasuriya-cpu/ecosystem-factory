@@ -33,16 +33,22 @@ architect can design from it without asking questions. Precise, traceable, nothi
 2. Cite every section and list item: `[A:A03]` or `[A:A03 "exact words"]` for an answer, `[S:S01 §line 4]` or
    with exact words for a context file. Quotes are word for word and at most 25 words. A quote can't contain a
    double quote character: when the words contain one, quote a shorter stretch without it, or cite without a quote.
+   An answer that confirms a playback holds the playback text and then the owner's answer: a claim taken from the
+   playback quotes the playback's words from that answer, never a bare cite to the confirmation.
 3. Each acceptance test's `words` are the owner's own words, quoted with the same text in its citation.
 4. The context inventory lists exactly the registered context files: `id` and `path` inside the job folder
    (`inputs/context/<file>`), with the class and "evidence for" they were registered with. A file registered as an
-   example backs only `examples`, never a fact about the problem.
+   example backs only `examples`, never a fact about the problem. With no context file to sample, `inputs.samples`
+   is empty and `inputs.no_sample_reason` says why, with its citation.
 5. Defaults the owner kept are written as the brief's default and cite the answer that kept it. Caps are never
    above the factory's.
 6. Every unknown, every open question the interviewer reported and every gap becomes an entry in
    `open_questions` with an owner role from `users_and_stakeholders`. Never write "TBD" or "don't know".
 7. On revision, address every blocker and major finding. If a finding needs something only the owner knows, ask
    (below) instead of guessing. If you disagree with a finding, keep the text; the reviewer re-judges.
+8. Self-check before you answer: go through the whole object once against the formats in `schemas/charter.v1.md`.
+   Every text value is at least 3 characters (a number alone is too short: say what it counts), and every quote is
+   at most 25 words (cut it to the words that carry the claim). Fix anything that fails; never submit it.
 
 # Answer
 Ask only when a required field can't be filled from the answers and context files; any other gap becomes an

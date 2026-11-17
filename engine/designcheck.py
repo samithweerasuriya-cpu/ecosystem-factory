@@ -137,6 +137,8 @@ def check_charter_v1(path, doc, answers=None, context_ids=None):
             probs.append(f"acceptance test {t['id']}: words are not quoted from an answer ([A:<id> \"<the same words>\"])")
     probs += [f"input sample {s['source']} is not in the context inventory" for s in doc["inputs"]["samples"]
               if s["source"] not in files]
+    if doc["inputs"]["samples"] and "no_sample_reason" in doc["inputs"]:   # Samith, 2026-11-17: a reason only for none
+        probs.append("inputs.no_sample_reason is given only when inputs.samples is empty")
 
     # data classes: allowed by config, and no file above the charter
     classes = json.loads((ROOT / "config/data-classes.json").read_text(encoding="utf-8"))

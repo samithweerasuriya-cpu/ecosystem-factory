@@ -67,6 +67,9 @@ class CharterV1Tests(unittest.TestCase):
             (lambda d: d["goal"].update(cites=['[A:A01 "' + " ".join(["word"] * 26) + '"]']), "longer than 25 words"),
             (lambda d: d["acceptance_tests"][0].update(cites=["[A:A08]"]), "words are not quoted from an answer"),
             (lambda d: d["inputs"]["samples"][0].update(source="S02"), "input sample S02 is not in the context inventory"),
+            (lambda d: d["inputs"].update(samples=[]), "$.inputs: matches none of the allowed forms"),
+            (lambda d: d["inputs"].update(no_sample_reason="The context pack is empty."),
+             "inputs.no_sample_reason is given only when inputs.samples is empty"),
             (lambda d: d["data_classification"].update({"class": "internal"}), "data classification internal is not allowed"),
             (lambda d: d["context_inventory"][0].update(classification="internal"), "classification internal is not allowed"),
             (lambda d: d["context_inventory"][0].update(classification="public"), "above the charter's synthetic"),
@@ -90,6 +93,14 @@ class CharterV1Tests(unittest.TestCase):
             change(d)
             probs = self.check(d)
             self.assertTrue(any(expect in p for p in probs), (expect, probs))
+
+    def test_no_samples_pass_only_with_a_reason(self):
+        # Samith, 2026-11-17: inputs.samples may be empty only when the charter says why
+        d = copy.deepcopy(self.good)
+        d["inputs"].update(samples=[], no_sample_reason="The owner has no sample file yet.")
+        self.assertEqual(self.check(d), [])
+        d["inputs"]["no_sample_reason"] = "x"
+        self.assertTrue(any("no_sample_reason" in p and "shorter than 3" in p for p in self.check(d)))
 
     def test_every_write_has_a_gate_placed_before_it(self):
         """The rota example: a gate on review only does not cover the write to the rota sheet."""
