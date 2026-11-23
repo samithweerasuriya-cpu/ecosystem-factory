@@ -497,6 +497,35 @@ class CharterRunTests(JobSimBase):
         self.assertEqual(rep["usage"]["tokens_acceptance"], 0)
         self.assertIsNone(importlib.import_module("evalcheck").record_problem(rep))
 
+    def test_a_replayed_run_reports_what_the_original_run_reported(self):
+        """Samith, 2026-11-17 (D): a failing case whose draft is reused from the cache keeps its first-pass result.
+        Writer pass 4's replay showed "no draft" for W5 and W6; the report now equals the original's, apart from
+        the time, the token bookkeeping and the cached flags."""
+        key = {"canary": "zebracorn", "expect": "charter", "invented_markers": ["Every plot is watered"],
+               "fields": {"goal": {"accept": ["every plot is watered"], "cites": ["A:A01"]}}}
+        self.charter_case(key=key)                                          # invented: the case fails
+        self.fake("charter-writer", self.charter())
+        self.fake("charter-critic", self.review("charter-critic", "pass"))
+        self.fake("charter-verifier", self.review("charter-verifier", "fail"))
+        first, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        before = len(self.calls())
+        again, _ = self.re.run("charters", "quick", out=lambda *_: None)
+        self.assertEqual(len(self.calls()), before)                        # nothing called again
+        self.assertEqual(first["cases"][0]["first_pass_acceptance"]["state"], "REVISING")
+        self.assertEqual(again["cases"][0]["first_pass_acceptance"].get("cached"), True)
+        self.assertEqual((again["usage"]["tokens_acceptance"], again["usage"]["tokens_acceptance_reused"]),
+                         (0, first["usage"]["tokens_acceptance"]))
+
+        def comparable(rep):
+            rep = json.loads(json.dumps(rep))
+            for k in ("ts", "usage"):
+                rep.pop(k)
+            for c in rep["cases"]:
+                c.pop("cached_runs")
+                c.get("first_pass_acceptance", {}).pop("cached", None)
+            return rep
+        self.assertEqual(comparable(again), comparable(first))
+
     def test_the_rebuilt_spend_total_equals_every_call_made(self):
         """Samith, 2026-11-16: first-pass reviewer calls are in the run records, so the total rebuilt from the
         records (spend-start) equals the sum of every call; a reused run is counted once."""

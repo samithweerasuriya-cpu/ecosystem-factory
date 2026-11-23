@@ -59,6 +59,39 @@ class InventedEntryTests(JobsimBase):
                         extra={"glossary": [{"term": "swap", "meaning": "Asked with a 24-hour Notice  Period."}]})
         self.assertEqual(self.js.charter_fields(noted, RULES)["invented"], 1)
 
+    def test_a_scoped_marker_searches_only_its_fields(self):
+        # Samith, 2026-11-17 (B1): a field-scoped marker never fires on fixed text in another field
+        rules = {"invented_markers": [{"text": "internal", "fields": ["data_classification", "context_inventory"]}]}
+        policy = charter(extra={"source_policy": {"ranks": [{"rank": 2, "what": "Internal reference documents"}]},
+                                "data_classification": {"class": "synthetic"}})
+        self.assertEqual(self.js.charter_fields(policy, rules)["invented"], 0)
+        changed = charter(extra={"data_classification": {"class": "Internal", "notes": "x"}})
+        self.assertEqual(self.js.charter_fields(changed, rules)["invented"], 1)
+        listed = charter(extra={"context_inventory": [{"path": "a.txt", "classification": "internal"}]})
+        self.assertEqual(self.js.charter_fields(listed, rules)["invented"], 1)
+        self.assertEqual(self.js.charter_fields(charter(), rules)["invented"], 0)        # field absent
+
+    def test_an_odd_marker_fails_closed(self):
+        for bad in ({"text": "x"}, {"text": "", "fields": ["caps"]}, {"text": "x", "fields": []},
+                    {"text": "x", "fields": "caps"}, 5, {"text": "x", "fields": ["caps"], "extra": 1}):
+            with self.assertRaises(ValueError):
+                self.js.charter_fields(charter(), {"invented_markers": [bad]})
+
+    def test_a_disclosed_lower_rank_value_is_not_an_applied_rule(self):
+        key = json.loads((Path(__file__).resolve().parent.parent / "evals/charter-writer/keys/W6.json")
+                         .read_text(encoding="utf-8"))
+        rules = {"invented_entries": [e for e in key["invented_entries"] if e["field"] == "quality_rulebook.rules"]}
+        disclosed = {"id": "Q03", "statement": "A swap asked less than 24 hours before the shift is refused. The "
+                     "handbook asks for 72 hours; the owner's 24 hours applies.",
+                     "cites": ['[A:A01 "24 hours"]', '[S:S02 "72 hours"]']}
+        applied = {"id": "Q03", "statement": "A swap asked less than 72 hours before the shift is refused.",
+                   "cites": ['[S:S02 "72 hours"]']}
+        applied_cited = dict(applied, cites=['[A:A01 "24 hours"]'])
+        unsupported = dict(disclosed, cites=['[S:S02 "72 hours"]'])
+        for rule, hits in ((disclosed, 0), (applied, 2), (applied_cited, 1), (unsupported, 1)):
+            doc = charter(extra={"quality_rulebook": {"rules": [rule]}})
+            self.assertEqual(len(self.js.charter_fields(doc, rules)["invented_entries"]), hits, rule)
+
     def test_a_missing_or_odd_field_path_finds_nothing(self):
         rules = {"invented_entries": [{"field": "quality_rulebook.rules", "match": {"statement": "notice"}},
                                       {"field": "no_such_field.items", "match": {"x": "y"}}]}

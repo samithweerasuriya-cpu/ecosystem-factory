@@ -15,6 +15,11 @@
       "file": "volunteer-handbook.txt",
       "class": "synthetic",
       "evidence_for": "shift and role rules"
+    },
+    {
+      "file": "rota-board.txt",
+      "class": "synthetic",
+      "evidence_for": "the rota format"
     }
   ],
   "replay": [

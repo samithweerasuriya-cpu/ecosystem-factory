@@ -19,13 +19,13 @@ Steps: a volunteer posts a swap in the group chat; someone copies it onto the pa
 In: swap requests between two walking volunteers for slots in the next 14 days; a checked list of swaps out. Out: new volunteer sign-ups, kennel cleaning, vet visits.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text messages, one swap each: the volunteer giving up a slot, the slot (date, morning or afternoon) and the volunteer taking it. About 20 a week. No sample yet: the group chat can't be exported, so samples will be made up for testing.
+Plain-text messages, one swap each: the volunteer giving up a slot, the slot (date, morning or afternoon) and the volunteer taking it. About 20 a week. No sample yet: the group chat can't be exported, so samples will be made up for testing. The week's walking rota: who walks each slot before the swaps, typed up as plain text from the kennel door rota. Sample: walking-rota.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Slot: one morning or afternoon walking session. Walker: a volunteer who walks the shelter dogs.
 
 ## 9. Context pack <!-- field: context_inventory -->
-None.
+walking-rota.txt, synthetic, evidence for the rota format.
 
 ## 10. Data classification <!-- field: data_classification -->
 *Default:* **synthetic**.
@@ -68,7 +68,7 @@ No slot without a walker in a whole month.
 Don't know yet.
 
 ## 18. Systems <!-- field: systems -->
-Reads the swap messages as text. Writes nothing: the rota on the kennel door is updated by hand.
+Reads the swap messages and the walking rota as text. Writes nothing: the rota on the kennel door is updated by hand.
 
 ## 19. Gates <!-- field: gates -->
 *Default:* one human gate: you approve the final output before it is used or written anywhere.

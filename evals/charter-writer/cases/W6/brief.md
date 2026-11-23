@@ -19,13 +19,13 @@ Steps: a volunteer sends a swap message to the coordinator's phone; the coordina
 In: one day's swap messages between two volunteers for shifts in the next 14 days, checked against the certificate list and the driving checks; a checked list of swaps out. Out: sickness calls (they are not swaps), new volunteer sign-ups, the food stock system, the Saturday breakfast club.
 
 ## 7. Inputs <!-- field: inputs -->
-Plain-text swap messages, one swap each: the time sent, who gives up the shift, which shift (day and role) and who takes it. About 25 a week. Sample: swap-messages.txt (made up). The certificate and driving lists are typed up weekly as plain text; for testing they are made up as well.
+Plain-text swap messages, one swap each: the time sent, who gives up the shift, which shift (day and role) and who takes it. About 25 a week. Sample: swap-messages.txt (made up). The certificate and driving lists are typed up weekly as plain text; for testing they are made up as well. The rota board: who works which shift and role before the swaps, typed up as plain text. Sample: rota-board.txt (made up).
 
 ## 8. Glossary <!-- field: glossary -->
 Distribution: the 14:00-17:00 shift when food parcels are handed out. Collection run: the 17:00-19:00 van trip to collect donations. Hygiene certificate: the food hygiene certificate a distribution volunteer needs. Driving check: the yearly check a volunteer needs before driving the van. Swap partner: the volunteer who takes the shift. Shift lead: the volunteer in charge of one shift. Rota board: the board in the warehouse office that records who works which shift.
 
 ## 9. Context pack <!-- field: context_inventory -->
-swap-messages.txt, synthetic, evidence for the input format. volunteer-handbook.txt, synthetic, evidence for shift and role rules.
+swap-messages.txt, synthetic, evidence for the input format. volunteer-handbook.txt, synthetic, evidence for shift and role rules. rota-board.txt, synthetic, evidence for the rota format.
 
 ## 10. Data classification <!-- field: data_classification -->
 *Default:* **synthetic**.
@@ -68,7 +68,7 @@ No distribution shift without a certificate holder in a quarter. No collection r
 Don't know yet.
 
 ## 18. Systems <!-- field: systems -->
-Reads the swap messages, the certificate list and the driving list as text. Writes nothing: the coordinator updates the rota board by hand.
+Reads the swap messages, the rota board, the certificate list and the driving list as text. Writes nothing: the coordinator updates the rota board by hand.
 
 ## 19. Gates <!-- field: gates -->
 *Default:* one human gate: you approve the final output before it is used or written anywhere.

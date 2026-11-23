@@ -58,7 +58,14 @@
     {
       "field": "quality_rulebook.rules",
       "match": {
-        "statement": "72 hours"
+        "statement": "72 hours",
+        "cites": "^(?!.*A:A01)"
+      }
+    },
+    {
+      "field": "quality_rulebook.rules",
+      "match": {
+        "statement": "^(?!.*24 hours).*72 hours"
       }
     },
     {
@@ -76,9 +83,9 @@
     }
   ],
   "invented_markers": [
-    "48 hours"
+    {"text": "48 hours", "fields": ["scope", "inputs", "output", "quality_rulebook", "examples", "acceptance_tests", "acceptance_criteria", "glossary"]}
   ],
-  "why": "Long. A lower-rank context file contradicts an answer: the handbook S02 (rank 2) says swaps must be asked for 72 hours ahead; the owner's brief (A01, rank 1) says 24 hours. The charter must follow the ranking (Q03 at 24 hours, citing A01) and disclose both citations (the verifier's CV06 in first-pass acceptance judges the disclosure). Invented content, read structurally: a rule that applies 72 hours, a system written to, or an approver other than the volunteer coordinator; in free text, a notice period no source states.",
+  "why": "Long. A lower-rank context file contradicts an answer: the handbook S02 (rank 2) says swaps must be asked for 72 hours ahead; the owner's brief (A01, rank 1) says 24 hours. The charter must follow the ranking (Q03 at 24 hours, citing A01) and disclose both citations (the verifier's CV06 in first-pass acceptance judges the disclosure). Invented content, read structurally: a rule that applies 72 hours (a rule naming 72 hours that does not cite A01, or that names 72 hours without the owner's 24 hours), a system written to, or an approver other than the volunteer coordinator; in free text, a notice period no source states (in the fields that state the swap rules). Field-scoped (Samith, 2026-11-17, B1): a Q03 that applies 24 hours citing A01 and discloses the handbook's 72 hours is the disclosure this case asks for, not invented.",
   "leak_terms": [
     "answer key",
     "hidden reference"

@@ -102,6 +102,19 @@ class CharterV1Tests(unittest.TestCase):
         d["inputs"]["no_sample_reason"] = "x"
         self.assertTrue(any("no_sample_reason" in p and "shorter than 3" in p for p in self.check(d)))
 
+    def test_output_field_names_take_one_path_level(self):
+        # Samith, 2026-11-17 (A1): a field inside each item of a list field is named list[].field
+        d = copy.deepcopy(self.good)
+        d["output"]["fields"] = [{"name": "rows", "description": "One row per request."},
+                                 {"name": "rows[].shift", "description": "The shift's date and role."},
+                                 {"name": "summary", "description": "One line for the whole day."}]
+        self.assertEqual(self.check(d), [])
+        for bad in ("rows.shift", "rows[].shift[].day", "rows[]shift", "Rows[].shift", "rows[].", "[].shift",
+                    "rows[0].shift", "rows[].shift-name"):
+            d["output"]["fields"][1]["name"] = bad
+            probs = self.check(d)
+            self.assertTrue(any("$.output.fields[1].name" in p and "does not match" in p for p in probs), (bad, probs))
+
     def test_every_write_has_a_gate_placed_before_it(self):
         """The rota example: a gate on review only does not cover the write to the rota sheet."""
         rota = load(EXAMPLES / "charter.v1.watering-rota.json")

@@ -1,0 +1,25 @@
+Made-up rota board for the coming weeks, typed up from the warehouse office board before any swap (synthetic test data).
+Each line: day, shift, shift lead, then the volunteers on the shift.
+
+Mon sorting: lead Yara; Sam, Tia, Gus
+Mon packing: lead Zed; Wes, Asha, Jai
+Mon distribution: lead Yara; Hana, Lou, Uma
+Mon collection run: lead Zed; Olu (driver), Ben
+Tue sorting: lead Yara; Sam, Tia, Nia
+Tue packing: lead Zed; Asha, Kit, Quin
+Tue distribution: lead Yara; Cora, Dev, Ivo
+Tue collection run: lead Zed; Eli (driver), Fern
+Wed sorting: lead Yara; Gus, Nia, Rosa
+Wed packing: lead Zed; Jai, Kit, Wes
+Wed distribution: lead Yara; Cora, Uma, Hana
+Wed collection run: lead Zed; Eli (driver), Max
+Thu sorting: lead Yara; Sam, Tia, Rosa
+Thu packing: lead Zed; Quin, Asha, Xan
+Thu distribution: lead Yara; Hana, Lou, Dev
+Thu collection run: lead Zed; Olu (driver), Pia
+Fri sorting: lead Yara; Nia, Gus, Tia
+Fri packing: lead Zed; Jai, Wes, Quin
+Fri distribution: lead Yara; Lou, Cora, Ivo
+Fri collection run: lead Zed; Eli (driver), Ben
+Sat sorting: lead Yara; Gus, Sam, Rosa
+Sat distribution: lead Zed; Uma, Hana, Dev

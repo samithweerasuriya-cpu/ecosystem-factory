@@ -594,6 +594,9 @@ def new_job(jtype, slug, goal, parent=None, continue_from=None, cls="synthetic")
     d = job_home(cls) / job_id
     for sub in ("research", "drafts", "reviews", "gates", "delivery", "evidence"):
         (d / sub).mkdir(parents=True)
+    # engine 0.29.0 (E): the source registry exists from the start, so a job with no context pack records an
+    # explicit empty source list and a verifier is never handed a registry path with no file behind it
+    save_json(d / "evidence" / "registry.json", {"sources": []})
     (d / "brief.md").write_text(brief_text(job_id, jtype, goal, parent, continue_from), encoding="utf-8")
     st = _fresh_state(job_id, jtype, goal, parent, r, cls)
     if parent and r.get("requires_parent_gate"):

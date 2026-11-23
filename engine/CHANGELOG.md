@@ -1,5 +1,17 @@
 # Engine changelog
 
+## 0.29.0 (2026-11-17)
+
+Writer path fixes after writer quick pass 4 (Samith's decisions A1, B1, C1, D, E, 2026-11-17; C2 skipped).
+
+- `schemas/charter.v1.schema.json`, `schemas/charter.v1.md` (A1): an output field's `name` may take one path level, a list's name, `[].` and the field (`rows[].shift`), so a list of rows can be described; no deeper paths. Critic and verifier prompts and suite fingerprints unchanged by this part.
+- `evals/jobsim.py` (B1): an invented-content marker may be field-scoped, `{"text": ..., "fields": [...]}`, searched only in those top-level fields' free text; a plain string still searches the whole charter; any other shape fails closed. Writer keys W5 and W6 use it (W5: the limit markers in `caps`, "internal" in `data_classification` and `context_inventory`; W6: "48 hours" in the swap-rule fields, and the 72-hour rule entry matches a rule that applies 72 hours, not one that discloses it).
+- Writer cases W2 and W6 (C1): the rota is an input (brief Inputs, Context pack and Systems; `walking-rota.txt`, `rota-board.txt`, synthetic). Keys unchanged by this part.
+- `evals/jobsim.py` (D): a run reused from the cache still counts as the draft when it brings its first-pass acceptance, so a replay reports what the original run reported (writer pass 4's replay showed "no draft" for W5 and W6; that report is listed in `config/invalid-reports.json`).
+- `engine/labcore.py` (E): a new job's evidence store starts with `registry.json` = `{"sources": []}`, so a job with no context pack records an explicit empty source list and a verifier never gets a registry path with no file.
+- `evals/jobsim.py` is a scoring file: every suite's fingerprint changes, so earlier quick reports of the critic and verifier suites show as stale (quick reports never count for the lock).
+- Tests: output field names with one path level pass, eight bad forms fail; scoped markers fire only in their fields, odd markers fail closed, a disclosed lower-rank value is not an applied rule; writer keys' markers name real charter fields; a replayed failing case's report equals the original's; a verifier's registry is an empty source list when there is no context pack.
+
 ## 0.28.0 (2026-11-17)
 
 Writer path fixes after writer quick pass 3 (Samith's decisions, 2026-11-17).

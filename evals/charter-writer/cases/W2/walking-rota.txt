@@ -1,0 +1,17 @@
+Made-up walking rota for one week, copied from the kennel door before any swap (synthetic test data).
+Each line: day, date, slot, the walkers on the rota for that slot.
+
+Mon 2099-05-04 morning: Ana, Fin
+Mon 2099-05-04 afternoon: Gil, Hal
+Tue 2099-05-05 morning: Eli
+Tue 2099-05-05 afternoon: Ben, Ivy
+Wed 2099-05-06 morning: Cai, Jo
+Wed 2099-05-06 afternoon: Dee, Kim
+Thu 2099-05-07 morning: Ana, Lee
+Thu 2099-05-07 afternoon: Fin, Mo
+Fri 2099-05-08 morning: Gil, Ned
+Fri 2099-05-08 afternoon: Hal, Oli
+Sat 2099-05-09 morning: Ben, Cai
+Sat 2099-05-09 afternoon: Dee, Eli
+Sun 2099-05-10 morning: Ivy, Jo
+Sun 2099-05-10 afternoon: Kim, Lee

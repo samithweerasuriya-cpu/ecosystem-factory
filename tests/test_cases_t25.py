@@ -23,7 +23,8 @@ REVIEWER_SUITES = ("charter-critic", "charter-verifier")
 OUTCOMES = ("ready", "escalated", "stopped", "not_ready", "gate")
 CANARY = re.compile(r"^[a-z]{6,}[0-9]{2,}$")
 QUOTE = re.compile(r'\[(A|S):([AS]\d+)(?: §[^"\]]*?)? "(.*?)"\]')
-LONG_WORDS = 2300                                         # "about 2,500 words" in the case design
+CHARTER_FIELDS = set(json.loads((REPO / "schemas/charter.v1.schema.json").read_text(encoding="utf-8"))["properties"])
+LONG_WORDS = 2300                                        # "about 2,500 words" in the case design
 SEVERITY_PAIRS = (                                        # (suite, pair, {design ID: (rule it must find, verdict)})
     ("charter-critic", "S1", {"P16": ("CH11", "fail"), "C08": ("CH14", "pass")}),
     ("charter-critic", "S2", {"P17": ("CH03", "fail"), "C09": ("CH15", "pass")}),
@@ -203,6 +204,13 @@ class ShippedCaseTests(CaseBase):
                 self.assertTrue(e["match"], d.name)
                 for pattern in e["match"].values():
                     re.compile(pattern)
+            for m in k.get("invented_markers", []):        # B1: a string, or {text, fields} on real fields
+                if isinstance(m, dict):
+                    self.assertEqual(set(m), {"text", "fields"}, d.name)
+                    self.assertTrue(m["text"].strip() and m["fields"], d.name)
+                    self.assertLessEqual(set(m["fields"]), CHARTER_FIELDS, d.name)
+                else:
+                    self.assertIsInstance(m, str, d.name)
 
     def test_long_cases_are_full_length(self):
         """A key marked "length": "long" is a full-length case: its charter (or, without one, its case files) has

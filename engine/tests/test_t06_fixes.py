@@ -131,6 +131,8 @@ class HandoffTests(T06Base):
         self.assertEqual((p["evidence pack"], p["source registry"]),
                          (f"jobs/{j}/evidence/", f"jobs/{j}/evidence/registry.json"))
         self.assertEqual(h["rules"], ["rules/test-rulebook.md", "rules/source-policy.md"])
+        # engine 0.29.0 (E): no context pack, so the registry handed over is an explicit empty source list
+        self.assertEqual(json.loads((self.tmp / p["source registry"]).read_text(encoding="utf-8")), {"sources": []})
         self.assertIn("input A01 (synthetic)", p)
         self.assertIn("gate feedback", p)
         for forbidden in ("research", "author-notes", "brief.md", "drafts/v1.md"):

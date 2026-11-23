@@ -1,4 +1,11 @@
 {
   "_doc": "Evaluation reports that must never count (T1.7, lesson 15). Read by engine/evalcheck.py (the lock rule refuses a listed report) and engine/report.py (shown with backing \"invalid\", never counted or charted). A report matches by report_id (its file name without .json) in any tree; tree records the folder it was found in. Each entry: tree, report_id, date (YYYY-MM-DD), reason. Entries are added by hand in build mode only (config/ is write-locked in operate mode); never remove one. A malformed entry stops both scripts. Lesson 15: the simulated writer Haiku (discrimination) report from T1.4 is not listed because no file remains: it was most likely overwritten by the real run (reports could overwrite each other within the same second, fixed in T1.4); every surviving T1.4 report has real call records behind it.",
-  "reports": []
+  "reports": [
+    {
+      "tree": "reports",
+      "report_id": "20261117T102253Z-charter-writer-quick",
+      "date": "2026-11-17",
+      "reason": "Cache replay of writer quick pass 4 (0 new tokens), started after the real run 20261117T101233Z had finished. The replay dropped first-pass acceptance for W5 and W6 (shown as no draft, 0 tokens; the real run had REVISING with critic and verifier verdicts), so it does not match the run it replays (runner gap D, fixed in engine 0.29.0). The real pass-4 report is 20261117T101233Z."
+    }
+  ]
 }

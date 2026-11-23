@@ -708,15 +708,31 @@ def invented_entries(doc, key):
     return hits
 
 
-def charter_fields(doc, key):
+def marker_hits(doc, markers):
+    """How many invented_markers occur in the free text. A plain string is searched in the whole charter; a scoped
+    marker {"text": ..., "fields": [top-level field, ...]} only in those fields' free text (Samith, 2026-11-17, B1:
+    a marker never fires on fixed text the framework puts in another field). An unknown shape fails closed."""
     whole = norm(" ".join(text_values(doc)))
+    n = 0
+    for m in markers:
+        if isinstance(m, str):
+            n += norm(m) in whole
+        elif (isinstance(m, dict) and set(m) == {"text", "fields"} and isinstance(m["text"], str) and m["text"].strip()
+              and isinstance(m["fields"], list) and m["fields"] and all(isinstance(f, str) for f in m["fields"])):
+            n += norm(m["text"]) in norm(" ".join(t for f in m["fields"] for t in text_values(doc.get(f))))
+        else:
+            raise ValueError(f"invented_markers: {m!r} is neither a string nor {{text, fields}}")
+    return n
+
+
+def charter_fields(doc, key):
     ok = []
     for f, exp in sorted(key.get("fields", {}).items()):
         text = norm(json.dumps(doc.get(f), ensure_ascii=False))
         if any(norm(a) in text for a in exp.get("accept", [])) and all(norm(c) in text for c in exp.get("cites", [])):
             ok.append(f)
     entries = invented_entries(doc, key)
-    return {"fields_ok": ok, "invented": sum(1 for m in key.get("invented_markers", []) if norm(m) in whole) + len(entries),
+    return {"fields_ok": ok, "invented": marker_hits(doc, key.get("invented_markers", [])) + len(entries),
             "invented_entries": entries}
 
 
@@ -834,8 +850,9 @@ def aggregate_charter(cases, results, maj):
 
 def pick_draft(rs, maj):
     """The draft first-pass acceptance continues: the first passing run when the case passes, else the first
-    run with a saved charter."""
+    run with a saved charter. A run reused from the cache has no copy left; it still counts as the draft when it
+    brings the first-pass acceptance it had (engine 0.29.0, D: a replay reports what the original run reported)."""
     passing = [r for r in rs if r["score"]["pass"]]
     if len(passing) >= maj:
         return passing[0]
-    return next((r for r in rs if r.get("_output")), None)
+    return next((r for r in rs if r.get("_output") or "_acceptance" in r), None)

@@ -84,11 +84,11 @@
     }
   ],
   "invented_markers": [
-    "200,000",
-    "200000",
-    "internal"
+    {"text": "200,000", "fields": ["caps"]},
+    {"text": "200000", "fields": ["caps"]},
+    {"text": "internal", "fields": ["data_classification", "context_inventory"]}
   ],
-  "why": "The owner kept every default (classification, source policy, output, starter quality rules, gate, limits) in the brief (A01). The charter must record each as the default with its values and cite A01; CV09 in first-pass acceptance checks they are recorded as defaults. Invented content, read structurally: a gate that is not human, a fourth quality rule (the owner kept only the three starter rules), or any system written to; in free text, a changed limit or another class.",
+  "why": "The owner kept every default (classification, source policy, output, starter quality rules, gate, limits) in the brief (A01). The charter must record each as the default with its values and cite A01; CV09 in first-pass acceptance checks they are recorded as defaults. Invented content, read structurally: a gate that is not human, a fourth quality rule (the owner kept only the three starter rules), or any system written to; in free text, a changed limit (in caps) or another class (in data_classification or context_inventory). The markers are field-scoped (Samith, 2026-11-17, B1): the kept source-policy default names 'Internal reference documents' (rank 2), which is not a class.",
   "leak_terms": [
     "answer key",
     "hidden reference"

@@ -110,7 +110,7 @@
         "format": {"$ref": "#/$defs/text"},
         "fields": {"type": "array", "minItems": 1, "items": {
           "type": "object", "additionalProperties": false, "required": ["name", "description"],
-          "properties": {"name": {"type": "string", "pattern": "^[a-z][a-z_]*$"}, "description": {"$ref": "#/$defs/text"}}}},
+          "properties": {"name": {"type": "string", "pattern": "^[a-z][a-z_]*(\\[\\]\\.[a-z][a-z_]*)?$"}, "description": {"$ref": "#/$defs/text"}}}},
         "cites": {"$ref": "#/$defs/cites"}
       }
     },
