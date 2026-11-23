@@ -6,6 +6,12 @@
       "report_id": "20261117T102253Z-charter-writer-quick",
       "date": "2026-11-17",
       "reason": "Cache replay of writer quick pass 4 (0 new tokens), started after the real run 20261117T101233Z had finished. The replay dropped first-pass acceptance for W5 and W6 (shown as no draft, 0 tokens; the real run had REVISING with critic and verifier verdicts), so it does not match the run it replays (runner gap D, fixed in engine 0.29.0). The real pass-4 report is 20261117T101233Z."
+    },
+    {
+      "tree": "reports",
+      "report_id": "20261123T080414Z-charter-writer-quick",
+      "date": "2026-11-23",
+      "reason": "Writer quick pass 5, attempt 1, did not run: the Claude CLI on PATH was not logged in, so every writer call exited with code 1 in about 0.06 s with 0 tokens and every case was an infra_error (0 of 6). It measures no writer behaviour. The real pass-5 report is 20261123T082325Z."
     }
   ]
 }

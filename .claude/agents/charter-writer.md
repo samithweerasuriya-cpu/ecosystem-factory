@@ -29,7 +29,9 @@ architect can design from it without asking questions. Precise, traceable, nothi
 
 # How to write
 1. Fill every field of charter v1 in the order of `schemas/charter.v1.md`. `schema_version` is `"1"`. Leave out
-   `answers_ref`: in a job the script checks every `[A:…]` against the recorded answers.
+   `answers_ref`: in a job the script checks every `[A:…]` against the recorded answers. A charter holds only
+   the fields of `schemas/charter.v1.md`: no `job_id`, `status` or other handoff field (the JOB ID goes only in a
+   `needs_input` answer).
 2. Cite every section and list item: `[A:A03]` or `[A:A03 "exact words"]` for an answer, `[S:S01 §line 4]` or
    with exact words for a context file. Quotes are word for word and at most 25 words. A quote can't contain a
    double quote character: when the words contain one, quote a shorter stretch without it, or cite without a quote.

@@ -1,0 +1,438 @@
+{
+  "suite": "charter-writer",
+  "mode": "quick",
+  "ts": "2026-11-23T08:23:25+00:00",
+  "model": "claude-opus-5-5",
+  "cli_version": "2.1.308 (Claude Code)",
+  "handoff_format": 2,
+  "models_reported": [
+    "claude-opus-5-5",
+    "replay"
+  ],
+  "agent": {
+    "path": ".claude/agents/charter-writer.md",
+    "sha256": "6e45094d07367022d074a68f44e2eb2639fb1cc73399bee4f16f4e08bf927828"
+  },
+  "rulebook": {
+    "path": "schemas/charter.v1.md",
+    "sha256": "ce929366416095fba813ab903828627d15d592f7a9ef6f09f686602e294a2a75"
+  },
+  "thresholds": {
+    "invented_cases_max": 0,
+    "invalid_output_rate_max": 0.1
+  },
+  "threshold_failures": [],
+  "threshold_skipped": [],
+  "min_counts": {
+    "applies": true,
+    "need": {
+      "cases": 5
+    },
+    "have": {
+      "cases": 6,
+      "clean": 0
+    },
+    "met": true
+  },
+  "pass": true,
+  "metrics": {
+    "field_accuracy": 1.0,
+    "fields_correct": "28 of 28",
+    "invented_cases": 0,
+    "invalid_output_rate": 0.0,
+    "invalid_calls": 0,
+    "agent_calls": 8,
+    "cases": 6,
+    "clean_cases": 0,
+    "runs": 6,
+    "invalid_runs": 0,
+    "cases_passed": 6
+  },
+  "cases": [
+    {
+      "case": "W1",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "done"
+      ],
+      "fields_ok": [
+        "acceptance_criteria",
+        "goal",
+        "risk",
+        "scope",
+        "users_and_stakeholders"
+      ],
+      "recall_per_run": [
+        "5 of 5"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        null
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 24252,
+        "max": 24252,
+        "mean": 24252
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": false,
+        "state": "REVISING",
+        "verdicts": [
+          "pass",
+          "fail"
+        ],
+        "tokens": 37206,
+        "infra_errors": [],
+        "kept": "cache/evals/charter-writer/kept/W1-run1-20261123T080855Z"
+      }
+    },
+    {
+      "case": "W2",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "done"
+      ],
+      "fields_ok": [
+        "acceptance_criteria",
+        "goal",
+        "risk",
+        "scope",
+        "users_and_stakeholders"
+      ],
+      "recall_per_run": [
+        "5 of 5"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        null
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 53139,
+        "max": 53139,
+        "mean": 53139
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": false,
+        "state": "REVISING",
+        "verdicts": [
+          "pass",
+          "fail"
+        ],
+        "tokens": 40701,
+        "infra_errors": [],
+        "kept": "cache/evals/charter-writer/kept/W2-run1-20261123T081309Z"
+      }
+    },
+    {
+      "case": "W3",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "needs_input"
+      ],
+      "fields_ok": [],
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        true
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 15172,
+        "max": 15172,
+        "mean": 15172
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": false,
+        "state": "no draft",
+        "verdicts": [],
+        "tokens": 0
+      }
+    },
+    {
+      "case": "W4",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "done"
+      ],
+      "fields_ok": [
+        "acceptance_criteria",
+        "gates",
+        "quality_rulebook",
+        "risk",
+        "systems"
+      ],
+      "recall_per_run": [
+        "5 of 5"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        null
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 25391,
+        "max": 25391,
+        "mean": 25391
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": false,
+        "state": "REVISING",
+        "verdicts": [
+          "fail"
+        ],
+        "tokens": 13815,
+        "infra_errors": [],
+        "kept": "cache/evals/charter-writer/kept/W4-run1-20261123T081531Z"
+      }
+    },
+    {
+      "case": "W5",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "done"
+      ],
+      "fields_ok": [
+        "acceptance_criteria",
+        "caps",
+        "data_classification",
+        "gates",
+        "quality_rulebook",
+        "risk",
+        "source_policy"
+      ],
+      "recall_per_run": [
+        "7 of 7"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        null
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 21977,
+        "max": 21977,
+        "mean": 21977
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": true,
+        "state": "GATE",
+        "verdicts": [
+          "pass",
+          "pass"
+        ],
+        "tokens": 32587
+      }
+    },
+    {
+      "case": "W6",
+      "kind": "charter",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "done"
+      ],
+      "fields_ok": [
+        "acceptance_criteria",
+        "context_inventory",
+        "quality_rulebook",
+        "risk",
+        "scope",
+        "users_and_stakeholders"
+      ],
+      "recall_per_run": [
+        "6 of 6"
+      ],
+      "invented_per_run": [
+        0
+      ],
+      "question_ok": [
+        null
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 73854,
+        "max": 73854,
+        "mean": 73854
+      },
+      "cached_runs": 0,
+      "first_pass_acceptance": {
+        "accepted": false,
+        "state": "REVISING",
+        "verdicts": [
+          "fail"
+        ],
+        "tokens": 19797,
+        "infra_errors": [],
+        "kept": "cache/evals/charter-writer/kept/W6-run1-20261123T082324Z"
+      }
+    }
+  ],
+  "usage": {
+    "calls": 6,
+    "cached": 0,
+    "tokens_new": 213785,
+    "tokens_all": 213785,
+    "tokens_acceptance": 144106,
+    "tokens_acceptance_reused": 0,
+    "estimate_tokens": 68257
+  },
+  "run_records": [
+    "307916bb5dc0f19502093f5eea9cfdcffa7ddb539a8fc4d10bde9e4cea9a10dc",
+    "ec8103bf7d14b98a9aa0e970a2e94dbae5cd25f2df3f04cafd0bba1ab8c67191",
+    "b400f12812a935a847195531b907f862864b849fd80403eafcdc3332ae6b9f47",
+    "0e0344acc77af2a9d5c2bda98c0e482346a8841588da7771e00c62c904cc3c83",
+    "e9011624592d643fc8d85b6a5dcc6fd364074a87c2c4a6a8c5ecec9c18a01abb",
+    "f5c5aa312feb5a93c05dbb2f3de43b28bb4172356472edf76f71362766b6c0d8"
+  ],
+  "framework": {
+    ".claude/agents/charter-critic.md": "9d9cea0f04a1ea2898aafc9bfb52c47c2a19c4c2e693fcbfdcc0b4b4d8a0070a",
+    ".claude/agents/charter-verifier.md": "7995ad6e57ffd89ceb9821d7f68f4eec412b161defe63b2346f4858a067efa29",
+    ".claude/agents/charter-writer.md": "6e45094d07367022d074a68f44e2eb2639fb1cc73399bee4f16f4e08bf927828",
+    ".claude/agents/interviewer.md": "6935c834fad61bd2cdc95374c04d692900692404b8f47cbb22f2931eb3535852",
+    "rules/calibration-critic.md": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c",
+    "rules/charter-checklist.md": "a85648a32b93dbaca8102fb5489a0e785e225dd6602fddbdeef6122d81a0ea0d",
+    "rules/charter-verifier.md": "fb57d68c35a9643e090e8a356ae639b58a2e7c2edcd27d4c332aa4796e8c64bd",
+    "rules/check-evidence.md": "10374033a6eaae8ea92a84e7db34fad4c6b306f8edf22ee269271a5a365208e7",
+    "rules/check-refs.md": "7d9daaca1ba33af0df482528697fcc01aab53268c47af0e36a035c5e5766d105",
+    "rules/default-agent-rules.md": "3a690815306576b03d1312942275249cc7515674647781614cc2fc22fea63d8b",
+    "rules/demo-rulebook.md": "b7f2d0569807687c7874cd19ee778282fed2636a2e0a77f56cd11b854da6efa3",
+    "rules/gate-rules.md": "0221af685075221b7f98e03714aea25f3383e397d32a06e1321c9529ef68cbbe",
+    "rules/interview-guide.md": "a24ea5780a741f9270530330883585ee1b230db1020a85c4472383bcc37e0e59",
+    "rules/verifier-default.md": "2e97217afd1a14778893890495d190fc4a3d763cc75e0ac9c946815ad5e2b76f",
+    "schemas/blueprint.v0.md": "833eb31dfcebb51cd283c6c21a872b29b237218844325d0e39546c85cfb4971e",
+    "schemas/blueprint.v0.schema.json": "e7d7ba95ec3f538b9735a2a03ca984b1f70eb2b81247579df2db5d53a7e09fdb",
+    "schemas/charter.v0.md": "293f00460d0b614c47e9d9d851d55eb37990b1357fa8234a363255f71e38b336",
+    "schemas/charter.v0.schema.json": "0b5d428db9f33a371584e794b5356969cd1aed1c2b28b9c1df41517fd19e74d7",
+    "schemas/charter.v1.md": "ce929366416095fba813ab903828627d15d592f7a9ef6f09f686602e294a2a75",
+    "schemas/charter.v1.schema.json": "e31a7069742b370d0ad904cf9b91e424f85f88e0b2116f74799a792e72ee1f3d",
+    "schemas/examples/charter.v1.action-items.answers.json": "428799958d7929f5415007a7386d717f320c3166bac724d8f9a7c97da825c1b5",
+    "schemas/examples/charter.v1.action-items.json": "a3196068e122b1ca9eb884d465177dddfee6d39474a57158290e06c2f7cfcec9",
+    "schemas/examples/charter.v1.watering-rota.answers.json": "03fcf33f2959b5283d46dec78b37c2fdf0ce831fad716d7101880b21e62285f2",
+    "schemas/examples/charter.v1.watering-rota.json": "b11ea6e85b8fe23613961e863b5eca3c7c706bf8429895c21dae1605e17cfe45",
+    "schemas/findings.schema.json": "13f4421ce6edd3b0087d5267f781d5b752ab8cd6df846c5484fd3b83a762e120",
+    "schemas/interview-status.v1.schema.json": "aadccdba9e2f799e5bd97d1f101da1deb228e768f8e9e0a4113939512c47f25f",
+    "schemas/job.schema.json": "1819fce2e5d5dd7ef3f5509142e6bee52fe9bbd68852f783d4be0672b8892005",
+    "schemas/report-export.schema.json": "dcd593f7c74075843c22f96aca93226c6a82b8a89a91fd4d4068ca5fcb240cc0",
+    "schemas/route.schema.json": "d070a8821c96bfaccf7c09fb298494ba6e44fdec322d9cd864d6572d38924af9",
+    "config/caps.json": "c1f059bf798d116b253b97f0c7b19efac826f2ff50fb6889699da64b114bce60",
+    "config/context-pack.json": "3aaa7b50f48e509881a7cc034ac1fd75260f4855d419b3826d26452ac1cf48bb",
+    "config/data-classes.json": "859c3d91109d3454093b3ef57653e1363e2956cee2eb36cf3040ed7ec487d40b",
+    "config/doctor.json": "76d36855f5a0eb98cc9d527decb9d64073c86e97e1372b6ab3afe1b8a9ef6a42",
+    "config/evidence.json": "f14cffb5da95e4b4876772023b34e0a7130c8811f521c1a0fa0f206f3d328fe9",
+    "config/gated-actions.json": "c26f4906c14bf8be5858b2c89937c4a475ba59d673fedd6e819e9bcf9ddd9cb0",
+    "config/gates.json": "07697eea11f2819cea0be5f7bf2cc66d116e13dadc192d9125f770daf546506d",
+    "config/invalid-reports.json": "daee5b028c696d31e3a668e0d878aab2c648e0fa3a7bf4d23dbd7feb5b194264",
+    "config/models.json": "a26bd7990ccf457e5c5dd04cf090fc0ab4c6dcc5be45e4b1390c852149a045dc",
+    "config/outputs.json": "acd47d37fe41b78865a1a2cca1dccdfdf19cdace85b64039eca0ff16a8243117",
+    "config/protected-paths.json": "ff30b7eb7e22b351fed45132884bf6ddc44ea172950b153d7d0c0e14fb4891ec",
+    "config/publish.json": "5c304412e9a3f2b124cc970614c2f93d3dd4ba73903d959cf82ee0274635c3c1",
+    "config/readiness.json": "62050d8337c056e85109cd47195d4c785da8f74bb66982d5c891caa198724a50",
+    "config/reviewers.json": "d28168e50b402b57209d60712396ccffacd022a26a3a47ba59b56a41c5380220",
+    "config/routes.json": "61764d1f918d472ee38a15df1a8b59bd6edf130ece20cbbeafaefa55ce488956",
+    "config/scripts.json": "db16e6c394ecb50d24aed411a2336474e6e85664a985a02d560696a903617ed6"
+  },
+  "suite_fingerprint": {
+    "evals/charter-writer/suite.json": "920bcc1e6ecac9404be6c15f0c85b17bed6d204aa94cb866f50e8bb128bf7706",
+    "evals/charter-writer/cases/W1/a02.md": "1c216f2c394d404856a68342c9d05ffe86777cd545e343ededb194232ae0df2c",
+    "evals/charter-writer/cases/W1/brief.md": "408982324d8b321246cd808c86d032b613f263f4c5863002b07b9a449378e38c",
+    "evals/charter-writer/cases/W1/case.json": "b858f95b737caed3a17d643f847ea38389b2a58ba4e09045ea88e64264c764fb",
+    "evals/charter-writer/cases/W1/confirmed.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-writer/cases/W1/r1.json": "ffc2595950fa2fcb9aa7fb57a1bf4ae3ec7c2e1b59ca1a669be77e271f41bcb2",
+    "evals/charter-writer/cases/W1/r2.json": "bc9b930eef692832732ebf293a43c11a336f3b57ddbf551f6abd3d2ecb85aacc",
+    "evals/charter-writer/cases/W1/r3.json": "728d09fd14479b3694e28fc77380e89cd5a5e9164aa5d8311a6065b41a1eb6ca",
+    "evals/charter-writer/cases/W1/returns-sample.txt": "fda8fe8584d672f3a6d622dab3c21c73c5d2ff1788e9820ea48c07ac3ceffafe",
+    "evals/charter-writer/cases/W2/a02.md": "c6e8e4768c62d7af75ebe1027ff98975d8ef551f3f6a5b033b85bf966fda4c8b",
+    "evals/charter-writer/cases/W2/a03.md": "11e3cb8f4ab4740f2236da7e7f67a0e3444c833eb835711e14a38fc422682815",
+    "evals/charter-writer/cases/W2/brief.md": "0af848834680f478bc1ca02f4f005cc24b92d3e3a4a9862ec1e9e7a670d54249",
+    "evals/charter-writer/cases/W2/case.json": "4b651d24660a0f16bd2fdb04d8d77764d3d2ff82a96168a8cc53289e7153c4e4",
+    "evals/charter-writer/cases/W2/confirmed.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-writer/cases/W2/r1.json": "994f596a6d8b2ba1f52eda7828ee8ede5cafbfd4b04e3dddb8b425baae23ccfd",
+    "evals/charter-writer/cases/W2/r2.json": "b937081a5074672715a8764e795df6298673b4df9bbce339158ad650d2d2b98a",
+    "evals/charter-writer/cases/W2/r3.json": "ca40afcf4ad3f7f657bd1c8ba0da8f59c6c97692c8fdba04775d89f12248c871",
+    "evals/charter-writer/cases/W2/r4.json": "0bdd83d4b4d596c82b0fd592b6b60509a7029c81f4f188490fa0d1d9c6e3e827",
+    "evals/charter-writer/cases/W2/walking-rota.txt": "bc19154b9bb9c9ded4d0b8f8985f472329e381d451f122f235e98ca497bd3f3a",
+    "evals/charter-writer/cases/W3/case.json": "738b11733451808af6f2b0fea2f67cbb181a8ed161a74e5f9bf4c3b8219d8e1e",
+    "evals/charter-writer/cases/W3/job/brief.md": "e0103e296f6dfee256166f44e3ac28952091b6535e78e2f2423842f273258b02",
+    "evals/charter-writer/cases/W3/job/gates/readiness-override.json": "7da497a0a0b39bdd58b7be0cbf9818a90e3ac649c975164f688a4f9bc59f6675",
+    "evals/charter-writer/cases/W3/job/inputs/A01-brief.md": "3a64bc7a64d220f613a32a5e5f679c87e1aab6737a1cf45f6c1652e52bb69d13",
+    "evals/charter-writer/cases/W3/job/inputs/A02-20261103-intake-evening-repairs-answer-r1-1.md": "8ad728e25ce2997a968218682b132a185d8a8f81af071ce18cdf1be7ca94dd72",
+    "evals/charter-writer/cases/W3/job/inputs/A03-20261103-intake-evening-repairs-answer-r2-1.md": "81e8d8efb28851f9918c8443b895d157ca16296ab6b4a489dc24b90fc163e862",
+    "evals/charter-writer/cases/W3/job/questions/q-1.md": "3bd3a63520ba82bc0db22642a089e32c30b55c5b9a5d3522d9de305615ede1d2",
+    "evals/charter-writer/cases/W3/job/questions/q-2.md": "beaf971438766bde0f20e39a2fd4901017b518a06808dcb31f7bbdf3e2d7cdf2",
+    "evals/charter-writer/cases/W3/job/research/interviewer-C003.json": "dc3f61008eef96ea802b0ae86ecd3565522828c43511bde82cef2d9ada761179",
+    "evals/charter-writer/cases/W3/job/run.log.jsonl": "fe3be4b761e5a13bd11158fb8c89032477d4265df328da1caea078e9497df857",
+    "evals/charter-writer/cases/W3/job/scripts/01-readiness-1.json": "20c7f96f31b0fc2465f865e6b0c86c9bef4b5c5054280bfef9e8f78868b04d1e",
+    "evals/charter-writer/cases/W3/job/scripts/01-readiness-2.json": "0d038cf4460e39db700d9c7b89f4a9983f3f1140cf0e18d042ab5439e6d403da",
+    "evals/charter-writer/cases/W3/job/state.json": "b8b6419489a699387d5303b15f11454bd58381c7bffaab5bbb5cd25ccad65313",
+    "evals/charter-writer/cases/W4/a02.md": "c89c54183cdde3acd17d4192010e85eb37b09e7fc8609c99b682476cef124743",
+    "evals/charter-writer/cases/W4/brief.md": "64fe22b758cc6af7ddc6d457068f10a80dca3012fdb2332f8fa8394b0bd4a8cb",
+    "evals/charter-writer/cases/W4/case.json": "ae662e689cca6ee614d0a7fefd74017af242fcf5ca738c5d52ef5f3f5332bf40",
+    "evals/charter-writer/cases/W4/confirmed.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-writer/cases/W4/r1.json": "57ae9d4cf3f2680667af41591365607f60512de13b9f7aef2992ad1c83644769",
+    "evals/charter-writer/cases/W4/r2.json": "9d76ea7ead80177d1a256e67eb02a575d546120a928395c0962667e4669aaaaf",
+    "evals/charter-writer/cases/W4/r3.json": "ecea0b1b5f17e58f639c51b144db718d779a8025c2e227ff10e4afbd8325d34e",
+    "evals/charter-writer/cases/W4/requests-week.txt": "578ddcadd0dd2e8b76c8340be1e64a0e35e4e5794ed8346904bec1a8ba0e8539",
+    "evals/charter-writer/cases/W5/a02.md": "42f38ca17cc63cbd1ea86e2b2a52c39737863173140044f5d2fe49ebe5e201bd",
+    "evals/charter-writer/cases/W5/brief.md": "8e70b931f56b94568e43a22aaf79c5feeb44dafa84a4d624597518aa5e7f3115",
+    "evals/charter-writer/cases/W5/case.json": "ecadaadf25b2e7e764847271a0aa783cac96382e86ee54c073b072e82e5f3aea",
+    "evals/charter-writer/cases/W5/confirmed.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-writer/cases/W5/r1.json": "ffc2595950fa2fcb9aa7fb57a1bf4ae3ec7c2e1b59ca1a669be77e271f41bcb2",
+    "evals/charter-writer/cases/W5/r2.json": "baed8adb5d4a8be2c452cb939218c57d6e6cb9e8a1d8aa05602fbdf7c125d703",
+    "evals/charter-writer/cases/W5/r3.json": "066c93fa756155ec5e36cfa0453e4c61aa3542f9d629b2fe60e9bd09610b7015",
+    "evals/charter-writer/cases/W6/a02.md": "4fa9918c5231c1ed67febcecb65708166ab91cc47c3b8904fdfabe0620dd19e4",
+    "evals/charter-writer/cases/W6/brief.md": "63117e22122786e1c81cc2e448147649101e268b1de1c4473e6b9bbb93890b36",
+    "evals/charter-writer/cases/W6/case.json": "c91bec8a04494202754d4b2e02ea45c71a9e21e53dbdd8d83a5045b56ab7c120",
+    "evals/charter-writer/cases/W6/confirmed.md": "69e7c0e7aec21d39d287dea4a221e32778d9ddefa016dae653f14a020be23f67",
+    "evals/charter-writer/cases/W6/r1.json": "e90df7c361f53ed8e9c648f57b7cbf587772d5099ba497d0aaf583d5aa2729b9",
+    "evals/charter-writer/cases/W6/r2.json": "eb3d5445455bab6d8b503e44640067247e365eb5f9669b62d60213d0a2fd66e8",
+    "evals/charter-writer/cases/W6/r3.json": "a95aff8ba170f9c965ea37f94547abff9238049848a3763653eee2989f5df01b",
+    "evals/charter-writer/cases/W6/rota-board.txt": "fbb0e16f345f45350877e7e76addfd263ffef8efe426eb4a3d5fe782107f126a",
+    "evals/charter-writer/cases/W6/swap-messages.txt": "e96671b20c80fe804235d2937df8463e5eb5ec3f3f6405f6cf7656321ed5a78c",
+    "evals/charter-writer/cases/W6/volunteer-handbook.txt": "35c678aea2b332d6eec037c09adbcc17a73579f0d97433ff5724daabbbf7d10c",
+    "evals/charter-writer/keys/W1.json": "92626532e5274c636aab624844915ef2069d310f0d6299788b14464bd307dff3",
+    "evals/charter-writer/keys/W2.json": "693a026e8f70633f60749d41ef611c086f077e886b58e724f7cbc70b489c87c1",
+    "evals/charter-writer/keys/W3.json": "5ea9c70ca468e4490e709ef7062de0e2bdf5bd0c36892c0fd72e1f3a717bb82c",
+    "evals/charter-writer/keys/W4.json": "697dd934af69db61c3f52f194e9223030b1619590fe7592a364e8b3a666e8747",
+    "evals/charter-writer/keys/W5.json": "01bd6d5d1842985f5120554f5102eb07ed7c7fc554944c72f266e524299caa4d",
+    "evals/charter-writer/keys/W6.json": "6f3c1ef1a71b3727244ac96bcee2cbfe47f2194332b6107c8bb1d7dd6c12f2cc",
+    "evals/thresholds.json": "e0e93353665e3e943a400204903dde00e1f022221258cbe8d2413fd03624a7a6",
+    "evals/run_evals.py": "394025305a76678fc5ac0890d9ee31b8e3ccf77046ce6597634c3f6b1879e7c2",
+    "evals/jobsim.py": "d64fb23b84393c9040611e03cbcc2fe044e7fcb5aef264533d30bc336c55e9be",
+    "evals/replay_cli.py": "8e8eae8e9cb2fbfd257783b82360280c1a4a97bf2753e8509a92401ddb8ab605"
+  }
+}

@@ -1,5 +1,14 @@
 # Engine changelog
 
+## 0.29.1 (2026-11-23)
+
+Two format gaps from writer quick pass 5, both recovered there by the re-ask (Samith's decision, 2026-11-23).
+
+- `schemas/charter.v1.md`: the Formats paragraph states that a system's `id` and each system in a gate's `before_write` are lowercase letters, digits and hyphens (as the schema already checked).
+- `.claude/agents/charter-writer.md`: a charter holds only the fields of the charter format, with no `job_id`, `status` or other handoff field; the JOB ID goes only in a `needs_input` answer.
+- `config/invalid-reports.json`: writer pass 5 attempt 1 (the CLI was not logged in; every call 0 tokens) is listed.
+- Critic, verifier and calibration agents, rulebooks, prompts and suite fingerprints unchanged.
+
 ## 0.29.0 (2026-11-17)
 
 Writer path fixes after writer quick pass 4 (Samith's decisions A1, B1, C1, D, E, 2026-11-17; C2 skipped).
