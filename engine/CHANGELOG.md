@@ -1,5 +1,17 @@
 # Engine changelog
 
+## 0.30.0 (2026-11-24)
+
+Interviewer fixes after interviewer quick pass 1, and the calibration-critic false-finding fix (Samith's decisions, 2026-11-24). One batch, one commit.
+
+- Round limits (`engine/labcore.py`, `rules/interview-guide.md`): an interviewing agent (`config/outputs.json` playback: true) with no question round left never gets a step it can't act on. An interview reported incomplete at the per-cycle limit, with lifetime rounds left, pauses the job (ESCALATED, `round_limit: cycle`) instead of going on to the readiness score; a resume starts a new cycle. At the lifetime limit the job escalates to the approver (`round_limit: lifetime`). A failed readiness score with no round left pauses the same way, with the fix ready for the resume and no fix attempt counted. An unreadable saved answer counts as incomplete. `schemas/job.schema.json`: `round_limit`.
+- `evals/jobsim.py`: the runner's one simulated resume also fires on the `cycle` pause (before, it waited for a fourth question round, which never came, so no interview was ever resumed).
+- `evals/run_evals.py`: a cached reviewer answer is scored again against the current key, so a report never carries a key's fingerprint with scores made against an earlier key.
+- `.claude/agents/interviewer.md`: a person's name is never turned into a role (ask which role); a contradiction is two statements about the same field that can't both hold; after a resume, open questions are gaps again.
+- Cases: calibration-critic E006 key adds CC01 (the planted line also cites a fact that doesn't support it); interviewer I09 context file no longer overlaps the persona's good example; I05 brief states the start time and the source of the estimated minutes. Reasons in each key.
+- Tuning list H10 (documentation): the test runner must refuse a second run in progress.
+- Tests: round-limit pause, resume, lifetime escalation, no readiness loop, unreadable answer; the runner's resume on the pause; cached answers rescored.
+
 ## 0.29.1 (2026-11-23)
 
 Two format gaps from writer quick pass 5, both recovered there by the re-ask (Samith's decision, 2026-11-23).

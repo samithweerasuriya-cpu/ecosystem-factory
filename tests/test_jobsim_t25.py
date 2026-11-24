@@ -255,6 +255,18 @@ class InterviewRunTests(JobSimBase):
         self.assertEqual(rep["metrics"]["resumes_per_case"], {"P1": [1]})
         self.assertEqual(c["wasted"], [2])
 
+    def test_an_incomplete_interview_at_the_cycle_limit_gets_the_one_simulated_resume(self):
+        # T2.5 (2026-11-24): the interviewer reports incomplete at the last round of a cycle; the job pauses (never
+        # readiness), the runner resumes once and the new cycle finishes the interview
+        self.fake("interviewer", self.ask("current_process"), self.ask("current_process"), self.ask("risk"),
+                  self.status(self.job, status="incomplete", playback=None), self.playback(self.job),
+                  self.status(self.job, playback="A05"))
+        rep, _ = self.interview()
+        c = rep["cases"][0]
+        self.assertEqual((c["outcomes"], c["resumes"], c["rounds"], c["ready_before_cap"]),
+                         (["ready"], [1], [4], [False]), c)
+        self.assertEqual(rep["metrics"]["agent_calls"], 6)
+
     def test_past_the_lifetime_cap_the_job_escalates_with_no_second_resume(self):
         self.fake("interviewer", *[self.ask("current_process")] * 8)
         key = self.persona_key(expect={"outcome": "escalated", "open_questions": ["current_process"]})

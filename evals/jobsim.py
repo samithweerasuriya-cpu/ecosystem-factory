@@ -360,7 +360,8 @@ def drive(root, job, key, persona, rec, until, max_calls=None, cmd=None):
         elif s == "ESCALATED":
             if rec.get("last_status") == "stopped":
                 return "stopped"
-            cycle_cap = st["counters"].get("cycle_input_rounds", 0) > c["input_rounds_per_cycle"]
+            cycle_cap = (st.get("round_limit") == "cycle"           # T2.5: the interviewer's pause at the limit
+                         or st["counters"].get("cycle_input_rounds", 0) > c["input_rounds_per_cycle"])
             if cycle_cap and rec["resumes"] < SIMULATED_RESUMES:
                 simulated_resume(root, job)
                 rec["resumes"] += 1

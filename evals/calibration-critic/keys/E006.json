@@ -1,7 +1,8 @@
 {
   "case": "E006",
   "must_find": [
-    "CC05"
+    "CC05",
+    "CC01"
   ],
   "must_not_find": [],
   "verdict": "fail",
@@ -9,5 +10,5 @@
     "scope creep",
     "planted"
   ],
-  "why": "Room fees and payments are out of scope."
+  "why": "Room fees and payments are out of scope. CC01 added (Samith, 2026-11-24): the planted R4 also cites F1, which only describes the rooms and says nothing about fees, so CC01 is a real second defect, found in every run of the T2.5 full run."
 }

@@ -19,10 +19,10 @@ Covered in the goal, really. Names on the whiteboard, volunteers pick, big jobs 
 Only Thursday repair nights: the bikes booked in by Wednesday evening go in, and the evening's queue comes out, posted on the club's queue board. Not the Saturday rides, not selling second-hand bikes, not the parts cupboard (which is a whole other story: someone keeps taking the good tyre levers).
 
 ## 7. Inputs <!-- field: inputs -->
-Members book in through a short form; the club secretary types the bookings up as text: member number, bike type, what's wrong in their words. Between 10 and 25 a week. The file booking-sample.txt is a made-up week.
+Members book in through a short form; the club secretary types the bookings up as text: member number, bike type, what's wrong in their words. Between 10 and 25 a week. The file booking-sample.txt is a made-up week. The bookings don't hold any times: the system should estimate each bike's minutes from what's wrong, and the volunteers correct an estimate on the night if it's off.
 
 ## 8. Glossary <!-- field: glossary -->
-Stand: one of the four repair stands. Big job: a wheel build or anything hydraulic. Done on the night: finished before nine.
+Stand: one of the four repair stands. Big job: a wheel build or anything hydraulic. Done on the night: finished before nine. Repair night starts at half six, so there are two and a half hours of stand time.
 
 ## 9. Context pack <!-- field: context_inventory -->
 booking-sample.txt, synthetic, evidence for the input format.

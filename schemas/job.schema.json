@@ -150,6 +150,10 @@
       "description": "set by engine/gate.py hold (T0.16): the job waits at ESCALATED until gate.py resume",
       "properties": {"note": {"type": "string"}, "at": {"type": "string"}, "by": {"type": "string"}}
     },
+    "round_limit": {
+      "enum": ["cycle", "lifetime"],
+      "description": "set when an interviewing agent has no question round left (T2.5): cycle = paused for a resume, which starts a new cycle; lifetime = escalated to the approver. Cleared on resume"
+    },
     "resume_to": {
       "type": [
         "string",

@@ -72,8 +72,9 @@ order. Never ask about something already answered.
 Every question round, the playback included, counts against `input_rounds_per_cycle` (3, reset on resume) and
 `input_rounds` (5, lifetime) in `config/caps.json`; the engine enforces both. In the last round the caps allow, ask
 only "you must answer" gaps. When the limit is reached, every remaining gap becomes an open question with an owner
-(a role from users and stakeholders, else the problem owner), the interviewer reports the interview incomplete, and
-the job escalates to the approver. It never continues past the limit and never fills a gap to finish.
+(a role from users and stakeholders, else the problem owner) and the interviewer reports the interview incomplete.
+At the per-cycle limit, with lifetime rounds left, the job pauses for a resume, which starts a new cycle; at the
+lifetime limit it escalates to the approver. It never continues past the limit and never fills a gap to finish.
 
 ---
 

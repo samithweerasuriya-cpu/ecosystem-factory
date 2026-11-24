@@ -803,7 +803,11 @@ def run(name, mode="full", estimate_only=False, use_cache=True, only=None, out=p
             if spent >= ceiling:
                 stopped = f"token ceiling reached ({spent:,} >= {ceiling:,})"
         else:
+            # T2.5 (2026-11-24): a cached answer is scored again against the current key, so a report never
+            # carries a key's fingerprint with scores made against an earlier key
             rec = {**cached, "cached": True}
+            if cached.get("status") == "done" and isinstance(cached.get("text"), str):
+                rec["score"] = score(cached["text"], s, c, schema)
         run_records.append(save_run_record(name, rec))
         results[c["id"]].append(rec)
     if stopped:

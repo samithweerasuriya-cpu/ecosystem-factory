@@ -676,6 +676,44 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             return paused
         return None
 
+    def round_limit(resume_to):
+        """T2.5 (Samith, 2026-11-24; interview guide "Round limit"): an interviewing agent (outputs.json playback:
+        true) with no question round left never gets a step it can't act on. With lifetime rounds left the job
+        pauses for a resume, which starts a new cycle; at the lifetime limit it escalates to the approver. None
+        while a round is left this cycle and in the job's lifetime."""
+        nonlocal capmsg
+        for k in ("input_rounds_per_cycle", "input_rounds"):
+            if not isinstance(c.get(k), int):
+                raise LabError(f"config/caps.json has no {k} cap: refused (fails closed)")
+        cn = st["counters"]
+        lifetime = cn.get("input_rounds", 0) >= c["input_rounds"]
+        if not lifetime and cn.get("cycle_input_rounds", 0) < c["input_rounds_per_cycle"]:
+            return None
+        st["round_limit"] = "lifetime" if lifetime else "cycle"
+        capmsg = (f"round limit: input_rounds={c['input_rounds']} reached; the approver decides" if lifetime else
+                  f"round limit: input_rounds_per_cycle={c['input_rounds_per_cycle']} reached; a resume starts a "
+                  "new cycle")
+        st["resume_to"] = resume_to
+        extra["round_limit"] = st["round_limit"]
+        return "ESCALATED"
+
+    def interviewing(agent):
+        return outputs().get(agent, {}).get("playback") is True
+
+    def reported_incomplete():
+        """The step's saved answer from an interviewing agent says "incomplete" (an unreadable one fails closed
+        as incomplete)."""
+        if not interviewing(st["stage"]):
+            return False
+        done = [x for x in _visit_calls(st) if x["agent"] == st["stage"] and x.get("output")]
+        if not done:
+            return False
+        try:
+            doc = json.loads((ROOT / done[-1]["output"]["path"]).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return True
+        return not isinstance(doc, dict) or doc.get("status") == "incomplete"
+
     def revision(kind_counter=None, kind_cap=None):
         """One more revision: per-kind cap (reviews only), cycle total, job lifetime."""
         return ((cap(kind_counter, kind_cap, "REVISING") if kind_counter else None)
@@ -744,6 +782,7 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             st["counters"][k] = 0
         st["counters"]["agent_calls"] = 0
         st["resume_to"] = None
+        st.pop("round_limit", None)
     elif (cur, event) == ("NEW", "plan"):
         new = "PLANNED"
     elif (cur, event) == ("PLANNED", "dispatch"):
@@ -760,10 +799,12 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
             open_items = [k for k, v in fo["items"].items() if v["status"] not in ("done", "failed")]
             if open_items:
                 raise LabError(f"fanout items not yet returned: {open_items}")
-        if st["stage_index"] >= len(work) - 1:
-            raise LabError("last work stage: use artifact_ready")
-        new = enter_stage(st["stage_index"] + 1)
-        st["counters"]["infra_errors"] = 0
+        new = round_limit("WORKING") if reported_incomplete() else None   # T2.5: pause, never on to readiness
+        if not new:
+            if st["stage_index"] >= len(work) - 1:
+                raise LabError("last work stage: use artifact_ready")
+            new = enter_stage(st["stage_index"] + 1)
+            st["counters"]["infra_errors"] = 0
     elif (cur, event) == ("WORKING", "artifact_ready"):
         if st["stage_index"] != len(work) - 1 or st["fixing"]:
             raise LabError(f"work stages remain; current stage {st['stage']}")
@@ -775,13 +816,19 @@ def apply(job_id, event, artifact=None, note=None, actor="orchestrator", _human=
     elif (cur, event) == ("WORKING", "script_fail"):
         if not script_stage():
             raise LabError("script_fail only on a script stage")
-        new = cap("fix_attempts", "fix_attempts", "WORKING") or "WORKING"
-        if new == "WORKING":
+        # T2.5: never back to an interviewing agent with no question round left; the pause keeps the fix ready,
+        # so a resume (a new cycle) goes straight to it, and no fix attempt is counted
+        new = round_limit("WORKING") if interviewing(r["fix_with"]) else None
+        if new:
             st["fixing"], st["stage_kind"], st["stage"] = True, "fix", r["fix_with"]
+        else:
+            new = cap("fix_attempts", "fix_attempts", "WORKING") or "WORKING"
+            if new == "WORKING":
+                st["fixing"], st["stage_kind"], st["stage"] = True, "fix", r["fix_with"]
     elif (cur, event) == ("WORKING", "fixed"):
         if not st["fixing"]:
             raise LabError("no fix in progress")
-        new = enter_stage(st["stage_index"])
+        new = (round_limit("WORKING") if reported_incomplete() else None) or enter_stage(st["stage_index"])
     elif cur in CALL_STATES and event == "infra_error":
         new = cap("infra_errors", "infra_retries", cur, paused="BLOCKED") or cur
         last = _visit_calls(st)

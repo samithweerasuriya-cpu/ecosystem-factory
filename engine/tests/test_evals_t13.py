@@ -102,6 +102,19 @@ class RunnerTests(EvalBase):
         self.run_suite()
         self.assertEqual(len(self.calls()), 45)                            # only the changed case runs again
 
+    def test_a_cached_answer_is_scored_again_against_the_current_key(self):
+        # T2.5 (2026-11-24): a key edited after a run changes the score of its cached runs, with no new call
+        self.respond(E002=answer("E002", ["CC01", "CC02"], "fail"))
+        rep, _ = self.run_suite()
+        self.assertEqual(rep["metrics"]["false_findings_all_runs"], 3)
+        f = self.tmp / f"evals/{SUITE}/keys/E002.json"
+        key = json.loads(f.read_text(encoding="utf-8"))
+        key["must_find"].append("CC02")
+        f.write_text(json.dumps(key), encoding="utf-8")
+        rep, _ = self.run_suite()
+        self.assertEqual((rep["metrics"]["false_findings_all_runs"], rep["usage"]["cached"], len(self.calls())),
+                         (0, 21, 21))
+
     def test_quick_mode_runs_once_and_partial_runs_never_count(self):
         rep, _ = self.run_suite("quick")
         self.assertEqual((len(self.calls()), rep["mode"], rep["metrics"]["runs"]), (7, "quick", 7))

@@ -1,0 +1,383 @@
+{
+  "suite": "calibration-critic",
+  "mode": "full",
+  "ts": "2026-11-24T08:22:59+00:00",
+  "model": "claude-opus-5-5",
+  "cli_version": "2.1.308 (Claude Code)",
+  "handoff_format": 2,
+  "models_reported": [
+    "claude-opus-5-5"
+  ],
+  "agent": {
+    "path": "evals/agents/calibration-critic.md",
+    "sha256": "a00ae56faca01c5a687d74ea223236c33b60a754d854cf51122b0eedc1cdc579"
+  },
+  "rulebook": {
+    "path": "rules/calibration-critic.md",
+    "sha256": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c"
+  },
+  "thresholds": {
+    "recall_blocker_min": 1.0,
+    "recall_major_min": 0.8,
+    "false_fail_rate_max": 0.2,
+    "verdict_match_min": 0.85,
+    "invalid_output_rate_max": 0.05,
+    "false_finding_rate_max": 0.15
+  },
+  "threshold_failures": [],
+  "threshold_skipped": [
+    "recall_blocker: the rulebook has no blocker rules"
+  ],
+  "min_counts": {
+    "applies": false,
+    "need": {
+      "cases": 20,
+      "clean": 5
+    },
+    "have": {
+      "cases": 7,
+      "clean": 2
+    },
+    "met": null
+  },
+  "pass": true,
+  "metrics": {
+    "recall_per_rule": {
+      "CC01": 1.0,
+      "CC02": 1.0,
+      "CC03": 1.0,
+      "CC04": 1.0,
+      "CC05": 1.0
+    },
+    "recall_blocker": null,
+    "recall_major": 1.0,
+    "false_fail_rate": 0.0,
+    "verdict_match": 1.0,
+    "recall_per_run": 1.0,
+    "invalid_output_rate": 0.0,
+    "false_findings_all_runs": 1,
+    "findings_all_runs": 25,
+    "false_finding_rate": 0.04,
+    "cases": 7,
+    "clean_cases": 2,
+    "runs": 21,
+    "invalid_runs": 0,
+    "cases_passed": 7
+  },
+  "cases": [
+    {
+      "case": "E001",
+      "kind": "clean",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3452,
+        "max": 3548,
+        "mean": 3488
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E002",
+      "kind": "planted",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CC01"
+      ],
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3653,
+        "max": 3718,
+        "mean": 3681
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E003",
+      "kind": "planted",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CC02"
+      ],
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3796,
+        "max": 3869,
+        "mean": 3841
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E004",
+      "kind": "planted",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CC01",
+        "CC03"
+      ],
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        1
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3955,
+        "max": 4130,
+        "mean": 4059
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E005",
+      "kind": "planted",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CC04"
+      ],
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3467,
+        "max": 3502,
+        "mean": 3484
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E006",
+      "kind": "planted",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [
+        "CC01",
+        "CC05"
+      ],
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3604,
+        "max": 3651,
+        "mean": 3633
+      },
+      "cached_runs": 3
+    },
+    {
+      "case": "E007",
+      "kind": "clean",
+      "runs": 3,
+      "runs_passed": 3,
+      "pass": true,
+      "invalid_runs": 0,
+      "found": [],
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "false_findings_per_run": [
+        0,
+        0,
+        0
+      ],
+      "runs_recalled": "3 of 3",
+      "agreement": 1.0,
+      "tokens": {
+        "min": 3571,
+        "max": 3656,
+        "mean": 3600
+      },
+      "cached_runs": 3
+    }
+  ],
+  "usage": {
+    "calls": 21,
+    "cached": 21,
+    "tokens_new": 0,
+    "tokens_all": 77363,
+    "cost_usd_estimate_all": 0.4905,
+    "estimate_tokens": 0
+  },
+  "run_records": [
+    "642ab3e74d1c003e77d0a1ab93df4fc9edc69f3d5e1a4a16a0aa35c97a01cdb9",
+    "4cd95a4fd871264cea07fac1c7109f6698e40b1c668164b1403acde588700d84",
+    "69389864788a71f9ea12a4735027e4b633750b7e628d1989e95ef1a7835ee870",
+    "1001bbfe17507fdc0b3264f67aa38a49164156c0f725dfcf1fa17f29f8de7d6b",
+    "9d31e3e97e67d20c934035e4abf5200bb9c7e0a5b918eff7407303a083c8f4e7",
+    "d6e1b6bcfb413db89e2ad0d7d96d3174d78f7271a862fd58662787605929197c",
+    "f1bb25cf0b5600ea8af26952a3072e944238d5aa7facda51ac90d40e245ee6ad",
+    "7475efcf5d46644ed40f40496b35e15d8df4f36bd04133bc2d4341058c6ee82e",
+    "a8147671cce28e7f5ccd27504ec9280f3d2370f4fec9d63eaa65f9e02955b8a4",
+    "dd3a5bb97ca02a287415e57d56c82ed4cc63186fd35c4da13dd5965cf83260d6",
+    "ed7ed74e5a79a85e0995e40b925fd6655c9f0b85c8f2f1c93a74469f6e202a59",
+    "00059f8106cf0485210b8646a2032a200d9ab71c52e543cce88ec60549267205",
+    "8031c9a53721a05535dd258da734e2045dba2fd964249f9e685997e69b4d1959",
+    "d9ecd0d1be43830e85393d161783d5e90291e2ef1d43c49ad11814d8e9999e99",
+    "984a1d10ad7bc7f108b4369d53d4dfcc5ca4ca971171fa6e1bc94b2889f5fba5",
+    "b3f74643521db1a1722508e525ce76900863e3797cd2d1f48ead92787bac650e",
+    "7faee0cfa86609baae7185df1e950428a43cb3a2276abc979f4859926c2f6367",
+    "ccfb46f6a885222193b26901d65c1f1a8456cdc9df001e3e439d74ba3c820b01",
+    "600658c454e2f57da7a93edf47d8cfb4d97e97f7a5d4f5e245c909fb581ba99f",
+    "1c02130e3d8a6057eb2115024089242f40578f651928ca9dcdda5119581e3822",
+    "0c7ae11d6ebc120fd67b2400e0aa11624b8489760671e18aa708255f670cbd98"
+  ],
+  "framework": {
+    ".claude/agents/charter-critic.md": "9d9cea0f04a1ea2898aafc9bfb52c47c2a19c4c2e693fcbfdcc0b4b4d8a0070a",
+    ".claude/agents/charter-verifier.md": "7995ad6e57ffd89ceb9821d7f68f4eec412b161defe63b2346f4858a067efa29",
+    ".claude/agents/charter-writer.md": "4f7a0384e756a2b8a0e8990292e7039c7cc163fb2f73ae567e99dc9f1aa97bad",
+    ".claude/agents/interviewer.md": "b9fc2f4e78accb1932decc2d3a5ef72c4d988bf2f6f43de369703645dad97340",
+    "rules/calibration-critic.md": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c",
+    "rules/charter-checklist.md": "a85648a32b93dbaca8102fb5489a0e785e225dd6602fddbdeef6122d81a0ea0d",
+    "rules/charter-verifier.md": "fb57d68c35a9643e090e8a356ae639b58a2e7c2edcd27d4c332aa4796e8c64bd",
+    "rules/check-evidence.md": "10374033a6eaae8ea92a84e7db34fad4c6b306f8edf22ee269271a5a365208e7",
+    "rules/check-refs.md": "7d9daaca1ba33af0df482528697fcc01aab53268c47af0e36a035c5e5766d105",
+    "rules/default-agent-rules.md": "3a690815306576b03d1312942275249cc7515674647781614cc2fc22fea63d8b",
+    "rules/demo-rulebook.md": "b7f2d0569807687c7874cd19ee778282fed2636a2e0a77f56cd11b854da6efa3",
+    "rules/gate-rules.md": "0221af685075221b7f98e03714aea25f3383e397d32a06e1321c9529ef68cbbe",
+    "rules/interview-guide.md": "a24ea5780a741f9270530330883585ee1b230db1020a85c4472383bcc37e0e59",
+    "rules/verifier-default.md": "2e97217afd1a14778893890495d190fc4a3d763cc75e0ac9c946815ad5e2b76f",
+    "schemas/blueprint.v0.md": "833eb31dfcebb51cd283c6c21a872b29b237218844325d0e39546c85cfb4971e",
+    "schemas/blueprint.v0.schema.json": "e7d7ba95ec3f538b9735a2a03ca984b1f70eb2b81247579df2db5d53a7e09fdb",
+    "schemas/charter.v0.md": "293f00460d0b614c47e9d9d851d55eb37990b1357fa8234a363255f71e38b336",
+    "schemas/charter.v0.schema.json": "0b5d428db9f33a371584e794b5356969cd1aed1c2b28b9c1df41517fd19e74d7",
+    "schemas/charter.v1.md": "7e7de40b2bde52810a13c183a925a14e99b9df4ead513b026adad16667eaa5d6",
+    "schemas/charter.v1.schema.json": "e31a7069742b370d0ad904cf9b91e424f85f88e0b2116f74799a792e72ee1f3d",
+    "schemas/examples/charter.v1.action-items.answers.json": "428799958d7929f5415007a7386d717f320c3166bac724d8f9a7c97da825c1b5",
+    "schemas/examples/charter.v1.action-items.json": "a3196068e122b1ca9eb884d465177dddfee6d39474a57158290e06c2f7cfcec9",
+    "schemas/examples/charter.v1.watering-rota.answers.json": "03fcf33f2959b5283d46dec78b37c2fdf0ce831fad716d7101880b21e62285f2",
+    "schemas/examples/charter.v1.watering-rota.json": "b11ea6e85b8fe23613961e863b5eca3c7c706bf8429895c21dae1605e17cfe45",
+    "schemas/findings.schema.json": "13f4421ce6edd3b0087d5267f781d5b752ab8cd6df846c5484fd3b83a762e120",
+    "schemas/interview-status.v1.schema.json": "aadccdba9e2f799e5bd97d1f101da1deb228e768f8e9e0a4113939512c47f25f",
+    "schemas/job.schema.json": "e8e01b7b36221e7c097b236e364318e6a1494f84a75abe7befbcbddabd5d587c",
+    "schemas/report-export.schema.json": "dcd593f7c74075843c22f96aca93226c6a82b8a89a91fd4d4068ca5fcb240cc0",
+    "schemas/route.schema.json": "d070a8821c96bfaccf7c09fb298494ba6e44fdec322d9cd864d6572d38924af9",
+    "config/caps.json": "c1f059bf798d116b253b97f0c7b19efac826f2ff50fb6889699da64b114bce60",
+    "config/context-pack.json": "3aaa7b50f48e509881a7cc034ac1fd75260f4855d419b3826d26452ac1cf48bb",
+    "config/data-classes.json": "859c3d91109d3454093b3ef57653e1363e2956cee2eb36cf3040ed7ec487d40b",
+    "config/doctor.json": "76d36855f5a0eb98cc9d527decb9d64073c86e97e1372b6ab3afe1b8a9ef6a42",
+    "config/evidence.json": "f14cffb5da95e4b4876772023b34e0a7130c8811f521c1a0fa0f206f3d328fe9",
+    "config/gated-actions.json": "c26f4906c14bf8be5858b2c89937c4a475ba59d673fedd6e819e9bcf9ddd9cb0",
+    "config/gates.json": "07697eea11f2819cea0be5f7bf2cc66d116e13dadc192d9125f770daf546506d",
+    "config/invalid-reports.json": "208b9b65158ac4ed076c05f89051ae6c6c676349abd573ec34f5ebff14c5c860",
+    "config/models.json": "a26bd7990ccf457e5c5dd04cf090fc0ab4c6dcc5be45e4b1390c852149a045dc",
+    "config/outputs.json": "acd47d37fe41b78865a1a2cca1dccdfdf19cdace85b64039eca0ff16a8243117",
+    "config/protected-paths.json": "ff30b7eb7e22b351fed45132884bf6ddc44ea172950b153d7d0c0e14fb4891ec",
+    "config/publish.json": "5c304412e9a3f2b124cc970614c2f93d3dd4ba73903d959cf82ee0274635c3c1",
+    "config/readiness.json": "62050d8337c056e85109cd47195d4c785da8f74bb66982d5c891caa198724a50",
+    "config/reviewers.json": "d28168e50b402b57209d60712396ccffacd022a26a3a47ba59b56a41c5380220",
+    "config/routes.json": "61764d1f918d472ee38a15df1a8b59bd6edf130ece20cbbeafaefa55ce488956",
+    "config/scripts.json": "db16e6c394ecb50d24aed411a2336474e6e85664a985a02d560696a903617ed6"
+  },
+  "suite_fingerprint": {
+    "evals/calibration-critic/suite.json": "22b1b0072a5432a7a93db1120e0ed44f963dfafac5656922ec461ec579f5e3b5",
+    "evals/calibration-critic/cases/E001/artifact.md": "084f0b305b14299b9b2cb8d4a17df9387c7389e74858cabf33004efa09edfaee",
+    "evals/calibration-critic/cases/E001/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E001/case.json": "97f3b8bacdceb2a825452ba997f7f373a013013dfb04605d9ed0391d1bc82af1",
+    "evals/calibration-critic/cases/E002/artifact.md": "de695f210770024ef52596a4a7fe1a37ffc3c4d03c578fd59a004046623e13fa",
+    "evals/calibration-critic/cases/E002/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E002/case.json": "4e342a9d700eebca55d68e3d46949a4f098d5edf4964e44ca887dc50b6933b48",
+    "evals/calibration-critic/cases/E003/artifact.md": "5651803f44be787098479906f5aa3b75db6086ae0989454a81270b5688dedad7",
+    "evals/calibration-critic/cases/E003/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E003/case.json": "a3f49f9b2edda6a669382aeb0ec3bf994ce8674d3031aac24aba897497d9a406",
+    "evals/calibration-critic/cases/E004/artifact.md": "1ab659d3e5b8485f3653e06cb0f4d2340f581d3614b7c9edd04f63088e8f6c20",
+    "evals/calibration-critic/cases/E004/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E004/case.json": "08cbfe7343c8da8f6b6428062911f58ebac16608dcadbc251bbc64190f2bd105",
+    "evals/calibration-critic/cases/E005/artifact.md": "f7b6d2ad641ec75037a30f0f3924b65598d6077b6e5c6894459229414dd4a3ff",
+    "evals/calibration-critic/cases/E005/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E005/case.json": "595e38ad557c3149774c8189f18390a22b1f682a12c069763416fb56994ec987",
+    "evals/calibration-critic/cases/E006/artifact.md": "25f05650ae7afa7b5d562fa183a30e9dba7edb56467dd8f04f7b9aa31b533f72",
+    "evals/calibration-critic/cases/E006/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E006/case.json": "2a46f9c5318b3f23fe6052913d82c774879c443db922edca5bc4e77c85047dbc",
+    "evals/calibration-critic/cases/E007/artifact.md": "27afb9a7a615d93c9d6edc4345e159ae4c31443e8d995f3ae01572bbd5d8bb6f",
+    "evals/calibration-critic/cases/E007/brief.md": "49e13c92bb8968d4ca252283fd416216e4cdc9a283ba13feccbb19df61b180e8",
+    "evals/calibration-critic/cases/E007/case.json": "1b05ab8a871d70c6112a0c3ba2691e594c2bb6ce2ec9f9d0be30cccf942832bb",
+    "evals/calibration-critic/keys/E001.json": "7a63380ae170ae35812e63d9af5d6ffa9da769c0bd8a00e1c8006d3691e04b3c",
+    "evals/calibration-critic/keys/E002.json": "9f2d4827b717ec524c2d8ff3b868c976678daa52c9ef13f0d42dda37b19fa291",
+    "evals/calibration-critic/keys/E003.json": "8f467649f6b3db328fef1e40ad98dfc10c73f85456843cfbd4d7f7369b778452",
+    "evals/calibration-critic/keys/E004.json": "49d3547afd3dfec44ca28d32b6af5d2eccb1679404580b51accf8f54b6e4203d",
+    "evals/calibration-critic/keys/E005.json": "3a85001f27812712d67e93d94e205142e570d8fbf3673ccb18597d3c355a34b6",
+    "evals/calibration-critic/keys/E006.json": "ecd603e6fff0834f006ae919e5a8a0ba83e14a71911cbceabd556ba7288f2e77",
+    "evals/calibration-critic/keys/E007.json": "bf3d6dd55e194dd8ed91526802a2d7ff89ce49995171e2ed567e244a2872913e",
+    "evals/thresholds.json": "e0e93353665e3e943a400204903dde00e1f022221258cbe8d2413fd03624a7a6",
+    "evals/run_evals.py": "5b0a01ba9f599345d6eaec47d44573037d86372c5c5e6ef087c072eea954e43c",
+    "evals/jobsim.py": "2fdcbfd7441e0e22beec5510d6b1a938dc4cf06db0b9664e09c6dd954283bff4",
+    "evals/replay_cli.py": "8e8eae8e9cb2fbfd257783b82360280c1a4a97bf2753e8509a92401ddb8ab605"
+  }
+}

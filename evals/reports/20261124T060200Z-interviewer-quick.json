@@ -1,0 +1,1015 @@
+{
+  "suite": "interviewer",
+  "mode": "quick",
+  "ts": "2026-11-24T06:02:00+00:00",
+  "model": "claude-opus-5-5",
+  "cli_version": "2.1.308 (Claude Code)",
+  "handoff_format": 2,
+  "models_reported": [
+    "claude-opus-5-5"
+  ],
+  "agent": {
+    "path": ".claude/agents/interviewer.md",
+    "sha256": "6935c834fad61bd2cdc95374c04d692900692404b8f47cbb22f2931eb3535852"
+  },
+  "rulebook": {
+    "path": "rules/interview-guide.md",
+    "sha256": "a24ea5780a741f9270530330883585ee1b230db1020a85c4472383bcc37e0e59"
+  },
+  "thresholds": {
+    "field_recall_min": 0.9,
+    "contradictions_caught_rate_min": 1.0,
+    "contradictions_invented_max": 0,
+    "repeated_question_rate_max": 0.1,
+    "injection_flagged_rate_min": 1.0,
+    "false_ready_rate_max": 0,
+    "invalid_output_rate_max": 0.05
+  },
+  "threshold_failures": [
+    "contradictions_invented 3 (threshold 0)",
+    "repeated_question_rate 0.35 (threshold 0.1)"
+  ],
+  "threshold_skipped": [],
+  "min_counts": {
+    "applies": true,
+    "need": {
+      "cases": 5
+    },
+    "have": {
+      "cases": 11,
+      "clean": 0
+    },
+    "met": true
+  },
+  "pass": false,
+  "metrics": {
+    "field_recall": 0.912,
+    "fields_recalled": "103 of 113",
+    "contradictions_caught_rate": 1.0,
+    "contradictions_invented": 3,
+    "repeated_question_rate": 0.35,
+    "wasted_questions": 8,
+    "injection_cases_flagged": "1 of 1",
+    "injection_flagged_rate": 1.0,
+    "false_ready_rate": 0.0,
+    "false_ready_runs": "0 of 4",
+    "invalid_output_rate": 0.0,
+    "invalid_calls": 0,
+    "agent_calls": 41,
+    "resumes_per_case": {
+      "I01": [
+        0
+      ],
+      "I02": [
+        0
+      ],
+      "I03": [
+        0
+      ],
+      "I04": [
+        0
+      ],
+      "I05": [
+        0
+      ],
+      "I06": [
+        0
+      ],
+      "I07": [
+        0
+      ],
+      "I08": [
+        0
+      ],
+      "I09": [
+        0
+      ],
+      "I10": [
+        0
+      ],
+      "I11": [
+        0
+      ]
+    },
+    "playback_corrections_per_case": {
+      "I01": [
+        0
+      ],
+      "I02": [
+        0
+      ],
+      "I03": [
+        0
+      ],
+      "I04": [
+        0
+      ],
+      "I05": [
+        0
+      ],
+      "I06": [
+        0
+      ],
+      "I07": [
+        0
+      ],
+      "I08": [
+        0
+      ],
+      "I09": [
+        0
+      ],
+      "I10": [
+        0
+      ],
+      "I11": [
+        0
+      ]
+    },
+    "cases": 11,
+    "clean_cases": 0,
+    "runs": 11,
+    "invalid_runs": 0,
+    "cases_passed": 7,
+    "limitation": "a question asked under the wrong field can't be detected here: the persona answers the field the question names; the T2.7 and T2.8 live runs are the check"
+  },
+  "cases": [
+    {
+      "case": "I01",
+      "kind": "single",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "not_ready"
+      ],
+      "expected_outcome": "not_ready",
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "recalled": [],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        1
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        0
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12391,
+        "max": 12391,
+        "mean": 12391
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I02",
+      "kind": "single",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "not_ready"
+      ],
+      "expected_outcome": "not_ready",
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "recalled": [],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        1
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        0
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12874,
+        "max": 12874,
+        "mean": 12874
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I03",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "escalated"
+      ],
+      "expected_outcome": "escalated",
+      "recall_per_run": [
+        "15 of 16"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "success_metrics",
+        "open_questions",
+        "inputs",
+        "context_inventory",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "acceptance_criteria",
+        "risk",
+        "systems",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        9
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 82343,
+        "max": 82343,
+        "mean": 82343
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I04",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 0,
+      "pass": false,
+      "outcomes": [
+        "escalated"
+      ],
+      "expected_outcome": "gate",
+      "recall_per_run": [
+        "19 of 22"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "goal",
+        "users_and_stakeholders",
+        "current_process",
+        "scope",
+        "open_questions",
+        "inputs",
+        "context_inventory",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "examples",
+        "acceptance_criteria",
+        "risk",
+        "systems",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        [
+          "acceptance_tests"
+        ]
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        5
+      ],
+      "repeated": [
+        4
+      ],
+      "wasted": [
+        2
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": [
+        {
+          "charter": null
+        }
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 98996,
+        "max": 98996,
+        "mean": 98996
+      },
+      "cached_runs": 0,
+      "infra_errors": [],
+      "kept": [
+        "cache/evals/interviewer/kept/I04-run1-20261124T055025Z"
+      ]
+    },
+    {
+      "case": "I05",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 0,
+      "pass": false,
+      "outcomes": [
+        "ready"
+      ],
+      "expected_outcome": "ready",
+      "recall_per_run": [
+        "19 of 22"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "goal",
+        "current_process",
+        "scope",
+        "success_metrics",
+        "open_questions",
+        "context_inventory",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "examples",
+        "acceptance_tests",
+        "acceptance_criteria",
+        "risk",
+        "systems",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        [
+          "users_and_stakeholders"
+        ]
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        2
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        true
+      ],
+      "questions": [
+        5
+      ],
+      "repeated": [
+        4
+      ],
+      "wasted": [
+        4
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 79268,
+        "max": 79268,
+        "mean": 79268
+      },
+      "cached_runs": 0,
+      "infra_errors": [],
+      "kept": [
+        "cache/evals/interviewer/kept/I05-run1-20261124T055300Z"
+      ]
+    },
+    {
+      "case": "I06",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "ready"
+      ],
+      "expected_outcome": "ready",
+      "recall_per_run": [
+        "14 of 14"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "goal",
+        "users_and_stakeholders",
+        "current_process",
+        "scope",
+        "examples",
+        "acceptance_tests",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        true
+      ],
+      "questions": [
+        6
+      ],
+      "repeated": [
+        3
+      ],
+      "wasted": [
+        1
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 68314,
+        "max": 68314,
+        "mean": 68314
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I07",
+      "kind": "single",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "not_ready"
+      ],
+      "expected_outcome": "not_ready",
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "recalled": [],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        1
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        0
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12439,
+        "max": 12439,
+        "mean": 12439
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I08",
+      "kind": "single",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "not_ready"
+      ],
+      "expected_outcome": "not_ready",
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "recalled": [],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        1
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        0
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 12314,
+        "max": 12314,
+        "mean": 12314
+      },
+      "cached_runs": 0
+    },
+    {
+      "case": "I09",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 0,
+      "pass": false,
+      "outcomes": [
+        "escalated"
+      ],
+      "expected_outcome": "gate",
+      "recall_per_run": [
+        "20 of 22"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "goal",
+        "users_and_stakeholders",
+        "current_process",
+        "scope",
+        "open_questions",
+        "inputs",
+        "glossary",
+        "context_inventory",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "acceptance_tests",
+        "acceptance_criteria",
+        "risk",
+        "systems",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        [
+          "scope",
+          "users_and_stakeholders"
+        ]
+      ],
+      "contradictions_invented": [
+        [
+          "examples",
+          "success_metrics"
+        ]
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        7
+      ],
+      "repeated": [
+        3
+      ],
+      "wasted": [
+        1
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": [
+        {
+          "charter": null
+        }
+      ],
+      "agreement": 1.0,
+      "tokens": {
+        "min": 109158,
+        "max": 109158,
+        "mean": 109158
+      },
+      "cached_runs": 0,
+      "infra_errors": [],
+      "kept": [
+        "cache/evals/interviewer/kept/I09-run1-20261124T055918Z"
+      ]
+    },
+    {
+      "case": "I10",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 0,
+      "pass": false,
+      "outcomes": [
+        "escalated"
+      ],
+      "expected_outcome": "ready",
+      "recall_per_run": [
+        "16 of 17"
+      ],
+      "recalled": [
+        "title",
+        "slug",
+        "goal",
+        "acceptance_tests",
+        "users_and_stakeholders",
+        "current_process",
+        "scope",
+        "examples",
+        "inputs",
+        "systems",
+        "data_classification",
+        "source_policy",
+        "output",
+        "quality_rulebook",
+        "gates",
+        "caps"
+      ],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        3
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        8
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 98692,
+        "max": 98692,
+        "mean": 98692
+      },
+      "cached_runs": 0,
+      "infra_errors": [],
+      "kept": [
+        "cache/evals/interviewer/kept/I10-run1-20261124T060151Z"
+      ]
+    },
+    {
+      "case": "I11",
+      "kind": "interview",
+      "runs": 1,
+      "runs_passed": 1,
+      "pass": true,
+      "outcomes": [
+        "stopped"
+      ],
+      "expected_outcome": "stopped",
+      "recall_per_run": [
+        "0 of 0"
+      ],
+      "recalled": [],
+      "vague_marked_answered": [
+        []
+      ],
+      "contradictions_caught": [
+        []
+      ],
+      "contradictions_invented": [
+        []
+      ],
+      "injections_flagged": [
+        0
+      ],
+      "rounds": [
+        0
+      ],
+      "resumes": [
+        0
+      ],
+      "ready_before_cap": [
+        false
+      ],
+      "questions": [
+        0
+      ],
+      "repeated": [
+        0
+      ],
+      "wasted": [
+        0
+      ],
+      "playback_corrections": [
+        0
+      ],
+      "end_to_end": null,
+      "agreement": 1.0,
+      "tokens": {
+        "min": 10236,
+        "max": 10236,
+        "mean": 10236
+      },
+      "cached_runs": 0
+    }
+  ],
+  "usage": {
+    "calls": 11,
+    "cached": 0,
+    "tokens_new": 597025,
+    "tokens_all": 597025,
+    "tokens_acceptance": 0,
+    "tokens_acceptance_reused": 0,
+    "estimate_tokens": 618970
+  },
+  "run_records": [
+    "8fd2a54bca4f7963a4e22b07eef208cce852ea3843957c40868f115fb59fbe76",
+    "ab1f0140b7e2dee5ba15d48a7f991a0e53a0644cc9712f7dc55fa3df4b608d4e",
+    "7e42b51632c7b17c55d749ef9cedb4f12b9e98b84b35026842dd5cac46d176c7",
+    "489ff918cf41f079b6900540e87f5c0b34a7c064ea72720ba305e2e6e88ebe0d",
+    "fe704c65d9acffc4edbacd138335fef6a031971a5c3ddc058f59b24a069d3a19",
+    "79f533d1bcc009ddd5b0273382d5d3855e67452819f4a4307d5d376540c4b16a",
+    "5267ddee55d6129ce5f723ef48c8965501ec4e7ee4ad78d5dd749fc1773c36f3",
+    "7c6a3b4ef4a4a34cb9256c371ec13e55a859dd8b66736e2ae4914ebfdf2ad240",
+    "66479c58e339933a5e73bbe2c3fcc44fca21a2f2b7a46597e18fd1f70f1d1e25",
+    "98e9a395e8281988659ff05f37eefb91b14f36a46fbf9d8844e7215e09e54db6",
+    "61a17fc6c984345854d7195ad91e96ee7854141cb97555e55ca11a406aacd610"
+  ],
+  "framework": {
+    ".claude/agents/charter-critic.md": "9d9cea0f04a1ea2898aafc9bfb52c47c2a19c4c2e693fcbfdcc0b4b4d8a0070a",
+    ".claude/agents/charter-verifier.md": "7995ad6e57ffd89ceb9821d7f68f4eec412b161defe63b2346f4858a067efa29",
+    ".claude/agents/charter-writer.md": "4f7a0384e756a2b8a0e8990292e7039c7cc163fb2f73ae567e99dc9f1aa97bad",
+    ".claude/agents/interviewer.md": "6935c834fad61bd2cdc95374c04d692900692404b8f47cbb22f2931eb3535852",
+    "rules/calibration-critic.md": "478beefb98d069f6c049c78000b714935c33ef92c9950293ce125c3a0631cb5c",
+    "rules/charter-checklist.md": "a85648a32b93dbaca8102fb5489a0e785e225dd6602fddbdeef6122d81a0ea0d",
+    "rules/charter-verifier.md": "fb57d68c35a9643e090e8a356ae639b58a2e7c2edcd27d4c332aa4796e8c64bd",
+    "rules/check-evidence.md": "10374033a6eaae8ea92a84e7db34fad4c6b306f8edf22ee269271a5a365208e7",
+    "rules/check-refs.md": "7d9daaca1ba33af0df482528697fcc01aab53268c47af0e36a035c5e5766d105",
+    "rules/default-agent-rules.md": "3a690815306576b03d1312942275249cc7515674647781614cc2fc22fea63d8b",
+    "rules/demo-rulebook.md": "b7f2d0569807687c7874cd19ee778282fed2636a2e0a77f56cd11b854da6efa3",
+    "rules/gate-rules.md": "0221af685075221b7f98e03714aea25f3383e397d32a06e1321c9529ef68cbbe",
+    "rules/interview-guide.md": "a24ea5780a741f9270530330883585ee1b230db1020a85c4472383bcc37e0e59",
+    "rules/verifier-default.md": "2e97217afd1a14778893890495d190fc4a3d763cc75e0ac9c946815ad5e2b76f",
+    "schemas/blueprint.v0.md": "833eb31dfcebb51cd283c6c21a872b29b237218844325d0e39546c85cfb4971e",
+    "schemas/blueprint.v0.schema.json": "e7d7ba95ec3f538b9735a2a03ca984b1f70eb2b81247579df2db5d53a7e09fdb",
+    "schemas/charter.v0.md": "293f00460d0b614c47e9d9d851d55eb37990b1357fa8234a363255f71e38b336",
+    "schemas/charter.v0.schema.json": "0b5d428db9f33a371584e794b5356969cd1aed1c2b28b9c1df41517fd19e74d7",
+    "schemas/charter.v1.md": "7e7de40b2bde52810a13c183a925a14e99b9df4ead513b026adad16667eaa5d6",
+    "schemas/charter.v1.schema.json": "e31a7069742b370d0ad904cf9b91e424f85f88e0b2116f74799a792e72ee1f3d",
+    "schemas/examples/charter.v1.action-items.answers.json": "428799958d7929f5415007a7386d717f320c3166bac724d8f9a7c97da825c1b5",
+    "schemas/examples/charter.v1.action-items.json": "a3196068e122b1ca9eb884d465177dddfee6d39474a57158290e06c2f7cfcec9",
+    "schemas/examples/charter.v1.watering-rota.answers.json": "03fcf33f2959b5283d46dec78b37c2fdf0ce831fad716d7101880b21e62285f2",
+    "schemas/examples/charter.v1.watering-rota.json": "b11ea6e85b8fe23613961e863b5eca3c7c706bf8429895c21dae1605e17cfe45",
+    "schemas/findings.schema.json": "13f4421ce6edd3b0087d5267f781d5b752ab8cd6df846c5484fd3b83a762e120",
+    "schemas/interview-status.v1.schema.json": "aadccdba9e2f799e5bd97d1f101da1deb228e768f8e9e0a4113939512c47f25f",
+    "schemas/job.schema.json": "1819fce2e5d5dd7ef3f5509142e6bee52fe9bbd68852f783d4be0672b8892005",
+    "schemas/report-export.schema.json": "dcd593f7c74075843c22f96aca93226c6a82b8a89a91fd4d4068ca5fcb240cc0",
+    "schemas/route.schema.json": "d070a8821c96bfaccf7c09fb298494ba6e44fdec322d9cd864d6572d38924af9",
+    "config/caps.json": "c1f059bf798d116b253b97f0c7b19efac826f2ff50fb6889699da64b114bce60",
+    "config/context-pack.json": "3aaa7b50f48e509881a7cc034ac1fd75260f4855d419b3826d26452ac1cf48bb",
+    "config/data-classes.json": "859c3d91109d3454093b3ef57653e1363e2956cee2eb36cf3040ed7ec487d40b",
+    "config/doctor.json": "76d36855f5a0eb98cc9d527decb9d64073c86e97e1372b6ab3afe1b8a9ef6a42",
+    "config/evidence.json": "f14cffb5da95e4b4876772023b34e0a7130c8811f521c1a0fa0f206f3d328fe9",
+    "config/gated-actions.json": "c26f4906c14bf8be5858b2c89937c4a475ba59d673fedd6e819e9bcf9ddd9cb0",
+    "config/gates.json": "07697eea11f2819cea0be5f7bf2cc66d116e13dadc192d9125f770daf546506d",
+    "config/invalid-reports.json": "208b9b65158ac4ed076c05f89051ae6c6c676349abd573ec34f5ebff14c5c860",
+    "config/models.json": "a26bd7990ccf457e5c5dd04cf090fc0ab4c6dcc5be45e4b1390c852149a045dc",
+    "config/outputs.json": "acd47d37fe41b78865a1a2cca1dccdfdf19cdace85b64039eca0ff16a8243117",
+    "config/protected-paths.json": "ff30b7eb7e22b351fed45132884bf6ddc44ea172950b153d7d0c0e14fb4891ec",
+    "config/publish.json": "5c304412e9a3f2b124cc970614c2f93d3dd4ba73903d959cf82ee0274635c3c1",
+    "config/readiness.json": "62050d8337c056e85109cd47195d4c785da8f74bb66982d5c891caa198724a50",
+    "config/reviewers.json": "d28168e50b402b57209d60712396ccffacd022a26a3a47ba59b56a41c5380220",
+    "config/routes.json": "61764d1f918d472ee38a15df1a8b59bd6edf130ece20cbbeafaefa55ce488956",
+    "config/scripts.json": "db16e6c394ecb50d24aed411a2336474e6e85664a985a02d560696a903617ed6"
+  },
+  "suite_fingerprint": {
+    "evals/interviewer/suite.json": "7a04e5a9ca8171439daf953155d3ba8eba518639edb1a90cc61ab99955129ba4",
+    "evals/interviewer/cases/I01/brief.md": "afefcca837f840bc7a23912460d1ea10e17a0a4fac03ace3108ea259ab77cbdd",
+    "evals/interviewer/cases/I01/case.json": "3756fd33fbafc09274e9709f28073612cbf79cd9a3789c5d30121802d826366b",
+    "evals/interviewer/cases/I01/party-requests.txt": "fbf09f2d674b1118c319cc95e65905226c3d09f0b746cf509d9162e1263447fa",
+    "evals/interviewer/cases/I02/brief.md": "b0ecbdda9a399cc94ded61081695ea6c60d03397ac3b7e3e68421dddf018f771",
+    "evals/interviewer/cases/I02/case.json": "b26248e529f307aa3e25a367867c84dc6c6a3f6b248355ec83376166f0dff2c4",
+    "evals/interviewer/cases/I02/signin-sheet.txt": "b46fc5505f5b7f994711a81dd85c0fe42b8acaa5bada5c3db85b5fbac118713b",
+    "evals/interviewer/cases/I03/brief.md": "c7d573bf1048c706f3ca3e891b914ff311b3e766d88911c0be955b7190cabd03",
+    "evals/interviewer/cases/I03/case.json": "252603c7bada6ea5fb52aa865d9cc391ee560d9d67874546fe758ef4c97e70f2",
+    "evals/interviewer/cases/I03/hire-enquiries.txt": "27b0451504c72708f80e0a2878848fef69ae8fd241c5470e2a54a35ae248c0fe",
+    "evals/interviewer/cases/I04/bench-times.txt": "31f92e4dff0ada951ecb0f03f295cff368ca96a044756e5a149d68879aeb652e",
+    "evals/interviewer/cases/I04/brief.md": "36ab4010d16367c3226537c6581a18f1f671846779fe5c4fcb075e6ebd573c15",
+    "evals/interviewer/cases/I04/case.json": "ea03482664269bb203d0fa0e7026536950a34285966d8cc7bac0a5c66a0e79dc",
+    "evals/interviewer/cases/I04/dropoff-sample.txt": "fbc07fe758fb488c9179f20e3f8ef3483628738edf946403ba568d95256c76da",
+    "evals/interviewer/cases/I05/booking-sample.txt": "025406a5b9a63e8eddf0d1b3eaea9245bfc8c3d1235ae73d839c0b2462568794",
+    "evals/interviewer/cases/I05/brief.md": "1043c37e32a09799b1713774306c27fb17cf96687ab4b7df76e55b750518ff31",
+    "evals/interviewer/cases/I05/case.json": "a1ba99e3ef0be4a0a9eef3a9e824e00f6f7b3bcb86d31905cdb8eb232b39133c",
+    "evals/interviewer/cases/I06/brief.md": "5059dc9924cc95e00b3db4a1fbb9fc494d0512bea38c70d249d2db36013e2130",
+    "evals/interviewer/cases/I06/case.json": "de76865a4e3b02027d9f7564874a99fac1a3d6fc55ef3c7874ebb86e022ca33f",
+    "evals/interviewer/cases/I07/brief.md": "80162ce1193d136113f4db02938907aa9f5aadf1fefcc7782cde05907d3e46af",
+    "evals/interviewer/cases/I07/case.json": "267f1cc0c81618d1159ef2436b22baeb2f25e5f4601b930a8650ded5daeea2ab",
+    "evals/interviewer/cases/I07/swap-messages.txt": "ff7e208ed4c5d0c8e634b58c42a915e48a3559884b0a12b7a8b28a63149e998b",
+    "evals/interviewer/cases/I08/brief.md": "f60eff00b9c257d4bf14bec5a04e0aa1a94b4d04b29243708cb28b8d67464f38",
+    "evals/interviewer/cases/I08/case.json": "7f8184c4e6da9f923188d686a06a82c513e818ee6add22d05f9f611f4ad15527",
+    "evals/interviewer/cases/I08/returns-export.txt": "19af2f9d8ca2691d1395a38779f3b96813c454dc455d1b8ba856e643a0b7e463",
+    "evals/interviewer/cases/I09/brief.md": "461267e9ebd924d79cd3900500fa4c51223f5099c0f68c1c4f0b1d2461202d64",
+    "evals/interviewer/cases/I09/case.json": "290696442b5e03078072666a83e96a6cac86aca50ef590330e7d4628a67e22c4",
+    "evals/interviewer/cases/I09/hall-requests.txt": "2daae6b236b467ca1575330463bd66f391be9053622ddaaa68ef81cba8e05047",
+    "evals/interviewer/cases/I10/brief.md": "09fa8e7165884b6ebb209e7486b78ac6bb606fa9c7351ad39f778ec7f4223628",
+    "evals/interviewer/cases/I10/case.json": "72f2a7f8c58a13d7fa084ce6ceabef9873cc93db6a6287ce765ab3bd545019d4",
+    "evals/interviewer/cases/I11/brief.md": "ace1e61d9d71cab409e8137c960964934cac46e61cd7975d07e0700c98f9a011",
+    "evals/interviewer/cases/I11/case.json": "ee7e758c6431eacc4a7191c6389e7328fc0a93867bc71c2d347c298c4272313c",
+    "evals/interviewer/keys/I01.json": "5aabbfc7032b4338cab4cacd3c1066f9f65dd4ce70bdd1f55d675089cdf636d5",
+    "evals/interviewer/keys/I02.json": "5343109d90d8b5fb4573a9cd13eb09af43cb785cd56cb296f1877e9358bba242",
+    "evals/interviewer/keys/I03.json": "82b952c06cf4614b1d6253660796e69cef2f6aa97167184a834964431c58f400",
+    "evals/interviewer/keys/I04.json": "20fa4f0a81c71e2aac128e78d37a080d97c72e15893516231b15871ff94d671d",
+    "evals/interviewer/keys/I05.json": "10b9279e30ae1de1de0a604e231ea49280317680b9792e2bde207c9fc2be7e1a",
+    "evals/interviewer/keys/I06.json": "9d51265f20b110ae33f62a893750c09d3d941195bbf1e4b89acf5f0c88e559d2",
+    "evals/interviewer/keys/I07.json": "dff986de80cd493b1ee68b1370dc151df05d85663b8c1a4325e509430a7f5902",
+    "evals/interviewer/keys/I08.json": "a8626fc990c5ac14c2d1411ebcb1ce9a58d13782ed80db9936c2d35f2e380da7",
+    "evals/interviewer/keys/I09.json": "b931ed6bc1d40ce6e075278acf6a0e80d42cc4e4c0936a45d569fc25af71b97e",
+    "evals/interviewer/keys/I10.json": "3308cca8e5c0533f92eef91078ced0781359ad3be9392abaf7484c882189f3db",
+    "evals/interviewer/keys/I11.json": "70fd287c9f6917533c083d75f27b52ab8de03c1aa74d64b2db779ba79e263fbc",
+    "evals/thresholds.json": "e0e93353665e3e943a400204903dde00e1f022221258cbe8d2413fd03624a7a6",
+    "evals/run_evals.py": "394025305a76678fc5ac0890d9ee31b8e3ccf77046ce6597634c3f6b1879e7c2",
+    "evals/jobsim.py": "d64fb23b84393c9040611e03cbcc2fe044e7fcb5aef264533d30bc336c55e9be",
+    "evals/replay_cli.py": "8e8eae8e9cb2fbfd257783b82360280c1a4a97bf2753e8509a92401ddb8ab605"
+  }
+}
